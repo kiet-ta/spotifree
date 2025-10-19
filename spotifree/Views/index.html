@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/css/library.css" />
+</head>
+<body>
+    <nav>
+        <button onclick="loadPage('home')">Homepage</button>
+        <button onclick="loadPage('playlist')">Playlist</button>
+        <button onclick="loadPage('settings')">Setting</button>
+        <button onclick="loadPage('library')">library</button>
+    </nav>
+
+    <div id="player-bar">
+        <audio id="music-player"></audio>
+    </div>
+
+    <main id="content-container"></main>
+
+    <script src="/js/navigation.js"></script>
+    <script src="/js/player.js"></script>
+</body>
+</html>
