@@ -11,6 +11,11 @@ async function loadPage(pageName) {
         const htmlContent = await response.text();
 
         document.getElementById('content-container').innerHTML = htmlContent;
+
+        if (window.PageInits && typeof window.PageInits[pageName] === 'function') {
+            window.PageInits[pageName]();
+        }
+
     } catch (error) {
         console.error("Error loading page:", error);
         document.getElementById('content-container').innerHTML = "<h1>Error!</h1>";
