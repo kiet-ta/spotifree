@@ -3,9 +3,10 @@
 
 class SpotifyAPI {
     constructor() {
-        this.clientId = 'YOUR_SPOTIFY_CLIENT_ID'; // Thay bằng Client ID thực của bạn
-        this.clientSecret = 'YOUR_SPOTIFY_CLIENT_SECRET'; // Thay bằng Client Secret thực của bạn
-        this.redirectUri = 'http://localhost:3000/callback'; // URL callback
+        // 🔑 Sử dụng credentials từ config hoặc fallback
+        this.clientId = window.SpotifyConfig?.credentials?.clientId || 'YOUR_SPOTIFY_CLIENT_ID';
+        this.clientSecret = window.SpotifyConfig?.credentials?.clientSecret || 'YOUR_SPOTIFY_CLIENT_SECRET';
+        this.redirectUri = window.SpotifyConfig?.credentials?.redirectUri || 'http://localhost:3000/callback';
         this.accessToken = null;
         this.tokenExpiry = null;
         this.baseURL = 'https://api.spotify.com/v1';
@@ -17,6 +18,13 @@ class SpotifyAPI {
     // 🔐 Khởi tạo xác thực
     async initializeAuth() {
         try {
+            // Kiểm tra credentials trước
+            if (this.clientId === 'YOUR_SPOTIFY_CLIENT_ID' || this.clientSecret === 'YOUR_SPOTIFY_CLIENT_SECRET') {
+                console.warn('⚠️ Spotify credentials chưa được cấu hình. Chế độ fallback sẽ được sử dụng.');
+                this.enableFallbackMode();
+                return;
+            }
+
             // Thử lấy token từ localStorage
             const savedToken = localStorage.getItem('spotify_access_token');
             const savedExpiry = localStorage.getItem('spotify_token_expiry');
@@ -32,12 +40,102 @@ class SpotifyAPI {
             await this.getClientCredentialsToken();
         } catch (error) {
             console.error('❌ Error initializing Spotify auth:', error);
+            console.warn('⚠️ Chuyển sang chế độ fallback');
+            this.enableFallbackMode();
         }
+    }
+
+    // 🔄 Bật chế độ fallback (không cần Spotify API)
+    enableFallbackMode() {
+        this.fallbackMode = true;
+        console.log('🔄 Spotify fallback mode enabled - sử dụng dữ liệu mẫu');
+    }
+
+    // 🎵 Dữ liệu mẫu cho chế độ fallback
+    getFallbackData() {
+        return {
+            tracks: [
+                {
+                    id: 'fallback-1',
+                    name: 'Shape of You',
+                    artist: 'Ed Sheeran',
+                    album: '÷ (Divide)',
+                    duration: '3:53',
+                    popularity: 95,
+                    preview_url: null,
+                    external_urls: { spotify: 'https://open.spotify.com/track/fallback-1' },
+                    images: [{ url: 'https://via.placeholder.com/300x300?text=Ed+Sheeran' }],
+                    release_date: '2017-01-06'
+                },
+                {
+                    id: 'fallback-2',
+                    name: 'Perfect',
+                    artist: 'Ed Sheeran',
+                    album: '÷ (Divide)',
+                    duration: '4:23',
+                    popularity: 92,
+                    preview_url: null,
+                    external_urls: { spotify: 'https://open.spotify.com/track/fallback-2' },
+                    images: [{ url: 'https://via.placeholder.com/300x300?text=Perfect' }],
+                    release_date: '2017-01-06'
+                },
+                {
+                    id: 'fallback-3',
+                    name: 'Thinking Out Loud',
+                    artist: 'Ed Sheeran',
+                    album: 'x (Multiply)',
+                    duration: '4:41',
+                    popularity: 88,
+                    preview_url: null,
+                    external_urls: { spotify: 'https://open.spotify.com/track/fallback-3' },
+                    images: [{ url: 'https://via.placeholder.com/300x300?text=Thinking+Out+Loud' }],
+                    release_date: '2014-06-20'
+                }
+            ],
+            artists: [
+                {
+                    id: 'fallback-artist-1',
+                    name: 'Ed Sheeran',
+                    popularity: 95,
+                    genres: ['pop', 'acoustic', 'folk'],
+                    followers: 50000000,
+                    images: [{ url: 'https://via.placeholder.com/300x300?text=Ed+Sheeran' }],
+                    external_urls: { spotify: 'https://open.spotify.com/artist/fallback-artist-1' }
+                }
+            ],
+            albums: [
+                {
+                    id: 'fallback-album-1',
+                    name: '÷ (Divide)',
+                    artist: 'Ed Sheeran',
+                    release_date: '2017-03-03',
+                    total_tracks: 16,
+                    images: [{ url: 'https://via.placeholder.com/300x300?text=Divide' }],
+                    external_urls: { spotify: 'https://open.spotify.com/album/fallback-album-1' }
+                }
+            ],
+            playlists: [
+                {
+                    id: 'fallback-playlist-1',
+                    name: 'Today\'s Top Hits',
+                    description: 'The most played songs right now',
+                    tracks: 50,
+                    images: [{ url: 'https://via.placeholder.com/300x300?text=Top+Hits' }],
+                    external_urls: { spotify: 'https://open.spotify.com/playlist/fallback-playlist-1' },
+                    owner: 'Spotify'
+                }
+            ]
+        };
     }
 
     // 🔑 Lấy token bằng Client Credentials Flow
     async getClientCredentialsToken() {
         try {
+            // Kiểm tra credentials
+            if (this.clientId === 'YOUR_SPOTIFY_CLIENT_ID' || this.clientSecret === 'YOUR_SPOTIFY_CLIENT_SECRET') {
+                throw new Error('❌ Spotify credentials chưa được cấu hình! Vui lòng cập nhật Client ID và Client Secret trong spotify-config.js');
+            }
+
             const response = await fetch('https://accounts.spotify.com/api/token', {
                 method: 'POST',
                 headers: {
@@ -48,7 +146,8 @@ class SpotifyAPI {
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(`❌ Spotify API Error: ${response.status} - ${errorData.error_description || errorData.error}`);
             }
 
             const data = await response.json();
@@ -62,7 +161,19 @@ class SpotifyAPI {
             console.log('🎵 Spotify token obtained successfully');
         } catch (error) {
             console.error('❌ Error getting Spotify token:', error);
+            // Hiển thị lỗi thân thiện cho user
+            this.showSpotifyError(error.message);
             throw error;
+        }
+    }
+
+    // 🚨 Hiển thị lỗi Spotify cho user
+    showSpotifyError(message) {
+        // Tạo notification hoặc alert
+        if (window.addMessage) {
+            window.addMessage(`🚨 ${message}`, false);
+        } else {
+            console.error('Spotify Error:', message);
         }
     }
 
@@ -76,6 +187,13 @@ class SpotifyAPI {
     // 🎵 Tìm kiếm bài hát
     async searchTracks(query, limit = 10, offset = 0) {
         try {
+            // Nếu đang ở chế độ fallback, trả về dữ liệu mẫu
+            if (this.fallbackMode) {
+                console.log('🔄 Using fallback data for track search');
+                const fallbackData = this.getFallbackData();
+                return fallbackData.tracks.slice(0, limit);
+            }
+
             await this.ensureValidToken();
 
             const params = new URLSearchParams({
@@ -100,6 +218,13 @@ class SpotifyAPI {
             return this.formatTrackResults(data.tracks);
         } catch (error) {
             console.error('❌ Error searching tracks:', error);
+            // Fallback về dữ liệu mẫu nếu có lỗi
+            if (!this.fallbackMode) {
+                console.log('🔄 Falling back to sample data');
+                this.enableFallbackMode();
+                const fallbackData = this.getFallbackData();
+                return fallbackData.tracks.slice(0, limit);
+            }
             throw error;
         }
     }
@@ -311,6 +436,19 @@ class SpotifyAPI {
     // 🎯 Tìm kiếm thông minh (tất cả loại)
     async smartSearch(query, limit = 10) {
         try {
+            // Nếu đang ở chế độ fallback, trả về dữ liệu mẫu
+            if (this.fallbackMode) {
+                console.log('🔄 Using fallback data for smart search');
+                const fallbackData = this.getFallbackData();
+                return {
+                    tracks: fallbackData.tracks.slice(0, Math.ceil(limit * 0.4)),
+                    artists: fallbackData.artists.slice(0, Math.ceil(limit * 0.2)),
+                    albums: fallbackData.albums.slice(0, Math.ceil(limit * 0.2)),
+                    playlists: fallbackData.playlists.slice(0, Math.ceil(limit * 0.2)),
+                    total: fallbackData.tracks.length + fallbackData.artists.length + fallbackData.albums.length + fallbackData.playlists.length
+                };
+            }
+
             const [tracks, artists, albums, playlists] = await Promise.all([
                 this.searchTracks(query, Math.ceil(limit * 0.4)),
                 this.searchArtists(query, Math.ceil(limit * 0.2)),
@@ -327,6 +465,19 @@ class SpotifyAPI {
             };
         } catch (error) {
             console.error('❌ Error in smart search:', error);
+            // Fallback về dữ liệu mẫu nếu có lỗi
+            if (!this.fallbackMode) {
+                console.log('🔄 Falling back to sample data for smart search');
+                this.enableFallbackMode();
+                const fallbackData = this.getFallbackData();
+                return {
+                    tracks: fallbackData.tracks.slice(0, Math.ceil(limit * 0.4)),
+                    artists: fallbackData.artists.slice(0, Math.ceil(limit * 0.2)),
+                    albums: fallbackData.albums.slice(0, Math.ceil(limit * 0.2)),
+                    playlists: fallbackData.playlists.slice(0, Math.ceil(limit * 0.2)),
+                    total: fallbackData.tracks.length + fallbackData.artists.length + fallbackData.albums.length + fallbackData.playlists.length
+                };
+            }
             throw error;
         }
     }
