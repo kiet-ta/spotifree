@@ -679,3 +679,5 @@ window.SpotifyHelpers = {
 };
 
 console.log('🎵 Spotify API Integration loaded successfully!');
+
+//https://developer.spotify.com/dashboard/8105bc07cf1a4611a714f641cf61cf2d
