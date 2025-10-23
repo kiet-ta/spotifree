@@ -112,8 +112,8 @@ function hideTypingIndicator() {
     }
 }
 
-// 🧠 Bot thông minh hơn với AI responses
-function getBotReply(input) {
+// 🧠 Bot thông minh hơn với AI responses và Spotify API
+async function getBotReply(input) {
     const originalInput = input;
     input = input.toLowerCase().trim();
 
@@ -122,7 +122,8 @@ function getBotReply(input) {
         window.chatContext = {
             lastMood: null,
             conversationHistory: [],
-            userPreferences: {}
+            userPreferences: {},
+            isFirstTime: true
         };
     }
 
@@ -134,42 +135,127 @@ function getBotReply(input) {
 
     let response = "";
     let quickReplies = [];
+    let spotifyResults = null;
 
-    // 🎵 Tìm kiếm và phát nhạc
-    if (input.includes('phát') || input.includes('mở') || input.includes('nghe')) {
-        const songMatch = input.match(/(?:phát|mở|nghe)\s+(.+)/);
+    // 🎯 Sử dụng context để phản hồi thông minh hơn
+    if (window.ChatbotContext && window.ContextHelpers) {
+        // Kiểm tra lần đầu sử dụng
+        if (window.chatContext.isFirstTime) {
+            response = window.ChatbotContext.contextualResponses.firstTime;
+            quickReplies = ['Tìm nhạc', 'Tôi đang vui', 'Tôi đang buồn', 'Nhạc chill'];
+            window.chatContext.isFirstTime = false;
+            addMessage(response, false);
+            if (quickReplies.length > 0) {
+                setTimeout(() => showQuickReplies(quickReplies), 500);
+            }
+            return;
+        }
+    }
+
+    // 🎵 Tìm kiếm và phát nhạc với Spotify API
+    if (input.includes('phát') || input.includes('mở') || input.includes('nghe') || input.includes('tìm')) {
+        const songMatch = input.match(/(?:phát|mở|nghe|tìm)\s+(.+)/);
         if (songMatch) {
             const songName = songMatch[1].trim();
-            response = `🎵 Đang tìm kiếm "${songName}"...`;
-            quickReplies = ['Tìm bài khác', 'Dừng nhạc', 'Phát ngẫu nhiên'];
+            response = `🎵 Đang tìm kiếm "${songName}" trên Spotify...`;
+            addMessage(response, false);
 
-            // Gửi lệnh đến WPF
-            if (window.chrome && window.chrome.webview) {
-                window.chrome.webview.postMessage(
-                    JSON.stringify({
-                        action: 'searchAndPlay',
-                        query: songName
-                    })
-                );
+            try {
+                // Tìm kiếm trên Spotify
+                spotifyResults = await window.SpotifyHelpers.smartSearch(songName, 10);
+
+                if (spotifyResults.tracks && spotifyResults.tracks.length > 0) {
+                    const tracks = spotifyResults.tracks.slice(0, 5);
+                    let trackList = `🎧 Tìm thấy ${spotifyResults.tracks.length} bài hát:\n\n`;
+
+                    tracks.forEach((track, index) => {
+                        trackList += `${index + 1}. **${track.name}** - ${track.artist}\n`;
+                        if (track.album) trackList += `   📀 Album: ${track.album}\n`;
+                        if (track.duration) trackList += `   ⏱️ ${track.duration}\n`;
+                        trackList += `   ⭐ ${track.popularity}/100\n\n`;
+                    });
+
+                    addMessage(trackList, false);
+                    quickReplies = [
+                        `Phát "${tracks[0].name}"`,
+                        `Phát "${tracks[1]?.name || 'bài khác'}"`,
+                        'Tìm khác',
+                        'Xem tất cả'
+                    ];
+
+                    // Gửi lệnh đến WPF với thông tin bài hát
+                    if (window.chrome && window.chrome.webview) {
+                        window.chrome.webview.postMessage(
+                            JSON.stringify({
+                                action: 'searchAndPlay',
+                                query: songName,
+                                spotifyResults: spotifyResults
+                            })
+                        );
+                    }
+                } else {
+                    response = "😔 Không tìm thấy kết quả nào cho '" + songName + "'. Hãy thử từ khóa khác!";
+                    quickReplies = ['Tìm khác', 'Nhạc vui', 'Nhạc buồn', 'Nhạc chill'];
+                }
+            } catch (error) {
+                console.error('Error searching Spotify:', error);
+                response = "❌ Có lỗi khi tìm kiếm trên Spotify. Hãy thử lại sau!";
+                quickReplies = ['Thử lại', 'Tìm khác', 'Trợ giúp'];
             }
         } else {
             response = "🎵 Bạn muốn nghe bài gì? Tôi có thể tìm kiếm và phát nhạc cho bạn!";
             quickReplies = ['Nhạc vui', 'Nhạc buồn', 'Nhạc chill', 'Top hits'];
         }
     }
-    // 🎭 Phản hồi theo tâm trạng
+    // 🎭 Phản hồi theo tâm trạng với Spotify API
     else if (input.includes('vui') || input.includes('happy') || input.includes('hạnh phúc')) {
         window.chatContext.lastMood = 'happy';
-        const happySongs = [
-            '🎉 Happy - Pharrell Williams',
-            '🌞 Can\'t Stop The Feeling - Justin Timberlake',
-            '🕺 Uptown Funk - Bruno Mars',
-            '😊 Good as Hell - Lizzo',
-            '🌟 Walking on Sunshine - Katrina and the Waves'
-        ];
-        const randomSong = happySongs[Math.floor(Math.random() * happySongs.length)];
-        response = `Tuyệt vời! Tâm trạng vui vẻ của bạn rất đáng yêu! 🎉\n\nGợi ý bài hát: ${randomSong}`;
-        quickReplies = ['Phát bài này', 'Bài khác', 'Tôi muốn nhạc buồn'];
+
+        // Sử dụng context để lấy phản hồi
+        if (window.ContextHelpers) {
+            response = window.ContextHelpers.getMoodResponse('happy') || "Tuyệt vời! Tâm trạng vui vẻ của bạn rất đáng yêu! 🎉";
+        } else {
+            response = "Tuyệt vời! Tâm trạng vui vẻ của bạn rất đáng yêu! 🎉";
+        }
+
+        addMessage(response, false);
+
+        try {
+            // Tìm kiếm nhạc vui trên Spotify
+            const happyTracks = await window.SpotifyHelpers.searchByMood('happy', 5);
+
+            if (happyTracks && happyTracks.length > 0) {
+                let trackList = `🎉 Gợi ý nhạc vui vẻ:\n\n`;
+                happyTracks.forEach((track, index) => {
+                    trackList += `${index + 1}. **${track.name}** - ${track.artist}\n`;
+                    if (track.popularity) trackList += `   ⭐ ${track.popularity}/100\n`;
+                });
+
+                addMessage(trackList, false);
+                quickReplies = [
+                    `Phát "${happyTracks[0].name}"`,
+                    `Phát "${happyTracks[1]?.name || 'bài khác'}"`,
+                    'Tôi muốn nhạc buồn',
+                    'Tìm khác'
+                ];
+            } else {
+                // Fallback nếu không có kết quả từ Spotify
+                const fallbackSongs = [
+                    'Happy - Pharrell Williams',
+                    'Can\'t Stop The Feeling - Justin Timberlake',
+                    'Uptown Funk - Bruno Mars',
+                    'Good as Hell - Lizzo',
+                    'Walking on Sunshine - Katrina and the Waves'
+                ];
+                const randomSong = fallbackSongs[Math.floor(Math.random() * fallbackSongs.length)];
+                addMessage(`🎵 Gợi ý bài hát: ${randomSong}`, false);
+                quickReplies = ['Phát bài này', 'Bài khác', 'Tôi muốn nhạc buồn'];
+            }
+        } catch (error) {
+            console.error('Error getting happy tracks:', error);
+            addMessage("🎵 Tôi sẽ tìm nhạc vui vẻ cho bạn!", false);
+            quickReplies = ['Tìm nhạc vui', 'Tôi muốn nhạc buồn', 'Nhạc chill'];
+        }
     }
     else if (input.includes('buồn') || input.includes('sad') || input.includes('khóc')) {
         window.chatContext.lastMood = 'sad';
