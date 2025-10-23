@@ -51,5 +51,43 @@ namespace spotifree
                 MessageBox.Show(ex.StackTrace.ToString());
             }
         }
+
+        /// <summary>
+        /// ✅ Hàm nhận tin nhắn từ chatbot.js gửi sang qua window.chrome.webview.postMessage()
+        /// </summary>
+        private void CoreWebView2_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
+        {
+            try
+            {
+                // Lấy nội dung JSON hoặc string từ JS
+                string message = e.TryGetWebMessageAsString();
+
+                // Debug
+                Console.WriteLine($"[JS -> C#] Nhận tin nhắn: {message}");
+
+                // ✅ Tùy theo message mà xử lý hành động
+                if (message.Contains("playMusic"))
+                {
+                    // Ở đây bạn có thể gọi service phát nhạc của bạn
+                    MessageBox.Show("🎧 Đang phát nhạc từ chatbot!");
+                    // Ví dụ:
+                    // musicService.Play("Let Her Go");
+                }
+                else if (message.Contains("pauseMusic"))
+                {
+                    MessageBox.Show("⏸ Tạm dừng nhạc");
+                    // musicService.Pause();
+                }
+                else
+                {
+                    // Xử lý các lệnh khác nếu cần
+                    Console.WriteLine($"Không nhận dạng được hành động từ chatbot: {message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi xử lý chatbot message: {ex.Message}");
+            }
+        }
     }
 }

@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <link rel="stylesheet" href="/css/library.css" />
+    <link rel="stylesheet" href="/css/chatbot.css" />
 </head>
 <body>
     <nav>
@@ -19,5 +20,20 @@
 
     <script src="/js/navigation.js"></script>
     <script src="/js/player.js"></script>
+    <script src="/js/chatbot.js"></script>
+
+    <!-- Chatbot -->
+    <div id="chatbot-container">
+        <div id="chatbot-header">
+            🎧 Spotifree Assistant
+        </div>
+        <div id="chatlog"></div>
+        <div id="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Nhập tin nhắn..." />
+            <button onclick="sendMessage()">Gửi</button>
+        </div>
+    </div>
+
+
 </body>
 </html>
