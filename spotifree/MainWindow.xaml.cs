@@ -110,5 +110,65 @@ public partial class MainWindow : Window
                 await webView.CoreWebView2.ExecuteScriptAsync(errorScript);
             }
         }
+        else if (action == "renamePlaylist")
+        {
+            if (!message.RootElement.TryGetProperty("id", out var idProperty) ||
+                !message.RootElement.TryGetProperty("newName", out var newNameProperty))
+            {
+                Debug.WriteLine("[C#] renamePlaylist: Missing parameters.");
+                return;
+            }
+            string playlistId = idProperty.GetString();
+            string newName = newNameProperty.GetString();
+            try
+            {
+                Debug.WriteLine($"[C#] calling API rename: {playlistId} -> {newName}");
+                await _spotifyService.UpdatePlaylistDetailsAsync(playlistId, newName);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[C#] ERROR RENAME: {ex.Message}");
+            }
+        }
+        else if (action == "deletePlaylist")
+        {
+            if (!message.RootElement.TryGetProperty("id", out var idProperty))
+            {
+                Debug.WriteLine("[C#] deletePlaylist: Missing parameters.");
+                return;
+            }
+            string playlistId = idProperty.GetString();
+            try
+            {
+                Debug.WriteLine($"[C#] calling API delete: {playlistId}");
+                await _spotifyService.DeletePlaylistAsync(playlistId);
+
+                string script = $"window.playlistDeletedSuccess('{playlistId}');";
+                await webView.CoreWebView2.ExecuteScriptAsync(script);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[C#] ERROR DELETE: {ex.Message}");
+            }
+        }
+        else if (action == "getLibraryPlaylists")
+        {
+            try
+            {
+                Debug.WriteLine($"[C#] Đang gọi API lấy playlists...");
+                var playlists = await _spotifyService.GetCurrentUserPlaylistsAsync();
+
+                Debug.WriteLine($"[C#] Get susscess {playlists.Count} playlist. sending to JS...");
+
+                string script = $"window.populateLibrary({JsonSerializer.Serialize(playlists)});";
+                await webView.CoreWebView2.ExecuteScriptAsync(script);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[C#] ERROR PLAYLIST: {ex.Message}");
+                string errorScript = $"window.showNotification('ERROR load: {ex.Message.Replace("'", "\\'")}', 'error');";
+                await webView.CoreWebView2.ExecuteScriptAsync(errorScript);
+            }
+        }
     }
 }
