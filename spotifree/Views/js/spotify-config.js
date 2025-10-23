@@ -7,7 +7,7 @@ const SpotifyConfig = {
         // Lấy từ Spotify Developer Dashboard: https://developer.spotify.com/dashboard
         clientId: '8105bc07cf1a4611a714f641cf61cf2d',
         clientSecret: 'f9e2f2ba56144e67beb3e65fde494d21',
-        redirectUri: 'http://localhost:3000/callback'
+        redirectUri: 'https://localhost:3000'
     },
 
     // 🌍 Market settings
