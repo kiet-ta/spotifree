@@ -48,7 +48,7 @@ function sendMessage() {
     // Delay để tạo cảm giác bot đang "suy nghĩ"
     setTimeout(() => {
         hideTypingIndicator();
-        getBotReply(msg);
+    getBotReply(msg);
     }, 1000 + Math.random() * 1000);
 }
 
@@ -185,7 +185,7 @@ async function getBotReply(input) {
 
                     // Gửi lệnh đến WPF với thông tin bài hát
                     if (window.chrome && window.chrome.webview) {
-                        window.chrome.webview.postMessage(
+            window.chrome.webview.postMessage(
                             JSON.stringify({
                                 action: 'searchAndPlay',
                                 query: songName,
@@ -216,9 +216,9 @@ async function getBotReply(input) {
             response = window.ContextHelpers.getMoodResponse('happy') || "Tuyệt vời! Tâm trạng vui vẻ của bạn rất đáng yêu! 🎉";
         } else {
             response = "Tuyệt vời! Tâm trạng vui vẻ của bạn rất đáng yêu! 🎉";
-        }
+    }
 
-        addMessage(response, false);
+    addMessage(response, false);
 
         try {
             // Tìm kiếm nhạc vui trên Spotify

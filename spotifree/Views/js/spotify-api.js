@@ -3,10 +3,10 @@
 
 class SpotifyAPI {
     constructor() {
-        // 🔑 Sử dụng credentials từ config hoặc fallback
-        this.clientId = window.SpotifyConfig?.credentials?.clientId || 'YOUR_SPOTIFY_CLIENT_ID';
-        this.clientSecret = window.SpotifyConfig?.credentials?.clientSecret || 'YOUR_SPOTIFY_CLIENT_SECRET';
-        this.redirectUri = window.SpotifyConfig?.credentials?.redirectUri || 'http://localhost:3000/callback';
+        // 🔑 Sử dụng credentials trực tiếp
+        this.clientId = '8105bc07cf1a4611a714f641cf61cf2d';
+        this.clientSecret = 'f9e2f2ba56144e67beb3e65fde494d21';
+        this.redirectUri = 'https://localhost:3000';
         this.accessToken = null;
         this.tokenExpiry = null;
         this.baseURL = 'https://api.spotify.com/v1';
