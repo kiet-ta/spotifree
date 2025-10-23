@@ -1,9 +1,11 @@
 ﻿<!DOCTYPE html>
 <html>
+
 <head>
     <link rel="stylesheet" href="/css/library.css" />
     <link rel="stylesheet" href="/css/chatbot.css" />
 </head>
+
 <body>
     <nav>
         <button onclick="loadPage('home')">Homepage</button>
@@ -20,14 +22,27 @@
 
     <script src="/js/navigation.js"></script>
     <script src="/js/player.js"></script>
+    <script src="/js/wpf-integration.js"></script>
     <script src="/js/chatbot.js"></script>
 
     <!-- Chatbot -->
     <div id="chatbot-container">
         <div id="chatbot-header">
-            🎧 Spotifree Assistant
+            <div class="header-content">
+                <div class="status-indicator"></div>
+                <span>🎧 Spotifree Assistant</span>
+            </div>
+            <div id="chatbot-close">×</div>
         </div>
-        <div id="chatlog"></div>
+        <div id="chatlog">
+            <div class="message">
+                <div class="bot-msg">
+                    👋 Xin chào! Tôi là trợ lý âm nhạc của bạn. Tôi có thể giúp bạn tìm nhạc, gợi ý bài hát, hoặc điều
+                    khiển phát nhạc. Bạn cần gì?
+                </div>
+                <div class="message-time" id="welcome-time"></div>
+            </div>
+        </div>
         <div id="chat-input-area">
             <input type="text" id="chat-input" placeholder="Nhập tin nhắn..." />
             <button onclick="sendMessage()">Gửi</button>
@@ -36,4 +51,5 @@
 
 
 </body>
+
 </html>
