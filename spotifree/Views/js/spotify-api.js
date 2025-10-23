@@ -681,3 +681,37 @@ window.SpotifyHelpers = {
 console.log('🎵 Spotify API Integration loaded successfully!');
 
 //https://developer.spotify.com/dashboard/8105bc07cf1a4611a714f641cf61cf2d
+
+/*
+/api/private-docs:1   Failed to load resource: the server responded with a status of 401 ()
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+developer.spotify.com/:1  Tracking Prevention blocked access to storage for https://cdn.cookielaw.org/logos/static/ot_close.svg.
+developer.spotify.com/:1  Tracking Prevention blocked access to storage for https://cdn.cookielaw.org/logos/static/ot_close.svg.
+developer.spotify.com/:1  Tracking Prevention blocked access to storage for https://cdn.cookielaw.org/logos/static/ot_close.svg.
+developer.spotify.com/:1  Tracking Prevention blocked access to storage for https://cdn.cookielaw.org/logos/static/ot_close.svg.
+developer.spotify.com/:1  Tracking Prevention blocked access to storage for https://cdn.cookielaw.org/logos/static/ot_company_logo.png.
+developer.spotify.com/:1  Tracking Prevention blocked access to storage for https://cdn.cookielaw.org/logos/static/ot_company_logo.png.
+developer.spotify.com/:1  Tracking Prevention blocked access to storage for https://cdn.cookielaw.org/logos/static/ot_company_logo.png.
+developer.spotify.com/:1  Tracking Prevention blocked access to storage for https://cdn.cookielaw.org/logos/static/ot_company_logo.png.
+developer.spotify.com/:1  Tracking Prevention blocked access to storage for https://cdn.cookielaw.org/logos/static/powered_by_logo.svg.
+developer.spotify.com/:1  Tracking Prevention blocked access to storage for https://cdn.cookielaw.org/logos/static/powered_by_logo.svg.
+developer.spotify.com/:1  Tracking Prevention blocked access to storage for https://cdn.cookielaw.org/logos/static/powered_by_logo.svg.
+developer.spotify.com/:1  Tracking Prevention blocked access to storage for https://cdn.cookielaw.org/logos/static/powered_by_logo.svg.
+[NEW] Explain Console errors by using Copilot in Edge: click
+         
+         to explain an error. 
+        Learn more
+        Don't show again
+
+*/
