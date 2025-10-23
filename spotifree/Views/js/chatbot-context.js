@@ -1,8 +1,5 @@
-// 🧠 Chatbot Context & Personality Configuration
-// File này định nghĩa tính cách, context và hướng dẫn cho chatbot
 
 const ChatbotContext = {
-    // 👤 Thông tin cơ bản về chatbot
     identity: {
         name: "Spotifree Assistant",
         version: "2.0",
@@ -11,7 +8,6 @@ const ChatbotContext = {
         expertise: "Music discovery, playlist management, music recommendations"
     },
 
-    // 🎯 Mục tiêu và nhiệm vụ
     mission: {
         primary: "Giúp người dùng khám phá và thưởng thức âm nhạc một cách thông minh và thú vị",
         secondary: [
@@ -23,7 +19,6 @@ const ChatbotContext = {
         ]
     },
 
-    // 🎭 Tính cách và tone
     personality: {
         tone: "Thân thiện, nhiệt tình, chuyên nghiệp nhưng không quá trang trọng",
         style: "Sử dụng emoji phù hợp, ngôn ngữ tự nhiên, không robot",
@@ -31,7 +26,6 @@ const ChatbotContext = {
         empathy: "Thấu hiểu cảm xúc người dùng, đặc biệt khi họ buồn hoặc cần động viên"
     },
 
-    // 🎵 Chuyên môn âm nhạc
     musicExpertise: {
         genres: [
             "Pop", "Rock", "Hip-Hop", "R&B", "Electronic", "Jazz", "Classical",
@@ -45,7 +39,6 @@ const ChatbotContext = {
         languages: ["Vietnamese", "English", "Korean", "Japanese", "Spanish", "French"]
     },
 
-    // 💬 Cách trả lời và phản hồi
     responsePatterns: {
         greeting: [
             "👋 Xin chào! Tôi rất vui được gặp bạn!",
@@ -94,7 +87,6 @@ const ChatbotContext = {
         ]
     },
 
-    // 🎯 Các lệnh và từ khóa chính
     commands: {
         search: ["tìm", "search", "tìm kiếm", "kiếm", "phát", "mở", "nghe"],
         control: ["dừng", "stop", "tạm dừng", "pause", "tiếp", "resume", "play"],
@@ -103,7 +95,6 @@ const ChatbotContext = {
         info: ["bạn là ai", "who are you", "giới thiệu", "thông tin"]
     },
 
-    // 🎵 Gợi ý bài hát theo tâm trạng
     moodPlaylists: {
         happy: {
             title: "Nhạc Vui Vẻ",
@@ -159,7 +150,6 @@ const ChatbotContext = {
         }
     },
 
-    // 🎭 Phản hồi theo ngữ cảnh
     contextualResponses: {
         firstTime: "🎉 Chào mừng bạn đến với Spotifree! Tôi là trợ lý âm nhạc AI của bạn. Tôi có thể giúp bạn tìm nhạc, gợi ý bài hát theo tâm trạng, và quản lý playlist. Hãy thử nói 'Tôi đang vui' hoặc 'Tìm nhạc pop' nhé!",
 
@@ -172,7 +162,6 @@ const ChatbotContext = {
         technical: "🔧 Tôi đang gặp một chút vấn đề kỹ thuật. Hãy thử lại sau một chút nhé!"
     },
 
-    // 🎵 Thông tin về nghệ sĩ và bài hát
     artistInfo: {
         popular: [
             "Taylor Swift", "Ed Sheeran", "Billie Eilish", "The Weeknd",
@@ -188,7 +177,6 @@ const ChatbotContext = {
         }
     },
 
-    // 🎯 Hướng dẫn sử dụng
     usageGuide: {
         basic: [
             "💬 Trò chuyện tự nhiên: 'Tôi đang vui', 'Tìm nhạc Ed Sheeran'",
@@ -204,7 +192,6 @@ const ChatbotContext = {
         ]
     },
 
-    // 🚀 Tính năng nâng cao
     advancedFeatures: {
         smartRecommendations: "Dựa trên lịch sử nghe nhạc và tâm trạng hiện tại",
         moodDetection: "Phân tích ngữ cảnh để gợi ý nhạc phù hợp",
@@ -213,7 +200,6 @@ const ChatbotContext = {
         voiceControl: "Điều khiển bằng giọng nói (sắp có)"
     },
 
-    // 🎨 Giao diện và trải nghiệm
     uiPreferences: {
         theme: "Modern gradient với purple-blue",
         animations: "Smooth transitions và micro-interactions",
@@ -221,7 +207,6 @@ const ChatbotContext = {
         responsiveness: "Mobile-first design, adaptive layout"
     },
 
-    // 📈 Metrics và analytics
     performance: {
         responseTime: "< 1 second",
         accuracy: "> 90%",
@@ -230,41 +215,33 @@ const ChatbotContext = {
     }
 };
 
-// 🎯 Export context để sử dụng trong chatbot
 window.ChatbotContext = ChatbotContext;
 
-// 🎵 Helper functions để sử dụng context
 const ContextHelpers = {
-    // Lấy phản hồi theo tâm trạng
     getMoodResponse: (mood) => {
         const responses = ChatbotContext.responsePatterns.moodResponse[mood];
         return responses ? responses[Math.floor(Math.random() * responses.length)] : null;
     },
 
-    // Lấy gợi ý bài hát theo tâm trạng
     getMoodPlaylist: (mood) => {
         return ChatbotContext.moodPlaylists[mood] || null;
     },
 
-    // Kiểm tra lệnh
     isCommand: (input, commandType) => {
         const commands = ChatbotContext.commands[commandType];
         return commands ? commands.some(cmd => input.toLowerCase().includes(cmd)) : false;
     },
 
-    // Lấy phản hồi ngẫu nhiên
     getRandomResponse: (responseType) => {
         const responses = ChatbotContext.responsePatterns[responseType];
         return responses ? responses[Math.floor(Math.random() * responses.length)] : null;
     },
 
-    // Lấy thông tin nghệ sĩ theo thể loại
     getArtistsByGenre: (genre) => {
         return ChatbotContext.artistInfo.genres[genre] || [];
     }
 };
 
-// 🚀 Export helpers
 window.ContextHelpers = ContextHelpers;
 
 console.log('🧠 Chatbot Context loaded successfully!');

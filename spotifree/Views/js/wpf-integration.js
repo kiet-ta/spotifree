@@ -1,7 +1,4 @@
-// 🎧 Tích hợp Chatbot với WPF Application
-// File này chứa các hàm hỗ trợ tích hợp chatbot với WPF WebView2
 
-// 📡 Gửi message đến WPF application
 function sendToWPF(action, data = {}) {
     if (window.chrome && window.chrome.webview) {
         const message = {
@@ -21,72 +18,57 @@ function sendToWPF(action, data = {}) {
     }
 }
 
-// 🎵 Các lệnh điều khiển nhạc
 const MusicCommands = {
-    // Tìm kiếm và phát nhạc
     searchAndPlay: (query) => {
         sendToWPF('searchAndPlay', { query: query });
     },
 
-    // Phát nhạc
     play: () => {
         sendToWPF('playMusic');
     },
 
-    // Tạm dừng
     pause: () => {
         sendToWPF('pauseMusic');
     },
 
-    // Dừng
     stop: () => {
         sendToWPF('stopMusic');
     },
 
-    // Phát tiếp
     resume: () => {
         sendToWPF('resumeMusic');
     },
 
-    // Phát bài tiếp theo
     next: () => {
         sendToWPF('nextTrack');
     },
 
-    // Phát bài trước
     previous: () => {
         sendToWPF('previousTrack');
     },
 
-    // Phát ngẫu nhiên
     shuffle: () => {
         sendToWPF('shufflePlaylist');
     },
 
-    // Lặp lại
     repeat: (mode = 'one') => {
         sendToWPF('repeatMode', { mode: mode });
     },
 
-    // Điều chỉnh âm lượng
     setVolume: (volume) => {
         sendToWPF('setVolume', { volume: Math.max(0, Math.min(100, volume)) });
     },
 
-    // Tăng âm lượng
     volumeUp: () => {
         sendToWPF('volumeUp');
     },
 
-    // Giảm âm lượng
     volumeDown: () => {
         sendToWPF('volumeDown');
     }
 };
 
-// 📚 Quản lý thư viện nhạc
 const LibraryCommands = {
-    // Tìm kiếm trong thư viện
     searchLibrary: (query, type = 'all') => {
         sendToWPF('searchLibrary', {
             query: query,
@@ -94,17 +76,14 @@ const LibraryCommands = {
         });
     },
 
-    // Lấy danh sách bài hát
     getSongs: (limit = 50) => {
         sendToWPF('getSongs', { limit: limit });
     },
 
-    // Lấy danh sách playlist
     getPlaylists: () => {
         sendToWPF('getPlaylists');
     },
 
-    // Tạo playlist mới
     createPlaylist: (name, description = '') => {
         sendToWPF('createPlaylist', {
             name: name,
@@ -112,7 +91,6 @@ const LibraryCommands = {
         });
     },
 
-    // Thêm bài hát vào playlist
     addToPlaylist: (playlistId, songId) => {
         sendToWPF('addToPlaylist', {
             playlistId: playlistId,
@@ -120,7 +98,6 @@ const LibraryCommands = {
         });
     },
 
-    // Xóa bài hát khỏi playlist
     removeFromPlaylist: (playlistId, songId) => {
         sendToWPF('removeFromPlaylist', {
             playlistId: playlistId,
@@ -129,53 +106,42 @@ const LibraryCommands = {
     }
 };
 
-// 📊 Thống kê và phân tích
 const AnalyticsCommands = {
-    // Lấy thống kê nghe nhạc
     getListeningStats: (period = 'week') => {
         sendToWPF('getListeningStats', { period: period });
     },
 
-    // Lấy bài hát được nghe nhiều nhất
     getTopSongs: (limit = 10) => {
         sendToWPF('getTopSongs', { limit: limit });
     },
 
-    // Lấy nghệ sĩ được nghe nhiều nhất
     getTopArtists: (limit = 10) => {
         sendToWPF('getTopArtists', { limit: limit });
     },
 
-    // Lấy thể loại nhạc yêu thích
     getTopGenres: (limit = 5) => {
         sendToWPF('getTopGenres', { limit: limit });
     }
 };
 
-// ⚙️ Cài đặt ứng dụng
 const SettingsCommands = {
-    // Lấy cài đặt hiện tại
     getSettings: () => {
         sendToWPF('getSettings');
     },
 
-    // Cập nhật cài đặt
     updateSettings: (settings) => {
         sendToWPF('updateSettings', { settings: settings });
     },
 
-    // Đặt theme
     setTheme: (theme) => {
         sendToWPF('setTheme', { theme: theme });
     },
 
-    // Đặt ngôn ngữ
     setLanguage: (language) => {
         sendToWPF('setLanguage', { language: language });
     }
 };
 
-// 🔄 Lắng nghe phản hồi từ WPF
 function setupWPFListener() {
     if (window.chrome && window.chrome.webview) {
         window.chrome.webview.addEventListener('message', (event) => {
@@ -189,7 +155,6 @@ function setupWPFListener() {
     }
 }
 
-// 📨 Xử lý phản hồi từ WPF
 function handleWPFResponse(data) {
     console.log('📥 Received from WPF:', data);
 
@@ -211,7 +176,6 @@ function handleWPFResponse(data) {
     }
 }
 
-// 🎵 Xử lý kết quả tìm kiếm
 function handleSearchResults(results) {
     if (results && results.length > 0) {
         const message = `🔍 Tìm thấy ${results.length} kết quả:\n\n`;
@@ -221,7 +185,6 @@ function handleSearchResults(results) {
 
         addMessage(message + songList, false);
 
-        // Hiển thị quick replies để phát nhạc
         const quickReplies = results.slice(0, 3).map(song => `Phát "${song.title}"`);
         quickReplies.push('Tìm khác', 'Xem tất cả');
         showQuickReplies(quickReplies);
@@ -231,7 +194,6 @@ function handleSearchResults(results) {
     }
 }
 
-// ▶️ Xử lý trạng thái phát nhạc
 function handlePlaybackStatus(status) {
     const statusMessages = {
         'playing': '▶️ Đang phát nhạc',
@@ -249,7 +211,6 @@ function handlePlaybackStatus(status) {
     }
 }
 
-// 📚 Xử lý dữ liệu thư viện
 function handleLibraryData(data) {
     if (data.type === 'songs') {
         const message = `📚 Thư viện của bạn có ${data.songs.length} bài hát`;
@@ -260,7 +221,6 @@ function handleLibraryData(data) {
     }
 }
 
-// ❌ Xử lý lỗi
 function handleError(error) {
     const errorMessages = {
         'file_not_found': '❌ Không tìm thấy file nhạc',
@@ -274,17 +234,14 @@ function handleError(error) {
     addMessage(message, false);
 }
 
-// 🚀 Khởi tạo tích hợp WPF
 function initializeWPFIntegration() {
     setupWPFListener();
     console.log('🎧 WPF Integration initialized');
 }
 
-// Export các commands để sử dụng trong chatbot
 window.MusicCommands = MusicCommands;
 window.LibraryCommands = LibraryCommands;
 window.AnalyticsCommands = AnalyticsCommands;
 window.SettingsCommands = SettingsCommands;
 
-// Khởi tạo khi DOM loaded
 document.addEventListener('DOMContentLoaded', initializeWPFIntegration);

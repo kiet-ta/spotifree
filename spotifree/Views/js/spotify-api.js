@@ -1,31 +1,22 @@
-// 🎵 Spotify API Integration
-// File này tích hợp với Spotify Web API để tìm kiếm và lấy thông tin nhạc thực tế
-
 class SpotifyAPI {
     constructor() {
-        // 🔑 Sử dụng credentials trực tiếp
         this.clientId = '8105bc07cf1a4611a714f641cf61cf2d';
         this.clientSecret = 'f9e2f2ba56144e67beb3e65fde494d21';
         this.redirectUri = 'https://localhost:3000';
         this.accessToken = null;
         this.tokenExpiry = null;
         this.baseURL = 'https://api.spotify.com/v1';
-
-        // Khởi tạo
         this.initializeAuth();
     }
 
-    // 🔐 Khởi tạo xác thực
     async initializeAuth() {
         try {
-            // Kiểm tra credentials trước
             if (!this.clientId || !this.clientSecret) {
                 console.warn('⚠️ Spotify credentials chưa được cấu hình. Chế độ fallback sẽ được sử dụng.');
                 this.enableFallbackMode();
                 return;
             }
 
-            // Thử lấy token từ localStorage
             const savedToken = localStorage.getItem('spotify_access_token');
             const savedExpiry = localStorage.getItem('spotify_token_expiry');
 
@@ -36,7 +27,6 @@ class SpotifyAPI {
                 return;
             }
 
-            // Nếu không có token hoặc đã hết hạn, lấy token mới
             await this.getClientCredentialsToken();
         } catch (error) {
             console.error('❌ Error initializing Spotify auth:', error);
@@ -45,13 +35,11 @@ class SpotifyAPI {
         }
     }
 
-    // 🔄 Bật chế độ fallback (không cần Spotify API)
     enableFallbackMode() {
         this.fallbackMode = true;
         console.log('🔄 Spotify fallback mode enabled - sử dụng dữ liệu mẫu');
     }
 
-    // 🎵 Dữ liệu mẫu cho chế độ fallback
     getFallbackData() {
         return {
             tracks: [
@@ -128,10 +116,8 @@ class SpotifyAPI {
         };
     }
 
-    // 🔑 Lấy token bằng Client Credentials Flow
     async getClientCredentialsToken() {
         try {
-            // Kiểm tra credentials
             if (!this.clientId || !this.clientSecret) {
                 throw new Error('❌ Spotify credentials chưa được cấu hình! Vui lòng cập nhật Client ID và Client Secret trong spotify-config.js');
             }
@@ -154,22 +140,18 @@ class SpotifyAPI {
             this.accessToken = data.access_token;
             this.tokenExpiry = new Date(Date.now() + (data.expires_in * 1000));
 
-            // Lưu vào localStorage
             localStorage.setItem('spotify_access_token', this.accessToken);
             localStorage.setItem('spotify_token_expiry', this.tokenExpiry.toISOString());
 
             console.log('🎵 Spotify token obtained successfully');
         } catch (error) {
             console.error('❌ Error getting Spotify token:', error);
-            // Hiển thị lỗi thân thiện cho user
             this.showSpotifyError(error.message);
             throw error;
         }
     }
 
-    // 🚨 Hiển thị lỗi Spotify cho user
     showSpotifyError(message) {
-        // Tạo notification hoặc alert
         if (window.addMessage) {
             window.addMessage(`🚨 ${message}`, false);
         } else {
@@ -177,17 +159,14 @@ class SpotifyAPI {
         }
     }
 
-    // 🔄 Kiểm tra và làm mới token nếu cần
     async ensureValidToken() {
         if (!this.accessToken || new Date() >= this.tokenExpiry) {
             await this.getClientCredentialsToken();
         }
     }
 
-    // 🎵 Tìm kiếm bài hát
     async searchTracks(query, limit = 10, offset = 0) {
         try {
-            // Nếu đang ở chế độ fallback, trả về dữ liệu mẫu
             if (this.fallbackMode) {
                 console.log('🔄 Using fallback data for track search');
                 const fallbackData = this.getFallbackData();
@@ -218,7 +197,6 @@ class SpotifyAPI {
             return this.formatTrackResults(data.tracks);
         } catch (error) {
             console.error('❌ Error searching tracks:', error);
-            // Fallback về dữ liệu mẫu nếu có lỗi
             if (!this.fallbackMode) {
                 console.log('🔄 Falling back to sample data');
                 this.enableFallbackMode();
@@ -229,7 +207,6 @@ class SpotifyAPI {
         }
     }
 
-    // 🎤 Tìm kiếm nghệ sĩ
     async searchArtists(query, limit = 10) {
         try {
             await this.ensureValidToken();
@@ -259,7 +236,6 @@ class SpotifyAPI {
         }
     }
 
-    // 🎧 Tìm kiếm album
     async searchAlbums(query, limit = 10) {
         try {
             await this.ensureValidToken();
@@ -289,7 +265,6 @@ class SpotifyAPI {
         }
     }
 
-    // 🎵 Tìm kiếm playlist
     async searchPlaylists(query, limit = 10) {
         try {
             await this.ensureValidToken();
@@ -319,7 +294,6 @@ class SpotifyAPI {
         }
     }
 
-    // 🎯 Tìm kiếm theo thể loại
     async searchByGenre(genre, limit = 20) {
         try {
             await this.ensureValidToken();
@@ -349,7 +323,6 @@ class SpotifyAPI {
         }
     }
 
-    // 🎵 Lấy thông tin chi tiết bài hát
     async getTrackDetails(trackId) {
         try {
             await this.ensureValidToken();
@@ -372,7 +345,6 @@ class SpotifyAPI {
         }
     }
 
-    // 🎤 Lấy thông tin nghệ sĩ
     async getArtistDetails(artistId) {
         try {
             await this.ensureValidToken();
@@ -395,7 +367,6 @@ class SpotifyAPI {
         }
     }
 
-    // 🎧 Lấy top tracks của nghệ sĩ
     async getArtistTopTracks(artistId, market = 'VN') {
         try {
             await this.ensureValidToken();
@@ -418,7 +389,6 @@ class SpotifyAPI {
         }
     }
 
-    // 🎵 Lấy bài hát theo tâm trạng
     async getMoodBasedTracks(mood, limit = 10) {
         const moodQueries = {
             happy: 'mood:happy OR energy:high OR valence:high',
@@ -433,10 +403,8 @@ class SpotifyAPI {
         return await this.searchTracks(query, limit);
     }
 
-    // 🎯 Tìm kiếm thông minh (tất cả loại)
     async smartSearch(query, limit = 10) {
         try {
-            // Nếu đang ở chế độ fallback, trả về dữ liệu mẫu
             if (this.fallbackMode) {
                 console.log('🔄 Using fallback data for smart search');
                 const fallbackData = this.getFallbackData();
@@ -465,7 +433,6 @@ class SpotifyAPI {
             };
         } catch (error) {
             console.error('❌ Error in smart search:', error);
-            // Fallback về dữ liệu mẫu nếu có lỗi
             if (!this.fallbackMode) {
                 console.log('🔄 Falling back to sample data for smart search');
                 this.enableFallbackMode();
@@ -482,7 +449,6 @@ class SpotifyAPI {
         }
     }
 
-    // 🎵 Format kết quả bài hát
     formatTrackResults(tracksData) {
         if (!tracksData || !tracksData.items) return [];
 
@@ -501,7 +467,6 @@ class SpotifyAPI {
         }));
     }
 
-    // 🎤 Format kết quả nghệ sĩ
     formatArtistResults(artistsData) {
         if (!artistsData || !artistsData.items) return [];
 
@@ -516,7 +481,6 @@ class SpotifyAPI {
         }));
     }
 
-    // 🎧 Format kết quả album
     formatAlbumResults(albumsData) {
         if (!albumsData || !albumsData.items) return [];
 
@@ -531,7 +495,6 @@ class SpotifyAPI {
         }));
     }
 
-    // 🎵 Format kết quả playlist
     formatPlaylistResults(playlistsData) {
         if (!playlistsData || !playlistsData.items) return [];
 
@@ -546,7 +509,6 @@ class SpotifyAPI {
         }));
     }
 
-    // 🎵 Format chi tiết bài hát
     formatTrackDetails(track) {
         return {
             id: track.id,
@@ -565,7 +527,6 @@ class SpotifyAPI {
         };
     }
 
-    // 🎤 Format chi tiết nghệ sĩ
     formatArtistDetails(artist) {
         return {
             id: artist.id,
@@ -578,14 +539,12 @@ class SpotifyAPI {
         };
     }
 
-    // ⏱️ Format thời lượng
     formatDuration(ms) {
         const minutes = Math.floor(ms / 60000);
         const seconds = Math.floor((ms % 60000) / 1000);
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
 
-    // 🎵 Lấy featured playlists
     async getFeaturedPlaylists(limit = 10) {
         try {
             await this.ensureValidToken();
@@ -608,7 +567,6 @@ class SpotifyAPI {
         }
     }
 
-    // 🎯 Lấy new releases
     async getNewReleases(limit = 20) {
         try {
             await this.ensureValidToken();
@@ -632,12 +590,9 @@ class SpotifyAPI {
     }
 }
 
-// 🚀 Tạo instance global
 window.spotifyAPI = new SpotifyAPI();
 
-// 🎵 Helper functions để sử dụng dễ dàng
 window.SpotifyHelpers = {
-    // Tìm kiếm bài hát
     searchSongs: async (query, limit = 10) => {
         try {
             return await window.spotifyAPI.searchTracks(query, limit);
@@ -647,7 +602,6 @@ window.SpotifyHelpers = {
         }
     },
 
-    // Tìm kiếm nghệ sĩ
     searchArtists: async (query, limit = 10) => {
         try {
             return await window.spotifyAPI.searchArtists(query, limit);
@@ -657,7 +611,6 @@ window.SpotifyHelpers = {
         }
     },
 
-    // Tìm kiếm theo tâm trạng
     searchByMood: async (mood, limit = 10) => {
         try {
             return await window.spotifyAPI.getMoodBasedTracks(mood, limit);
@@ -667,7 +620,6 @@ window.SpotifyHelpers = {
         }
     },
 
-    // Tìm kiếm thông minh
     smartSearch: async (query, limit = 10) => {
         try {
             return await window.spotifyAPI.smartSearch(query, limit);
@@ -680,7 +632,6 @@ window.SpotifyHelpers = {
 
 console.log('🎵 Spotify API Integration loaded successfully!');
 
-//https://developer.spotify.com/dashboard/8105bc07cf1a4611a714f641cf61cf2d
 
 /*
 /api/private-docs:1   Failed to load resource: the server responded with a status of 401 ()

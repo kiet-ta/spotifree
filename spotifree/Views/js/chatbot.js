@@ -7,10 +7,8 @@ document.body.appendChild(chatbotToggle);
 const chatbotContainer = document.getElementById('chatbot-container');
 const chatbotClose = document.getElementById('chatbot-close');
 
-// Ẩn chatbot khi khởi chạy
 chatbotContainer.style.display = 'none';
 
-// Khởi tạo thời gian cho tin nhắn chào mừng
 document.addEventListener('DOMContentLoaded', () => {
     const welcomeTime = document.getElementById('welcome-time');
     if (welcomeTime) {
@@ -21,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
 chatbotToggle.addEventListener('click', () => {
     chatbotContainer.style.display = 'flex';
     chatbotToggle.style.display = 'none';
-    // Focus vào input khi mở chatbot
     setTimeout(() => {
         document.getElementById('chat-input').focus();
     }, 300);
@@ -33,7 +30,6 @@ chatbotClose.addEventListener('click', () => {
 });
 
 
-// 📨 Gửi tin nhắn người dùng
 function sendMessage() {
     const input = document.getElementById('chat-input');
     const msg = input.value.trim();
@@ -42,17 +38,14 @@ function sendMessage() {
     addMessage(msg, true);
     input.value = '';
 
-    // Hiển thị typing indicator
     showTypingIndicator();
 
-    // Delay để tạo cảm giác bot đang "suy nghĩ"
     setTimeout(() => {
         hideTypingIndicator();
     getBotReply(msg);
     }, 1000 + Math.random() * 1000);
 }
 
-// 💬 Thêm tin nhắn vào khung chat
 function addMessage(text, isUser) {
     const log = document.getElementById('chatlog');
     const messageDiv = document.createElement('div');
@@ -70,14 +63,12 @@ function addMessage(text, isUser) {
     messageDiv.appendChild(timeDiv);
     log.appendChild(messageDiv);
 
-    // Smooth scroll to bottom
     log.scrollTo({
         top: log.scrollHeight,
         behavior: 'smooth'
     });
 }
 
-// 🕐 Lấy thời gian hiện tại
 function getCurrentTime() {
     const now = new Date();
     return now.toLocaleTimeString('vi-VN', {
@@ -86,7 +77,6 @@ function getCurrentTime() {
     });
 }
 
-// ⌨️ Hiển thị typing indicator
 function showTypingIndicator() {
     const log = document.getElementById('chatlog');
     const typingDiv = document.createElement('div');
@@ -104,7 +94,6 @@ function showTypingIndicator() {
     });
 }
 
-// ❌ Ẩn typing indicator
 function hideTypingIndicator() {
     const typingIndicator = document.getElementById('typing-indicator');
     if (typingIndicator) {
@@ -112,12 +101,10 @@ function hideTypingIndicator() {
     }
 }
 
-// 🧠 Bot thông minh hơn với AI responses và Spotify API
 async function getBotReply(input) {
     const originalInput = input;
     input = input.toLowerCase().trim();
 
-    // Lưu context cho cuộc trò chuyện
     if (!window.chatContext) {
         window.chatContext = {
             lastMood: null,
@@ -127,7 +114,6 @@ async function getBotReply(input) {
         };
     }
 
-    // Thêm vào lịch sử
     window.chatContext.conversationHistory.push({
         user: originalInput,
         timestamp: new Date()
@@ -137,9 +123,7 @@ async function getBotReply(input) {
     let quickReplies = [];
     let spotifyResults = null;
 
-    // 🎯 Sử dụng context để phản hồi thông minh hơn
     if (window.ChatbotContext && window.ContextHelpers) {
-        // Kiểm tra lần đầu sử dụng
         if (window.chatContext.isFirstTime) {
             response = window.ChatbotContext.contextualResponses.firstTime;
             quickReplies = ['Tìm nhạc', 'Tôi đang vui', 'Tôi đang buồn', 'Nhạc chill'];
@@ -152,7 +136,6 @@ async function getBotReply(input) {
         }
     }
 
-    // 🎵 Tìm kiếm và phát nhạc với Spotify API
     if (input.includes('phát') || input.includes('mở') || input.includes('nghe') || input.includes('tìm')) {
         const songMatch = input.match(/(?:phát|mở|nghe|tìm)\s+(.+)/);
         if (songMatch) {
@@ -161,7 +144,6 @@ async function getBotReply(input) {
             addMessage(response, false);
 
             try {
-                // Tìm kiếm trên Spotify
                 spotifyResults = await window.SpotifyHelpers.smartSearch(songName, 10);
 
                 if (spotifyResults.tracks && spotifyResults.tracks.length > 0) {
@@ -183,7 +165,6 @@ async function getBotReply(input) {
                         'Xem tất cả'
                     ];
 
-                    // Gửi lệnh đến WPF với thông tin bài hát
                     if (window.chrome && window.chrome.webview) {
             window.chrome.webview.postMessage(
                             JSON.stringify({
@@ -207,11 +188,9 @@ async function getBotReply(input) {
             quickReplies = ['Nhạc vui', 'Nhạc buồn', 'Nhạc chill', 'Top hits'];
         }
     }
-    // 🎭 Phản hồi theo tâm trạng với Spotify API
     else if (input.includes('vui') || input.includes('happy') || input.includes('hạnh phúc')) {
         window.chatContext.lastMood = 'happy';
 
-        // Sử dụng context để lấy phản hồi
         if (window.ContextHelpers) {
             response = window.ContextHelpers.getMoodResponse('happy') || "Tuyệt vời! Tâm trạng vui vẻ của bạn rất đáng yêu! 🎉";
         } else {
@@ -221,7 +200,6 @@ async function getBotReply(input) {
     addMessage(response, false);
 
         try {
-            // Tìm kiếm nhạc vui trên Spotify
             const happyTracks = await window.SpotifyHelpers.searchByMood('happy', 5);
 
             if (happyTracks && happyTracks.length > 0) {
@@ -239,7 +217,6 @@ async function getBotReply(input) {
                     'Tìm khác'
                 ];
             } else {
-                // Fallback nếu không có kết quả từ Spotify
                 const fallbackSongs = [
                     'Happy - Pharrell Williams',
                     'Can\'t Stop The Feeling - Justin Timberlake',
@@ -283,7 +260,6 @@ async function getBotReply(input) {
         response = `Thời gian thư giãn tuyệt vời! 🌙\n\nGợi ý bài hát: ${randomSong}`;
         quickReplies = ['Phát bài này', 'Bài khác', 'Tôi muốn nhạc năng động'];
     }
-    // 🎧 Điều khiển phát nhạc
     else if (input.includes('dừng') || input.includes('stop')) {
         response = "⏹️ Đã dừng phát nhạc!";
         if (window.chrome && window.chrome.webview) {
@@ -311,7 +287,6 @@ async function getBotReply(input) {
         }
         quickReplies = ['Tạm dừng', 'Bài khác', 'Dừng hẳn'];
     }
-    // 🔍 Tìm kiếm thông tin
     else if (input.includes('tìm') || input.includes('search')) {
         const searchMatch = input.match(/(?:tìm|search)\s+(.+)/);
         if (searchMatch) {
@@ -323,12 +298,10 @@ async function getBotReply(input) {
             quickReplies = ['Tìm theo tên bài', 'Tìm theo nghệ sĩ', 'Tìm theo thể loại'];
         }
     }
-    // 📚 Trợ giúp và hướng dẫn
     else if (input.includes('help') || input.includes('giúp') || input.includes('hướng dẫn')) {
         response = `🎧 **Trợ lý âm nhạc Spotifree**\n\nTôi có thể giúp bạn:\n• 🎵 Tìm kiếm và phát nhạc\n• 🎭 Gợi ý nhạc theo tâm trạng\n• ⏯️ Điều khiển phát nhạc\n• 🔍 Tìm kiếm trong thư viện\n• 📱 Quản lý playlist\n\nHãy thử nói: "Tôi đang vui" hoặc "Phát nhạc pop"!`;
         quickReplies = ['Tìm nhạc', 'Tâm trạng vui', 'Tâm trạng buồn', 'Nhạc chill'];
     }
-    // 💬 Trò chuyện thông thường
     else if (input.includes('xin chào') || input.includes('hello') || input.includes('hi')) {
         response = "👋 Xin chào! Tôi rất vui được gặp bạn! Bạn muốn nghe nhạc gì hôm nay?";
         quickReplies = ['Tìm nhạc mới', 'Nhạc theo tâm trạng', 'Xem playlist', 'Trợ giúp'];
@@ -337,12 +310,10 @@ async function getBotReply(input) {
         response = "😊 Không có gì! Tôi rất vui được giúp bạn. Còn gì khác tôi có thể làm không?";
         quickReplies = ['Tìm nhạc khác', 'Tạo playlist', 'Xem thống kê', 'Cài đặt'];
     }
-    // 🤖 Câu hỏi về bot
     else if (input.includes('bạn là ai') || input.includes('who are you')) {
         response = "🤖 Tôi là trợ lý âm nhạc AI của Spotifree! Tôi được thiết kế để giúp bạn khám phá và thưởng thức âm nhạc một cách thông minh và thú vị nhất.";
         quickReplies = ['Tìm nhạc', 'Hướng dẫn sử dụng', 'Tính năng mới', 'Liên hệ hỗ trợ'];
     }
-    // 🎯 Câu hỏi không hiểu
     else {
         const fallbackResponses = [
             "🤔 Tôi chưa hiểu rõ ý bạn. Bạn có thể thử nói 'Tìm nhạc' hoặc 'Tôi đang vui' không?",
@@ -354,10 +325,8 @@ async function getBotReply(input) {
         quickReplies = ['Tìm nhạc', 'Tôi đang vui', 'Tôi đang buồn', 'Trợ giúp'];
     }
 
-    // Gửi phản hồi
     addMessage(response, false);
 
-    // Hiển thị quick replies nếu có
     if (quickReplies.length > 0) {
         setTimeout(() => {
             showQuickReplies(quickReplies);
@@ -365,7 +334,6 @@ async function getBotReply(input) {
     }
 }
 
-// 🚀 Hiển thị quick reply buttons
 function showQuickReplies(replies) {
     const log = document.getElementById('chatlog');
     const quickRepliesDiv = document.createElement('div');
@@ -394,7 +362,6 @@ function showQuickReplies(replies) {
     });
 }
 
-// ⌨️ Xử lý Enter key
 document.addEventListener('DOMContentLoaded', () => {
     const chatInput = document.getElementById('chat-input');
     if (chatInput) {
