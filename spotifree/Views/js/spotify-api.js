@@ -19,7 +19,7 @@ class SpotifyAPI {
     async initializeAuth() {
         try {
             // Kiểm tra credentials trước
-            if (this.clientId === 'YOUR_SPOTIFY_CLIENT_ID' || this.clientSecret === 'YOUR_SPOTIFY_CLIENT_SECRET') {
+            if (!this.clientId || !this.clientSecret) {
                 console.warn('⚠️ Spotify credentials chưa được cấu hình. Chế độ fallback sẽ được sử dụng.');
                 this.enableFallbackMode();
                 return;
@@ -132,7 +132,7 @@ class SpotifyAPI {
     async getClientCredentialsToken() {
         try {
             // Kiểm tra credentials
-            if (this.clientId === 'YOUR_SPOTIFY_CLIENT_ID' || this.clientSecret === 'YOUR_SPOTIFY_CLIENT_SECRET') {
+            if (!this.clientId || !this.clientSecret) {
                 throw new Error('❌ Spotify credentials chưa được cấu hình! Vui lòng cập nhật Client ID và Client Secret trong spotify-config.js');
             }
 

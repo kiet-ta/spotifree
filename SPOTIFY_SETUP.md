@@ -32,8 +32,8 @@ Mở file `spotifree/Views/js/spotify-config.js` và thay đổi:
 
 ```javascript
 credentials: {
-    clientId: 'YOUR_SPOTIFY_CLIENT_ID_HERE', // Thay bằng Client ID thực
-    clientSecret: 'YOUR_SPOTIFY_CLIENT_SECRET_HERE', // Thay bằng Client Secret thực
+    clientId: '8105bc07cf1a4611a714f641cf61cf2d', // Thay bằng Client ID thực
+    clientSecret: 'f9e2f2ba56144e67beb3e65fde494d21', // Thay bằng Client Secret thực
     redirectUri: 'http://localhost:3000/callback'
 }
 ```
@@ -43,8 +43,8 @@ Mở file `spotifree/Views/js/spotify-api.js` và thay đổi:
 
 ```javascript
 constructor() {
-    this.clientId = 'YOUR_SPOTIFY_CLIENT_ID'; // Thay bằng Client ID thực
-    this.clientSecret = 'YOUR_SPOTIFY_CLIENT_SECRET'; // Thay bằng Client Secret thực
+    this.clientId = '8105bc07cf1a4611a714f641cf61cf2d'; // Thay bằng Client ID thực
+    this.clientSecret = 'f9e2f2ba56144e67beb3e65fde494d21'; // Thay bằng Client Secret thực
     this.redirectUri = 'http://localhost:3000/callback';
     // ...
 }

@@ -166,7 +166,7 @@ Sau khi sửa lỗi redirect URI:
 
 ```
 ✅ App created successfully in Spotify Dashboard
-✅ Client ID: [your-client-id]
+✅ Client ID: 8105bc07cf1a4611a714f641cf61cf2d
 ✅ Client Secret: [your-client-secret]  
 ✅ Redirect URI: http://localhost:3000
 ✅ No more "This redirect URI is not secure" error

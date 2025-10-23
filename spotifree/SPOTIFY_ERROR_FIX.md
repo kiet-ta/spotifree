@@ -7,8 +7,8 @@ Lỗi "Có lỗi khi tìm kiếm trên Spotify" xảy ra vì:
 ### 1. **❌ Credentials Chưa Được Cấu Hình**
 ```javascript
 // Trong spotify-api.js
-this.clientId = 'YOUR_SPOTIFY_CLIENT_ID'; // ❌ Vẫn là placeholder
-this.clientSecret = 'YOUR_SPOTIFY_CLIENT_SECRET'; // ❌ Vẫn là placeholder
+this.clientId = '8105bc07cf1a4611a714f641cf61cf2d'; // ❌ Vẫn là placeholder
+this.clientSecret = 'f9e2f2ba56144e67beb3e65fde494d21'; // ❌ Vẫn là placeholder
 ```
 
 ### 2. **❌ Không Có Spotify Developer Account**
@@ -47,8 +47,8 @@ Mở file `spotifree/Views/js/spotify-config.js`:
 
 ```javascript
 credentials: {
-    clientId: 'YOUR_ACTUAL_CLIENT_ID_HERE', // Thay bằng Client ID thực
-    clientSecret: 'YOUR_ACTUAL_CLIENT_SECRET_HERE', // Thay bằng Client Secret thực
+    clientId: '8105bc07cf1a4611a714f641cf61cf2d', // Thay bằng Client ID thực
+    clientSecret: 'f9e2f2ba56144e67beb3e65fde494d21', // Thay bằng Client Secret thực
     redirectUri: 'http://localhost:3000/callback'
 }
 ```
