@@ -9,10 +9,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Views\js\mini.js" />
+    <None Remove="Views\mini.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Views\js\mini.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Views\mini.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Models\" />
-    <Folder Include="Views\" />
     <Folder Include="Services\" />
     <Folder Include="ViewModels\" />
+    <Folder Include="Views\assets\" />
   </ItemGroup>
 
   <ItemGroup>
