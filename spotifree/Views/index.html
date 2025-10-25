@@ -3,6 +3,7 @@
 <head>
     <link rel="stylesheet" href="/css/library.css" />
     <link rel="stylesheet" href="/css/setting.css" />
+    <link rel="stylesheet" href="/css/chatbot.css" />
 </head>
 <body>
     <nav>
@@ -25,5 +26,29 @@
     <script src="/js/interop.js"></script>
     <script src="/js/storage.js"></script>
     <script src="/js/settings.js"></script>
+  
+      <!-- Chatbot -->
+    <div id="chatbot-container">
+        <div id="chatbot-header">
+            <div class="header-content">
+                <div class="status-indicator"></div>
+                <span>🎧 Spotifree Assistant</span>
+            </div>
+            <div id="chatbot-close">×</div>
+        </div>
+        <div id="chatlog">
+            <div class="message">
+                <div class="bot-msg">
+                    👋 Xin chào! Tôi là trợ lý âm nhạc của bạn. Tôi có thể giúp bạn tìm nhạc, gợi ý bài hát, hoặc điều
+                    khiển phát nhạc. Bạn cần gì?
+                </div>
+                <div class="message-time" id="welcome-time"></div>
+            </div>
+        </div>
+        <div id="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Nhập tin nhắn..." />
+            <button onclick="sendMessage()">Gửi</button>
+        </div>
+    </div>
 </body>
 </html>

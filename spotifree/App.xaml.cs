@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using spotifree.IServices;
 using spotifree.Services;
 using System.Data;
