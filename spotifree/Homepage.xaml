@@ -1,0 +1,539 @@
+﻿<Window x:Class="spotifree.Homepage"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:spotifree"
+        mc:Ignorable="d"
+        Title="Spotify - Homepage" Height="800" Width="1200"
+        WindowState="Maximized"
+        Background="Black">
+    <Grid>
+        <!-- Spotify Interface Layout -->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Left Sidebar -->
+        <Border Grid.Column="0" Background="Black" BorderBrush="#333333" BorderThickness="0,0,1,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Spotify Logo and Header -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="24,20,24,20">
+                    <Border Width="32" Height="32" Background="White" CornerRadius="16" Margin="0,0,12,0">
+                        <TextBlock Text="♪" Foreground="Black" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" FontWeight="Bold"/>
+                    </Border>
+                    <TextBlock Text="Sleptify" FontSize="20" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Navigation -->
+                <StackPanel Grid.Row="1" Margin="24,0,24,0">
+                    <Button Content="🏠 Home" HorizontalAlignment="Left" Background="Transparent" BorderThickness="0" Foreground="White" FontWeight="Medium" Padding="0,8" Margin="0,0,0,8"/>
+                    <Button Content="🔍 Search" HorizontalAlignment="Left" Background="Transparent" BorderThickness="0" Foreground="White" FontWeight="Medium" Padding="0,8" Margin="0,0,0,8"/>
+                    <Button Content="📚 Your Library" HorizontalAlignment="Left" Background="Transparent" BorderThickness="0" Foreground="White" FontWeight="Medium" Padding="0,8" Margin="0,0,0,8"/>
+                </StackPanel>
+
+                <!-- Library Section -->
+                <Border Grid.Row="2" BorderBrush="#333333" BorderThickness="0,1,0,0" Margin="0,20,0,0">
+                    <StackPanel Margin="24">
+                        <!-- Library Header -->
+                        <Grid Margin="0,0,0,16">
+                            <TextBlock Text="Your Library" FontSize="16" FontWeight="Bold" Foreground="White" HorizontalAlignment="Left"/>
+                            <Ellipse Width="24" Height="24" Fill="Black" HorizontalAlignment="Right"/>
+                            <TextBlock Text="+" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="14" FontWeight="Bold" Margin="174,1,0,0"/>
+                        </Grid>
+
+                        <!-- Library Tabs -->
+                        <Grid Margin="0,0,0,16">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- First Row -->
+                            <Button Grid.Row="0" Grid.Column="0" Content="Playlists" Background="#1A1A1A" Foreground="White" BorderThickness="0" Padding="16,8" Margin="0,0,8,8" FontSize="14" FontWeight="Medium">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" 
+                                                CornerRadius="20" 
+                                                Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                            <Button Grid.Row="0" Grid.Column="1" Content="Podcasts" Background="Transparent" Foreground="White" BorderBrush="#666666" BorderThickness="1" Padding="16,8" Margin="8,0,0,8" FontSize="14" FontWeight="Medium">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" 
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="20" 
+                                                Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                            <!-- Second Row -->
+                            <Button Grid.Row="1" Grid.Column="0" Content="Albums" Background="Transparent" Foreground="White" BorderBrush="#666666" BorderThickness="1" Padding="16,8" Margin="0,0,8,0" FontSize="14" FontWeight="Medium">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" 
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="20" 
+                                                Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </Grid>
+
+                        <!-- Playlist Items -->
+                        <StackPanel>
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="40"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="40" Height="40" Background="#FF6B6B" CornerRadius="4" Margin="0,0,12,0"/>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Liked Songs" FontSize="14" FontWeight="Medium" Foreground="White"/>
+                                    <TextBlock Text="Playlist • 8 songs" FontSize="12" Foreground="#CCCCCC"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="40"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="40" Height="40" Background="#4ECDC4" CornerRadius="4" Margin="0,0,12,0"/>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Cà Phê Quán Quen" FontSize="14" FontWeight="Medium" Foreground="White"/>
+                                    <TextBlock Text="Anh Trai &quot;Say Hi&quot;" FontSize="12" Foreground="#CCCCCC"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Main Content Area -->
+        <Grid Grid.Column="1" Background="Black">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="80"/>
+            </Grid.RowDefinitions>
+
+            <!-- Main Header -->
+            <Border Grid.Row="0" Background="Black" Padding="32,20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <Border Width="32" Height="32" Background="#333333" CornerRadius="16" Margin="0,0,8,0">
+                            <TextBlock Text="←" Foreground="White" FontSize="16" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,3,0,0"/>
+                        </Border>
+                        <Border Width="32" Height="32" Background="#333333" CornerRadius="16">
+                            <TextBlock Text="→" Foreground="White" FontSize="16" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,3,0,0"/>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <TextBlock Text="🔔" FontSize="24" Margin="0,0,16,0" Foreground="White"/>
+                        <Grid Width="32" Height="32">
+                            <Ellipse Fill="White"/>
+                            <TextBlock Text="👤" Foreground="Black" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16"/>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Content Area -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="32,0,32,32">
+                    <!-- Featured Section -->
+                    <Border Background="#667EEA" CornerRadius="8" Padding="24" Margin="0,0,0,40">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Width="200" Height="200" Background="#FF9A9E" CornerRadius="8" Margin="0,0,24,0">
+                                <TextBlock Text="🎵" FontSize="48" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="53,0,0,0"/>
+                            </Border>
+
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="Made For You" FontSize="32" FontWeight="Bold" Foreground="White" Margin="0,0,0,8"/>
+                                <TextBlock Text="Personalized playlists and recommendations based on your listening history" FontSize="16" Foreground="White" Opacity="0.9" Margin="0,0,0,24"/>
+
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="▶ Play" Background="#1DB954" Foreground="White" BorderThickness="0" Padding="32,12" Margin="0,0,16,0" FontSize="14" FontWeight="Bold">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" 
+                                                        CornerRadius="20" 
+                                                        Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                    <Button Content="Follow" Background="Transparent" Foreground="White" BorderBrush="White" BorderThickness="1" Padding="24,12" Margin="0,0,16,0" FontSize="14" FontWeight="Medium">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" 
+                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                        CornerRadius="20" 
+                                                        Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                    <Button Content="⋯" Background="Transparent" Foreground="White" BorderThickness="0" Width="32" Height="32" FontSize="18"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Filter Buttons -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <Button Content="All" Background="#1A1A1A" Foreground="White" BorderThickness="0" Padding="16,8" Margin="0,0,8,0" FontSize="14" FontWeight="Medium">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" 
+                                            CornerRadius="20" 
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <Button Content="Music" Background="Transparent" Foreground="White" BorderBrush="#666666" BorderThickness="1" Padding="16,8" Margin="0,0,8,0" FontSize="14" FontWeight="Medium">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" 
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            CornerRadius="20" 
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <Button Content="Podcasts" Background="Transparent" Foreground="White" BorderBrush="#666666" BorderThickness="1" Padding="16,8" FontSize="14" FontWeight="Medium">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" 
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            CornerRadius="20" 
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                        <StackPanel Orientation="Horizontal">
+                            <!-- Card 1 -->
+                            <Border Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,0" Width="180">
+                                <StackPanel>
+                                    <Border Height="160" Background="#FFB366" CornerRadius="8" Margin="0,0,0,12">
+                                        <TextBlock Text="🎵" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Em Có Phải..." FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,4"/>
+                                    <TextBlock Text="Sơn Tùng M-TP" FontSize="14" Foreground="#CCCCCC"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card 2 -->
+                            <Border Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,0" Width="180">
+                                <StackPanel>
+                                    <Border Height="160" Background="#4ECDC4" CornerRadius="8" Margin="0,0,0,12">
+                                        <TextBlock Text="🎤" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Chúng Ta Của Hiện Tại" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,4"/>
+                                    <TextBlock Text="Sơn Tùng M-TP" FontSize="14" Foreground="#CCCCCC"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card 3 -->
+                            <Border Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,0" Width="180">
+                                <StackPanel>
+                                    <Border Height="160" Background="#FF6B6B" CornerRadius="8" Margin="0,0,0,12">
+                                        <TextBlock Text="🎧" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Muộn Rồi Mà Sao Còn" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,4"/>
+                                    <TextBlock Text="Sơn Tùng M-TP" FontSize="14" Foreground="#CCCCCC"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card 4 -->
+                            <Border Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,0" Width="180">
+                                <StackPanel>
+                                    <Border Height="160" Background="#9B59B6" CornerRadius="8" Margin="0,0,0,12">
+                                        <TextBlock Text="🎼" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Hãy Trao Cho Anh" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,4"/>
+                                    <TextBlock Text="Sơn Tùng M-TP" FontSize="14" Foreground="#CCCCCC"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card 5 -->
+                            <Border Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,0,0" Width="180">
+                                <StackPanel>
+                                    <Border Height="160" Background="#E67E22" CornerRadius="8" Margin="0,0,0,12">
+                                        <TextBlock Text="🎸" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Nơi Này Có Anh" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,4"/>
+                                    <TextBlock Text="Sơn Tùng M-TP" FontSize="14" Foreground="#CCCCCC"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- It's New Music Today Section -->
+                    <Grid Margin="0,24,0,16">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Section Header -->
+                        <Grid Grid.Row="0" Margin="0,0,0,16">
+                            <TextBlock Text="It's New Music Today" FontSize="24" FontWeight="Bold" Foreground="White" HorizontalAlignment="Left"/>
+                            <TextBlock Text="Show all" FontSize="14" Foreground="#CCCCCC" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                        </Grid>
+                        
+                        <!-- New Music Cards -->
+                        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                            <StackPanel Orientation="Horizontal">
+                                <!-- Card 1 -->
+                                <Border Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,0" Width="180">
+                                    <StackPanel>
+                                        <Border Height="160" Background="#4A90E2" CornerRadius="8" Margin="0,0,0,12">
+                                            <TextBlock Text="🎤" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <TextBlock Text="Những Chuyế..." FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Various Artists" FontSize="14" Foreground="#CCCCCC"/>
+                                    </StackPanel>
+                                </Border>
+                                
+                                <!-- Card 2 -->
+                                <Border Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,0" Width="180">
+                                    <StackPanel>
+                                        <Border Height="160" Background="#8B4513" CornerRadius="8" Margin="0,0,0,12">
+                                            <TextBlock Text="🎩" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <TextBlock Text="Nếu Nhịp..." FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Khải Đăng" FontSize="14" Foreground="#CCCCCC"/>
+                                    </StackPanel>
+                                </Border>
+                                
+                                <!-- Card 3 -->
+                                <Border Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,0" Width="180">
+                                    <StackPanel>
+                                        <Border Height="160" Background="#FF6B9D" CornerRadius="8" Margin="0,0,0,12">
+                                            <TextBlock Text="🌅" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <TextBlock Text="Lạ Phải Mà Nh..." FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Karik, Rhyder" FontSize="14" Foreground="#CCCCCC"/>
+                                    </StackPanel>
+                                </Border>
+                                
+                                <!-- Card 4 -->
+                                <Border Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,0" Width="180">
+                                    <StackPanel>
+                                        <Border Height="160" Background="#FFD93D" CornerRadius="8" Margin="0,0,0,12">
+                                            <TextBlock Text="🎨" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <TextBlock Text="Đừng Hỏi Em" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Mỹ Tâm" FontSize="14" Foreground="#CCCCCC"/>
+                                    </StackPanel>
+                                </Border>
+                                
+                                <!-- Card 5 -->
+                                <Border Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,0,0" Width="180">
+                                    <StackPanel>
+                                        <Border Height="160" Background="#8B5A2B" CornerRadius="8" Margin="0,0,0,12">
+                                            <TextBlock Text="💿" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <TextBlock Text="À Thôi Ngày L..." FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Hoàng Dũng" FontSize="14" Foreground="#CCCCCC"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+
+                    <!-- Section Title -->
+                    <TextBlock Text="Made For You" FontSize="24" FontWeight="Bold" Foreground="White" Margin="0,0,0,16"/>
+
+                    <!-- Music Grid -->
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Music Cards Row 1 -->
+                        <Border Grid.Row="0" Grid.Column="0" Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,16">
+                            <StackPanel>
+                                <Border Height="160" Background="#FF6B6B" CornerRadius="8" Margin="0,0,0,12">
+                                    <TextBlock Text="🌅" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="My top tracks playlist" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,4"/>
+                                <TextBlock Text="Personalized playlist based on your listening" FontSize="14" Foreground="#CCCCCC"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Row="0" Grid.Column="1" Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,16">
+                            <StackPanel>
+                                <Border Height="160" Background="#4ECDC4" CornerRadius="8" Margin="0,0,0,12">
+                                    <TextBlock Text="🎩" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Hẹn em và tan vỡ Radio" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,4"/>
+                                <TextBlock Text="Personalized playlist based on your listening" FontSize="14" Foreground="#CCCCCC"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Row="0" Grid.Column="2" Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,0,16">
+                            <StackPanel>
+                                <Border Height="160" Background="#FF6B6B" CornerRadius="8" Margin="0,0,0,12">
+                                    <TextBlock Text="💿" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Thu Động" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,4"/>
+                                <TextBlock Text="Personalized playlist based on your listening" FontSize="14" Foreground="#CCCCCC"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Music Cards Row 2 -->
+                        <Border Grid.Row="1" Grid.Column="0" Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,0">
+                            <StackPanel>
+                                <Border Height="160" Background="#4ECDC4" CornerRadius="8" Margin="0,0,0,12">
+                                    <TextBlock Text="🎨" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Dangerously Radio" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,4"/>
+                                <TextBlock Text="Personalized playlist based on your listening" FontSize="14" Foreground="#CCCCCC"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Row="1" Grid.Column="1" Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,0">
+                            <StackPanel>
+                                <Border Height="160" Background="#FF6B6B" CornerRadius="8" Margin="0,0,0,12">
+                                    <TextBlock Text="🎵" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Liked Songs" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,4"/>
+                                <TextBlock Text="Your weekly mixtape of fresh music" FontSize="14" Foreground="#CCCCCC"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Row="1" Grid.Column="2" Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,0,0">
+                            <StackPanel>
+                                <Border Height="160" Background="#4ECDC4" CornerRadius="8" Margin="0,0,0,12">
+                                    <TextBlock Text="🌅" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Bạn thì cư khác đi" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,4"/>
+                                <TextBlock Text="Catch all the latest music from artists you follow" FontSize="14" Foreground="#CCCCCC"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Player Bar -->
+            <Border Grid.Row="2" Background="#1A1A1A" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="16,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="200"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Current Track -->
+                    <Grid Grid.Column="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="56"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Width="56" Height="56" Background="#FF9A9E" CornerRadius="4" Margin="0,0,12,0"/>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Cà Phê Quán Quen" FontSize="14" FontWeight="Medium" Foreground="White"/>
+                            <TextBlock Text="Anh Trai &quot;Say Hi&quot;" FontSize="12" Foreground="#CCCCCC"/>
+                        </StackPanel>
+                        <TextBlock Grid.Column="2" Text="❤️" FontSize="20" VerticalAlignment="Top" RenderTransformOrigin="0.2,-0.271" Margin="84,11,-92,0" Foreground="Red"/>
+                    </Grid>
+
+                    <!-- Player Controls -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
+                            <Button Content="🔀" Background="Transparent" BorderThickness="0" Width="32" Height="32" Margin="0,0,20,0" Foreground="White"/>
+                            <Button Content="⏮" Background="Transparent" BorderThickness="0" Width="32" Height="32" Margin="0,0,20,0" Foreground="White"/>
+                            <Border Background="White" Width="40" Height="40" CornerRadius="20" Margin="0,0,20,0">
+                                <TextBlock Text="▶" Foreground="Black" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16"/>
+                            </Border>
+                            <Button Content="⏭" Background="Transparent" BorderThickness="0" Width="32" Height="32" Margin="0,0,20,0" Foreground="White"/>
+                            <Button Content="🔁" Background="Transparent" BorderThickness="0" Width="32" Height="32" Foreground="White"/>
+                        </StackPanel>
+
+                        <Grid Margin="0,0,0,4">
+                            <Border Height="4" Background="#333333" CornerRadius="2"/>
+                            <Border Height="4" Background="White" CornerRadius="2" Width="100" HorizontalAlignment="Left"/>
+                        </Grid>
+
+                        <Grid>
+                            <TextBlock Text="0:53" FontSize="12" Foreground="#CCCCCC" HorizontalAlignment="Left"/>
+                            <TextBlock Text="4:28" FontSize="12" Foreground="#CCCCCC" HorizontalAlignment="Right"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Player Actions -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="📋" FontSize="24" Margin="0,0,16,0" Foreground="White"/>
+                        <TextBlock Text="📱" FontSize="24" Margin="0,0,16,0" Foreground="White"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                            <TextBlock Text="🔊" FontSize="24" Margin="0,0,8,0" Foreground="White"/>
+                            <Border Width="80" Height="4" Background="#333333" CornerRadius="2">
+                                <Border Height="4" Background="White" CornerRadius="2" Width="48" HorizontalAlignment="Left"/>
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="⛶" FontSize="24" Foreground="White"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
