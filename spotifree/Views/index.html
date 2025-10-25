@@ -1,17 +1,17 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
-
 <head>
     <link rel="stylesheet" href="/css/library.css" />
+    <link rel="stylesheet" href="/css/setting.css" />
     <link rel="stylesheet" href="/css/chatbot.css" />
 </head>
-
 <body>
     <nav>
         <button onclick="loadPage('home')">Homepage</button>
         <button onclick="loadPage('playlist')">Playlist</button>
         <button onclick="loadPage('settings')">Setting</button>
         <button onclick="loadPage('library')">library</button>
+        <button onclick="loadPage('album')">album</button>
     </nav>
 
     <div id="player-bar">
@@ -20,15 +20,14 @@
 
     <main id="content-container"></main>
 
+    <script src="/js/library.js"></script>
     <script src="/js/navigation.js"></script>
     <script src="/js/player.js"></script>
-    <script src="/js/wpf-integration.js"></script>
-    <script src="/js/spotify-config.js"></script>
-    <script src="/js/chatbot-context.js"></script>
-    <script src="/js/spotify-api.js"></script>
-    <script src="/js/chatbot.js"></script>
-
-    <!-- Chatbot -->
+    <script src="/js/interop.js"></script>
+    <script src="/js/storage.js"></script>
+    <script src="/js/settings.js"></script>
+  
+      <!-- Chatbot -->
     <div id="chatbot-container">
         <div id="chatbot-header">
             <div class="header-content">
@@ -51,8 +50,5 @@
             <button onclick="sendMessage()">Gửi</button>
         </div>
     </div>
-
-
 </body>
-
 </html>
