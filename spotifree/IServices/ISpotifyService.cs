@@ -16,4 +16,6 @@ public interface ISpotifyService
     Task DeletePlaylistAsync(string playlistId);
 
     Task<List<SpotifyPlaylist>> GetCurrentUserPlaylistsAsync(int limit = 20, int offset = 0);
+
+    Task<string> SearchAsync(string query, string type = "track,artist,album,playlist", int limit = 20);
 }
