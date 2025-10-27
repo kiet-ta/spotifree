@@ -4,6 +4,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:spotifree"
+        
+        xmlns:vm="clr-namespace:spotifree.ViewModels"
+        xmlns:conv="clr-namespace:spotifree.Converters"
+        
         mc:Ignorable="d"
         Title="Ứng lần và sao và Radio" Height="700" Width="1200"
         Background="#FF2A2A2A"
@@ -11,8 +15,13 @@
         AllowsTransparency="True"
         ResizeMode="CanResize">
 
+    <Window.DataContext>
+        <vm:BaseViewModel/>
+    </Window.DataContext>
+    
     <Window.Resources>
         <!-- Button Style -->
+        <conv:BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <Style x:Key="PlayerButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="White"/>
@@ -61,25 +70,30 @@
                        Style="{StaticResource PlayerButtonStyle}"
                        Width="30" Height="30" 
                        FontSize="14"
-                       x:Name="btnSearch"/>
+                       x:Name="btnSearch"
+                        Command="{Binding SearchCommand}"/>
                 <Button Content="—" 
                        Style="{StaticResource PlayerButtonStyle}"
                        Width="30" Height="30" 
                        FontSize="16"
                        x:Name="btnMaximize"
-                       Click="BtnMaximize_Click"/>
+                        Command="{Binding MinimizeWindowCommand}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
                 <Button Content="⬜" 
                        Style="{StaticResource PlayerButtonStyle}"
                        Width="30" Height="30" 
                        FontSize="14"
                        x:Name="btnMinimize"
-                       Click="BtnMinimize_Click"/>
+                        Command="{Binding MaximizeWindowCommand}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+                        />
                 <Button Content="✕" 
                        Style="{StaticResource PlayerButtonStyle}"
                        Width="30" Height="30" 
                        FontSize="16"
                        x:Name="btnClose"
-                       Click="BtnClose_Click"/>
+                        Command="{Binding CloseWindowCommand}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
             </StackPanel>
         </Grid>
 
@@ -102,15 +116,15 @@
                     <!-- Placeholder for Album Art -->
                     <Image x:Name="imgAlbumArt" 
                           Stretch="UniformToFill"
-                          />
+                          Source="{Binding AlbumArtUrl}"/>
 
                     <!-- Overlay Text (if needed) -->
                     <Grid Background="#99000000" 
-                         Visibility="Collapsed"
+                         Visibility="{Binding IsLyricsVisible, Converter={StaticResource BoolToVis}}"
                          x:Name="overlayGrid">
                         <StackPanel VerticalAlignment="Center" 
                                    HorizontalAlignment="Center">
-                            <TextBlock Text="CHUYỆN CHÚNG TA SAU NÀY" 
+                            <TextBlock Text="{Binding CurrentTrack.Title, FallbackValue='Lời bài hát...'}" 
                                       FontSize="32" 
                                       FontWeight="Bold"
                                       Foreground="White"
@@ -137,18 +151,18 @@
                        CornerRadius="5">
                     <Image x:Name="imgThumbnail" 
                           Stretch="UniformToFill"
-                          />
+                          Source="{Binding ThumbnailUrl}"/>
                 </Border>
 
                 <StackPanel Margin="15,0,0,0" 
                            VerticalAlignment="Center">
                     <TextBlock x:Name="txtSongTitle"
-                              Text="Chuyện Chúng Ta Sau Này" 
+                              Text="{Binding CurrentTrack.ArtistName}" 
                               FontSize="14" 
                               FontWeight="SemiBold"
                               Foreground="White"/>
                     <TextBlock x:Name="txtArtist"
-                              Text="Hà Đăng Quyền, Wean Le" 
+                              Text="{Binding ArtistName}" 
                               FontSize="12" 
                               Foreground="#FF999999"
                               Margin="0,3,0,0"/>
@@ -169,13 +183,15 @@
                            Style="{StaticResource PlayerButtonStyle}"
                            Width="35" Height="35" 
                            FontSize="16"
-                           x:Name="btnShuffle"/>
+                           x:Name="btnShuffle"
+                            Command="{Binding ToggleShuffleCommand}"/>
                     <Button Content="⏮" 
                            Style="{StaticResource PlayerButtonStyle}"
                            Width="35" Height="35" 
                            FontSize="20"
                            Margin="10,0,0,0"
-                           x:Name="btnPrevious"/>
+                           x:Name="btnPrevious"
+                            Command="{Binding PreviousTrackCommand}"/>
                     <Button Content="⏸" 
                            Style="{StaticResource PlayerButtonStyle}"
                            Width="45" Height="45" 
@@ -184,19 +200,21 @@
                            Background="#FFFFFFFF"
                            Foreground="Black"
                            x:Name="btnPlayPause"
-                           Click="BtnPlayPause_Click"/>
+                            Command="{Binding PlayPauseCommand}"/>
                     <Button Content="⏭" 
                            Style="{StaticResource PlayerButtonStyle}"
                            Width="35" Height="35" 
                            FontSize="20"
                            Margin="10,0,0,0"
-                           x:Name="btnNext"/>
+                           x:Name="btnNext"
+                            Command="{Binding NextTrackCommand}"/>
                     <Button Content="🔁" 
                            Style="{StaticResource PlayerButtonStyle}"
                            Width="35" Height="35" 
                            FontSize="16"
                            Margin="10,0,0,0"
-                           x:Name="btnRepeat"/>
+                           x:Name="btnRepeat"
+                            Command="{Binding ToggleRepeatCommand}"/>
                 </StackPanel>
 
                 <!-- Progress Bar -->
@@ -208,7 +226,7 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock x:Name="txtCurrentTime"
-                              Text="0:46" 
+                              Text="{Binding CurrentPositionString}" 
                               Foreground="#FF999999"
                               FontSize="11"
                               VerticalAlignment="Center"
@@ -217,14 +235,14 @@
                     <Slider Grid.Column="1"
                            x:Name="sliderProgress"
                            Minimum="0" 
-                           Maximum="100" 
-                           Value="20"
+                           Maximum="{Binding CurrentTrackDurationSeconds}" 
+                           Value="{Binding CurrentPositionSeconds, Mode=TwoWay}"
                            Style="{StaticResource CustomSliderStyle}"
                            VerticalAlignment="Center"/>
 
                     <TextBlock Grid.Column="2"
                               x:Name="txtTotalTime"
-                              Text="4:05" 
+                              Text="{Binding TotalDurationString}" 
                               Foreground="#FF999999"
                               FontSize="11"
                               VerticalAlignment="Center"
@@ -241,23 +259,26 @@
                        Style="{StaticResource PlayerButtonStyle}"
                        Width="30" Height="30" 
                        FontSize="16"
-                       x:Name="btnLyrics"/>
+                       x:Name="btnLyrics"
+                        Command="{Binding ToggleLyricsCommand}"/>
                 <Button Content="📋" 
                        Style="{StaticResource PlayerButtonStyle}"
                        Width="30" Height="30" 
                        FontSize="16"
                        Margin="10,0,0,0"
-                       x:Name="btnQueue"/>
+                       x:Name="btnQueue"
+                        Command="{Binding ShowQueueCommand}"/>
                 <Button Content="🔊" 
                        Style="{StaticResource PlayerButtonStyle}"
                        Width="30" Height="30" 
                        FontSize="16"
                        Margin="10,0,0,0"
-                       x:Name="btnVolume"/>
+                       x:Name="btnVolume"
+                        Command="{Binding MuteCommand}"/>
                 <Slider x:Name="sliderVolume"
                        Minimum="0" 
                        Maximum="100" 
-                       Value="70"
+                       Value="{Binding Volume, Mode=TwoWay}"
                        Width="100"
                        Style="{StaticResource CustomSliderStyle}"
                        Margin="10,0,0,0"
@@ -267,7 +288,8 @@
                        Width="30" Height="30" 
                        FontSize="16"
                        Margin="10,0,0,0"
-                       x:Name="btnFullscreen"/>
+                       x:Name="btnFullscreen"
+                        Command="{Binding ToggleFullscreenCommand}"/>
             </StackPanel>
         </Grid>
     </Grid>
