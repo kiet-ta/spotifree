@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using spotifree.IServices;
 using spotifree.Services;
+using spotifree.ViewModels;
 using System.Data;
 using System.Windows;
 
@@ -17,6 +18,17 @@ namespace spotifree
         {
             IServiceCollection services = new ServiceCollection();
             ConfigureServices(services);
+            _serviceProvider = services.BuildServiceProvider();
+
+            services.AddSingleton<ISpotifyService, SpotifyApi>();
+
+            services.AddTransient<MusicDetailViewModel>();
+           
+
+            
+            services.AddTransient<MusicDetail>();
+            services.AddTransient<MainWindow>();
+
             _serviceProvider = services.BuildServiceProvider();
         }
 
@@ -35,13 +47,19 @@ namespace spotifree
             services.AddSingleton(new SpotifyAuth(ClientId, RedirectUri, Scopes));
             services.AddSingleton<ISpotifyService, SpotifyApi>();
             services.AddSingleton<MainWindow>();
+            services.AddSingleton<ISettingsService, SettingsService>();
         }
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+            //var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
 
-            mainWindow.Show();
+            //mainWindow.Show();
+
+            var musicDetail = _serviceProvider.GetRequiredService<MusicDetail>();
+            musicDetail.Show();
+
+            base.OnStartup(e);
         }
     }
 }
