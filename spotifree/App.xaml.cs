@@ -47,6 +47,7 @@ namespace spotifree
             services.AddSingleton(new SpotifyAuth(ClientId, RedirectUri, Scopes));
             services.AddSingleton<ISpotifyService, SpotifyApi>();
             services.AddSingleton<MainWindow>();
+            services.AddSingleton<ISettingsService, SettingsService>();
         }
 
         protected override void OnStartup(StartupEventArgs e)
