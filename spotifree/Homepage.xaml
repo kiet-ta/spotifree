@@ -35,9 +35,9 @@
 
                 <!-- Navigation -->
                 <StackPanel Grid.Row="1" Margin="24,0,24,0">
-                    <Button Content="🏠 Home" HorizontalAlignment="Left" Background="Transparent" BorderThickness="0" Foreground="White" FontWeight="Medium" Padding="0,8" Margin="0,0,0,8"/>
-                    <Button Content="🔍 Search" HorizontalAlignment="Left" Background="Transparent" BorderThickness="0" Foreground="White" FontWeight="Medium" Padding="0,8" Margin="0,0,0,8"/>
-                    <Button Content="📚 Your Library" HorizontalAlignment="Left" Background="Transparent" BorderThickness="0" Foreground="White" FontWeight="Medium" Padding="0,8" Margin="0,0,0,8"/>
+                    <Button x:Name="HomeButton" Content="🏠 Home" HorizontalAlignment="Left" Background="Transparent" BorderThickness="0" Foreground="White" FontWeight="Medium" Padding="0,8" Margin="0,0,0,8" Click="HomeButton_Click"/>
+                    <Button x:Name="SearchButton" Content="🔍 Search" HorizontalAlignment="Left" Background="Transparent" BorderThickness="0" Foreground="White" FontWeight="Medium" Padding="0,8" Margin="0,0,0,8" Click="SearchButton_Click"/>
+                    <Button x:Name="LibraryButton" Content="📚 Your Library" HorizontalAlignment="Left" Background="Transparent" BorderThickness="0" Foreground="White" FontWeight="Medium" Padding="0,8" Margin="0,0,0,8" Click="LibraryButton_Click"/>
                 </StackPanel>
 
                 <!-- Library Section -->
@@ -46,7 +46,7 @@
                         <!-- Library Header -->
                         <Grid Margin="0,0,0,16">
                             <TextBlock Text="Your Library" FontSize="16" FontWeight="Bold" Foreground="White" HorizontalAlignment="Left"/>
-                            <Ellipse Width="24" Height="24" Fill="Black" HorizontalAlignment="Right"/>
+                            <Ellipse x:Name="AddToLibraryButton" Width="24" Height="24" Fill="Black" HorizontalAlignment="Right" MouseLeftButtonDown="AddToLibraryButton_Click"/>
                             <TextBlock Text="+" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="14" FontWeight="Bold" Margin="174,1,0,0"/>
                         </Grid>
 
@@ -62,7 +62,7 @@
                             </Grid.ColumnDefinitions>
 
                             <!-- First Row -->
-                            <Button Grid.Row="0" Grid.Column="0" Content="Playlists" Background="#1A1A1A" Foreground="White" BorderThickness="0" Padding="16,8" Margin="0,0,8,8" FontSize="14" FontWeight="Medium">
+                            <Button x:Name="PlaylistsButton" Grid.Row="0" Grid.Column="0" Content="Playlists" Background="#1A1A1A" Foreground="White" BorderThickness="0" Padding="16,8" Margin="0,0,8,8" FontSize="14" FontWeight="Medium" Click="PlaylistsButton_Click">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
                                         <Border Background="{TemplateBinding Background}" 
@@ -73,7 +73,7 @@
                                     </ControlTemplate>
                                 </Button.Template>
                             </Button>
-                            <Button Grid.Row="0" Grid.Column="1" Content="Podcasts" Background="Transparent" Foreground="White" BorderBrush="#666666" BorderThickness="1" Padding="16,8" Margin="8,0,0,8" FontSize="14" FontWeight="Medium">
+                            <Button x:Name="PodcastsButton" Grid.Row="0" Grid.Column="1" Content="Podcasts" Background="Transparent" Foreground="White" BorderBrush="#666666" BorderThickness="1" Padding="16,8" Margin="8,0,0,8" FontSize="14" FontWeight="Medium" Click="PodcastsButton_Click">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
                                         <Border Background="{TemplateBinding Background}" 
@@ -88,7 +88,7 @@
                             </Button>
 
                             <!-- Second Row -->
-                            <Button Grid.Row="1" Grid.Column="0" Content="Albums" Background="Transparent" Foreground="White" BorderBrush="#666666" BorderThickness="1" Padding="16,8" Margin="0,0,8,0" FontSize="14" FontWeight="Medium">
+                            <Button x:Name="AlbumsButton" Grid.Row="1" Grid.Column="0" Content="Albums" Background="Transparent" Foreground="White" BorderBrush="#666666" BorderThickness="1" Padding="16,8" Margin="0,0,8,0" FontSize="14" FontWeight="Medium" Click="AlbumsButton_Click">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
                                         <Border Background="{TemplateBinding Background}" 
@@ -105,7 +105,7 @@
 
                         <!-- Playlist Items -->
                         <StackPanel>
-                            <Grid Margin="0,0,0,8">
+                            <Grid x:Name="LikedSongs" Margin="0,0,0,8" MouseLeftButtonDown="LikedSongs_Click">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="40"/>
                                     <ColumnDefinition Width="*"/>
@@ -151,17 +151,17 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal">
-                        <Border Width="32" Height="32" Background="#333333" CornerRadius="16" Margin="0,0,8,0">
+                        <Border x:Name="BackButton" Width="32" Height="32" Background="#333333" CornerRadius="16" Margin="0,0,8,0" MouseLeftButtonDown="BackButton_Click">
                             <TextBlock Text="←" Foreground="White" FontSize="16" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,3,0,0"/>
                         </Border>
-                        <Border Width="32" Height="32" Background="#333333" CornerRadius="16">
+                        <Border x:Name="ForwardButton" Width="32" Height="32" Background="#333333" CornerRadius="16" MouseLeftButtonDown="ForwardButton_Click">
                             <TextBlock Text="→" Foreground="White" FontSize="16" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,3,0,0"/>
                         </Border>
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
-                        <TextBlock Text="🔔" FontSize="24" Margin="0,0,16,0" Foreground="White"/>
-                        <Grid Width="32" Height="32">
+                        <TextBlock x:Name="NotificationButton" Text="🔔" FontSize="24" Margin="0,0,16,0" Foreground="White" MouseLeftButtonDown="NotificationButton_Click"/>
+                        <Grid x:Name="ProfileButton" Width="32" Height="32" MouseLeftButtonDown="ProfileButton_Click">
                             <Ellipse Fill="White"/>
                             <TextBlock Text="👤" Foreground="Black" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16"/>
                         </Grid>
@@ -189,7 +189,7 @@
                                 <TextBlock Text="Personalized playlists and recommendations based on your listening history" FontSize="16" Foreground="White" Opacity="0.9" Margin="0,0,0,24"/>
 
                                 <StackPanel Orientation="Horizontal">
-                                    <Button Content="▶ Play" Background="#1DB954" Foreground="White" BorderThickness="0" Padding="32,12" Margin="0,0,16,0" FontSize="14" FontWeight="Bold">
+                                    <Button x:Name="PlayButton" Content="▶ Play" Background="#1DB954" Foreground="White" BorderThickness="0" Padding="32,12" Margin="0,0,16,0" FontSize="14" FontWeight="Bold" Click="PlayButton_Click">
                                         <Button.Template>
                                             <ControlTemplate TargetType="Button">
                                                 <Border Background="{TemplateBinding Background}" 
@@ -200,7 +200,7 @@
                                             </ControlTemplate>
                                         </Button.Template>
                                     </Button>
-                                    <Button Content="Follow" Background="Transparent" Foreground="White" BorderBrush="White" BorderThickness="1" Padding="24,12" Margin="0,0,16,0" FontSize="14" FontWeight="Medium">
+                                    <Button x:Name="FollowButton" Content="Follow" Background="Transparent" Foreground="White" BorderBrush="White" BorderThickness="1" Padding="24,12" Margin="0,0,16,0" FontSize="14" FontWeight="Medium" Click="FollowButton_Click">
                                         <Button.Template>
                                             <ControlTemplate TargetType="Button">
                                                 <Border Background="{TemplateBinding Background}" 
@@ -213,7 +213,7 @@
                                             </ControlTemplate>
                                         </Button.Template>
                                     </Button>
-                                    <Button Content="⋯" Background="Transparent" Foreground="White" BorderThickness="0" Width="32" Height="32" FontSize="18"/>
+                                    <Button x:Name="MoreOptionsButton" Content="⋯" Background="Transparent" Foreground="White" BorderThickness="0" Width="32" Height="32" FontSize="18" Click="MoreOptionsButton_Click"/>
                                 </StackPanel>
                             </StackPanel>
                         </Grid>
@@ -221,7 +221,7 @@
 
                     <!-- Filter Buttons -->
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                        <Button Content="All" Background="#1A1A1A" Foreground="White" BorderThickness="0" Padding="16,8" Margin="0,0,8,0" FontSize="14" FontWeight="Medium">
+                        <Button x:Name="AllButton" Content="All" Background="#1A1A1A" Foreground="White" BorderThickness="0" Padding="16,8" Margin="0,0,8,0" FontSize="14" FontWeight="Medium" Click="AllButton_Click">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border Background="{TemplateBinding Background}" 
@@ -232,7 +232,7 @@
                                 </ControlTemplate>
                             </Button.Template>
                         </Button>
-                        <Button Content="Music" Background="Transparent" Foreground="White" BorderBrush="#666666" BorderThickness="1" Padding="16,8" Margin="0,0,8,0" FontSize="14" FontWeight="Medium">
+                        <Button x:Name="MusicButton" Content="Music" Background="Transparent" Foreground="White" BorderBrush="#666666" BorderThickness="1" Padding="16,8" Margin="0,0,8,0" FontSize="14" FontWeight="Medium" Click="MusicButton_Click">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border Background="{TemplateBinding Background}" 
@@ -245,7 +245,7 @@
                                 </ControlTemplate>
                             </Button.Template>
                         </Button>
-                        <Button Content="Podcasts" Background="Transparent" Foreground="White" BorderBrush="#666666" BorderThickness="1" Padding="16,8" FontSize="14" FontWeight="Medium">
+                        <Button x:Name="PodcastsContentButton" Content="Podcasts" Background="Transparent" Foreground="White" BorderBrush="#666666" BorderThickness="1" Padding="16,8" FontSize="14" FontWeight="Medium" Click="PodcastsContentButton_Click">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border Background="{TemplateBinding Background}" 
@@ -262,7 +262,7 @@
                     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                         <StackPanel Orientation="Horizontal">
                             <!-- Card 1 -->
-                            <Border Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,0" Width="180">
+                            <Border x:Name="MusicCard1" Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,0" Width="180" MouseLeftButtonDown="MusicCard_Click">
                                 <StackPanel>
                                     <Border Height="160" Background="#FFB366" CornerRadius="8" Margin="0,0,0,12">
                                         <TextBlock Text="🎵" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -273,7 +273,7 @@
                             </Border>
 
                             <!-- Card 2 -->
-                            <Border Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,0" Width="180">
+                            <Border x:Name="MusicCard2" Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,0" Width="180" MouseLeftButtonDown="MusicCard_Click">
                                 <StackPanel>
                                     <Border Height="160" Background="#4ECDC4" CornerRadius="8" Margin="0,0,0,12">
                                         <TextBlock Text="🎤" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -284,7 +284,7 @@
                             </Border>
 
                             <!-- Card 3 -->
-                            <Border Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,0" Width="180">
+                            <Border x:Name="MusicCard3" Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,0" Width="180" MouseLeftButtonDown="MusicCard_Click">
                                 <StackPanel>
                                     <Border Height="160" Background="#FF6B6B" CornerRadius="8" Margin="0,0,0,12">
                                         <TextBlock Text="🎧" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -295,7 +295,7 @@
                             </Border>
 
                             <!-- Card 4 -->
-                            <Border Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,0" Width="180">
+                            <Border x:Name="MusicCard4" Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,16,0" Width="180" MouseLeftButtonDown="MusicCard_Click">
                                 <StackPanel>
                                     <Border Height="160" Background="#9B59B6" CornerRadius="8" Margin="0,0,0,12">
                                         <TextBlock Text="🎼" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -306,7 +306,7 @@
                             </Border>
 
                             <!-- Card 5 -->
-                            <Border Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,0,0" Width="180">
+                            <Border x:Name="MusicCard5" Background="#1A1A1A" CornerRadius="8" Padding="16" Margin="0,0,0,0" Width="180" MouseLeftButtonDown="MusicCard_Click">
                                 <StackPanel>
                                     <Border Height="160" Background="#E67E22" CornerRadius="8" Margin="0,0,0,12">
                                         <TextBlock Text="🎸" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -328,7 +328,7 @@
                         <!-- Section Header -->
                         <Grid Grid.Row="0" Margin="0,0,0,16">
                             <TextBlock Text="It's New Music Today" FontSize="24" FontWeight="Bold" Foreground="White" HorizontalAlignment="Left"/>
-                            <TextBlock Text="Show all" FontSize="14" Foreground="#CCCCCC" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="ShowAllButton" Text="Show all" FontSize="14" Foreground="#CCCCCC" HorizontalAlignment="Right" VerticalAlignment="Center" MouseLeftButtonDown="ShowAllButton_Click"/>
                         </Grid>
                         
                         <!-- New Music Cards -->
@@ -489,27 +489,27 @@
                             <ColumnDefinition Width="20"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border Grid.Column="0" Width="56" Height="56" Background="#FF9A9E" CornerRadius="4" Margin="0,0,12,0"/>
+                        <Border x:Name="CurrentTrack" Grid.Column="0" Width="56" Height="56" Background="#FF9A9E" CornerRadius="4" Margin="0,0,12,0" MouseLeftButtonDown="CurrentTrack_Click"/>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock Text="Cà Phê Quán Quen" FontSize="14" FontWeight="Medium" Foreground="White"/>
                             <TextBlock Text="Anh Trai &quot;Say Hi&quot;" FontSize="12" Foreground="#CCCCCC"/>
                         </StackPanel>
-                        <TextBlock Grid.Column="2" Text="❤️" FontSize="20" VerticalAlignment="Top" RenderTransformOrigin="0.2,-0.271" Margin="84,11,-92,0" Foreground="Red"/>
+                        <TextBlock x:Name="LikeTrackButton" Grid.Column="2" Text="❤️" FontSize="20" VerticalAlignment="Top" RenderTransformOrigin="0.2,-0.271" Margin="84,11,-92,0" Foreground="Red" MouseLeftButtonDown="LikeTrackButton_Click"/>
                     </Grid>
 
                     <!-- Player Controls -->
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
-                            <Button Content="🔀" Background="Transparent" BorderThickness="0" Width="32" Height="32" Margin="0,0,20,0" Foreground="White"/>
-                            <Button Content="⏮" Background="Transparent" BorderThickness="0" Width="32" Height="32" Margin="0,0,20,0" Foreground="White"/>
-                            <Border Background="White" Width="40" Height="40" CornerRadius="20" Margin="0,0,20,0">
+                            <Button x:Name="ShuffleButton" Content="🔀" Background="Transparent" BorderThickness="0" Width="32" Height="32" Margin="0,0,20,0" Foreground="White" Click="ShuffleButton_Click"/>
+                            <Button x:Name="PreviousButton" Content="⏮" Background="Transparent" BorderThickness="0" Width="32" Height="32" Margin="0,0,20,0" Foreground="White" Click="PreviousButton_Click"/>
+                            <Border x:Name="PlayPauseButton" Background="White" Width="40" Height="40" CornerRadius="20" Margin="0,0,20,0" MouseLeftButtonDown="PlayPauseButton_Click">
                                 <TextBlock Text="▶" Foreground="Black" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16"/>
                             </Border>
-                            <Button Content="⏭" Background="Transparent" BorderThickness="0" Width="32" Height="32" Margin="0,0,20,0" Foreground="White"/>
-                            <Button Content="🔁" Background="Transparent" BorderThickness="0" Width="32" Height="32" Foreground="White"/>
+                            <Button x:Name="NextButton" Content="⏭" Background="Transparent" BorderThickness="0" Width="32" Height="32" Margin="0,0,20,0" Foreground="White" Click="NextButton_Click"/>
+                            <Button x:Name="RepeatButton" Content="🔁" Background="Transparent" BorderThickness="0" Width="32" Height="32" Foreground="White" Click="RepeatButton_Click"/>
                         </StackPanel>
 
-                        <Grid Margin="0,0,0,4">
+                        <Grid x:Name="ProgressBar" Margin="0,0,0,4" MouseLeftButtonDown="ProgressBar_MouseLeftButtonDown">
                             <Border Height="4" Background="#333333" CornerRadius="2"/>
                             <Border Height="4" Background="White" CornerRadius="2" Width="100" HorizontalAlignment="Left"/>
                         </Grid>
@@ -522,15 +522,15 @@
 
                     <!-- Player Actions -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="📋" FontSize="24" Margin="0,0,16,0" Foreground="White"/>
-                        <TextBlock Text="📱" FontSize="24" Margin="0,0,16,0" Foreground="White"/>
+                        <TextBlock x:Name="QueueButton" Text="📋" FontSize="24" Margin="0,0,16,0" Foreground="White" MouseLeftButtonDown="QueueButton_Click"/>
+                        <TextBlock x:Name="DeviceButton" Text="📱" FontSize="24" Margin="0,0,16,0" Foreground="White" MouseLeftButtonDown="DeviceButton_Click"/>
                         <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
                             <TextBlock Text="🔊" FontSize="24" Margin="0,0,8,0" Foreground="White"/>
-                            <Border Width="80" Height="4" Background="#333333" CornerRadius="2">
+                            <Border x:Name="VolumeSlider" Width="80" Height="4" Background="#333333" CornerRadius="2" MouseLeftButtonDown="VolumeSlider_ValueChanged">
                                 <Border Height="4" Background="White" CornerRadius="2" Width="48" HorizontalAlignment="Left"/>
                             </Border>
                         </StackPanel>
-                        <TextBlock Text="⛶" FontSize="24" Foreground="White"/>
+                        <TextBlock x:Name="FullscreenButton" Text="⛶" FontSize="24" Foreground="White" MouseLeftButtonDown="FullscreenButton_Click"/>
                     </StackPanel>
                 </Grid>
             </Border>

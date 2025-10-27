@@ -161,6 +161,18 @@ public class SpotifyApi : ISpotifyService
         }
         return new List<SpotifyPlaylist>();
     }
+
+    public async Task<string> SearchAsync(string query, string type = "track,artist,album,playlist", int limit = 20)
+    {
+        var url = $"search?q={Uri.EscapeDataString(query)}&type={type}&limit={limit}";
+        var req = await BuildAsync(HttpMethod.Get, url);
+        var res = await _http.SendAsync(req);
+        var json = await res.Content.ReadAsStringAsync();
+        if (!res.IsSuccessStatusCode)
+        {
+            throw new System.Exception($"Error API (call GET {url}): {json}");
+        }
+        return json;
     public async Task StartPlaybackAsync()
     {
         var url = "me/player/play";
