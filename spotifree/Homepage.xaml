@@ -526,9 +526,11 @@
                         <TextBlock x:Name="DeviceButton" Text="📱" FontSize="24" Margin="0,0,16,0" Foreground="White" MouseLeftButtonDown="DeviceButton_Click"/>
                         <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
                             <TextBlock Text="🔊" FontSize="24" Margin="0,0,8,0" Foreground="White"/>
-                            <Border x:Name="VolumeSlider" Width="80" Height="4" Background="#333333" CornerRadius="2" MouseLeftButtonDown="VolumeSlider_ValueChanged">
-                                <Border Height="4" Background="White" CornerRadius="2" Width="48" HorizontalAlignment="Left"/>
-                            </Border>
+                            <Slider x:Name="VolumeSliderControl" Width="80"
+                                Minimum="0"
+                                Maximum="100"
+                                Value="50" VerticalAlignment="Center"
+                                ValueChanged="VolumeSlider_ValueChanged"/>
                         </StackPanel>
                         <TextBlock x:Name="FullscreenButton" Text="⛶" FontSize="24" Foreground="White" MouseLeftButtonDown="FullscreenButton_Click"/>
                     </StackPanel>

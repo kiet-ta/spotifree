@@ -1,20 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using spotifree.Services;
-using spotifree.IServices;
+﻿using spotifree.IServices;
 using spotifree.Models;
-using Microsoft.Extensions.DependencyInjection;
+using spotifree.Services;
+using System.Windows;
+using System.Windows.Input;
 
 namespace spotifree
 {
@@ -31,17 +19,17 @@ namespace spotifree
         public Homepage()
         {
             InitializeComponent();
-            
+
             // Initialize Spotify services
             _spotifyAuth = new SpotifyAuth(
                 clientId: "your_client_id_here", // Replace with actual client ID
                 redirectUri: "http://127.0.0.1:5173/callback",
                 scope: "playlist-read-private playlist-modify-private user-read-private user-read-email"
             );
-            
+
             _spotifyService = new SpotifyApi(_spotifyAuth);
             _userPlaylists = new List<SpotifyPlaylist>();
-            
+
             // Initialize UI
             InitializeAsync();
         }
@@ -52,7 +40,7 @@ namespace spotifree
             {
                 // Check authentication status
                 await CheckAuthenticationStatus();
-                
+
                 // Load user playlists if authenticated
                 if (_spotifyAuth.IsValid())
                 {
@@ -392,7 +380,6 @@ namespace spotifree
         // Cleanup
         protected override void OnClosed(EventArgs e)
         {
-            _spotifyAuth?.Dispose();
             base.OnClosed(e);
         }
     }

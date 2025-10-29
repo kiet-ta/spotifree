@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using static System.Net.WebRequestMethods;
 
 namespace spotifree.Services
 {
@@ -46,8 +47,8 @@ namespace spotifree.Services
             try
             {
                 var file = AppDataFilePath();
-                if (!File.Exists(file)) return;
-                var json = File.ReadAllText(file);
+                if (!System.IO.File.Exists(file)) return;
+                var json = System.IO.File.ReadAllText(file);
                 var doc = JsonDocument.Parse(json);
                 AccessToken = doc.RootElement.GetProperty("access_token").GetString();
                 RefreshToken = doc.RootElement.GetProperty("refresh_token").GetString();
@@ -68,7 +69,7 @@ namespace spotifree.Services
                     refresh_token = RefreshToken,
                     expires_at = ExpiresAtUtc
                 });
-                File.WriteAllText(file, json);
+                System.IO.File.WriteAllText(file, json);
             }
             catch { }
         }
@@ -81,7 +82,7 @@ namespace spotifree.Services
             try
             {
                 var file = AppDataFilePath();
-                if (File.Exists(file)) File.Delete(file);
+                if (System.IO.File.Exists(file)) System.IO.File.Delete(file);
             }
             catch { }
         }

@@ -173,6 +173,7 @@ public class SpotifyApi : ISpotifyService
             throw new System.Exception($"Error API (call GET {url}): {json}");
         }
         return json;
+    }
     public async Task StartPlaybackAsync()
     {
         var url = "me/player/play";

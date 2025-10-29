@@ -52,12 +52,12 @@ namespace spotifree
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            //var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+            var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
 
-            //mainWindow.Show();
+            mainWindow.Show();
 
-            var musicDetail = _serviceProvider.GetRequiredService<MusicDetail>();
-            musicDetail.Show();
+            //var musicDetail = _serviceProvider.GetRequiredService<MusicDetail>();
+            //musicDetail.Show();
 
             base.OnStartup(e);
         }
