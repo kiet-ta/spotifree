@@ -42,4 +42,9 @@
     document.addEventListener("keydown", (e) => {
         if (e.altKey && e.key.toLowerCase() === "m") btnMini?.click();
     });
+    // Double click để về main
+    document.querySelector(".cover")?.addEventListener("dblclick", () => {
+        window.chrome?.webview?.postMessage({ type: "backToMain" });
+    });
+
 })();
