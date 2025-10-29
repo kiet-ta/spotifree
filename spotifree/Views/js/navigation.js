@@ -17,6 +17,12 @@ async function loadPage(pageName) {
             }else {
                 console.error("initLibrary function not found");
             }
+        } else if (pageName === 'home') {
+            if (typeof initHome === 'function') {
+                initHome();
+            } else {
+                console.error("initHome function not found");
+            }
         }
     } catch (error) {
         console.error("Error loading page:", error);

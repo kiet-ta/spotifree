@@ -280,4 +280,30 @@ public partial class MainWindow : Window
         var json = JsonSerializer.Serialize(payload);
         webView.CoreWebView2.PostWebMessageAsJson(json);
     }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        try
+        {
+            // Tắt mini nếu còn mở
+            if (_mini != null)
+            {
+                _mini.Close();
+                _mini = null;
+            }
+
+            // Giải phóng WebView2 để tránh giữ lock exe khi rebuild
+            if (webView != null)
+            {
+                try { webView.CoreWebView2?.Navigate("about:blank"); } catch { }
+                try { webView.Dispose(); } catch { }
+            }
+        }
+        finally
+        {
+            base.OnClosed(e);
+            Application.Current.Shutdown();
+            Environment.Exit(0);
+        }
+    }
 }
