@@ -1,6 +1,7 @@
 using Microsoft.Web.WebView2.Core;
 using spotifree.IServices;
 using spotifree.Services;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
@@ -13,17 +14,27 @@ public partial class MainWindow : Window
     private MiniWeb? _mini;
     private readonly ISpotifyService _spotifyService;
     private readonly SpotifyAuth _auth;
+    private readonly ISettingsService _settings;
     private string? _lastPlayerStateRawJson; // cache để mini mở lên có state ngay
     private string _viewsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Views");
 
-    public MainWindow(ISpotifyService spotifyService, SpotifyAuth auth)
+    public MainWindow(ISpotifyService spotifyService, SpotifyAuth auth, ISettingsService settings)
     {
-        InitializeComponent();
-        InitializeAsync();
+        
         _spotifyService = spotifyService;
         _auth = auth;
-    }
+        _settings = settings;
 
+        InitializeComponent();
+        InitializeAsync();
+    }
+    // ===== Helper: notify JS =====
+    private async Task JsNotifyAsync(string action, object data)
+    {
+        if (webView?.CoreWebView2 == null) return;
+        var json = JsonSerializer.Serialize(new { action, data });
+        await webView.CoreWebView2.ExecuteScriptAsync($"window.__fromWpf && window.__fromWpf({json});");
+    }
     private async void InitializeAsync()
     {
         try
@@ -31,7 +42,9 @@ public partial class MainWindow : Window
             // waiting webview2 really to run
             await webView.EnsureCoreWebView2Async(null);
 
+            // Web messages
             webView.CoreWebView2.WebMessageReceived += HandleWebMessage;
+            //webView.CoreWebView2.Settings.IsWebMessageEnabled = true;
 
             Debug.WriteLine("[C#] Checking token...");
             bool ok = await _auth.EnsureTokenAsync();
@@ -61,18 +74,23 @@ public partial class MainWindow : Window
                         webAppPath,
                         CoreWebView2HostResourceAccessKind.Allow
                     );
+            // áp dụng zoom theo settings
+            var cur = await _settings.GetAsync();
+            _settings.ApplyZoom(webView, cur.ZoomPercent);
 
             // navigate to the local html file via the virtual host
             webView.CoreWebView2.Navigate("https://spotifree.local/index.html");
 
             // check if in debug mode
             webView.CoreWebView2.OpenDevToolsWindow();
+
         }
         catch (Exception ex)
         {
             MessageBox.Show(ex.StackTrace.ToString());
         }
     }
+
     private async void HandleWebMessage(object? sender, CoreWebView2WebMessageReceivedEventArgs args)
     {
         string jsonMessage = args.WebMessageAsJson;
@@ -177,6 +195,115 @@ public partial class MainWindow : Window
                             await webView.CoreWebView2.ExecuteScriptAsync(errorScript);
                         }
                     }
+
+                    // ========== SETTINGS INTEROP ==========
+                    // ===== SETTINGS INTEROP =====
+                    if (root.TryGetProperty("action", out var actProp))
+                    {
+                        string actionName = actProp.GetString() ?? string.Empty;
+
+                        switch (actionName)
+                        {
+                            case "settings.get":
+                                {
+                                    var s = await _settings.GetAsync();
+                                    await JsNotifyAsync("settings.current", s);
+                                    return;
+                                }
+
+                            case "settings.setLanguage":
+                                {
+                                    var s = await _settings.GetAsync();
+                                    string lang = root.TryGetProperty("language", out var v)
+                                        ? (v.GetString() ?? "en-US")
+                                        : "en-US";
+                                    s.Language = lang;
+                                    await _settings.SaveAsync(s);
+                                    await JsNotifyAsync("settings.current", s);
+                                    return;
+                                }
+
+                            case "settings.setAutoplay":
+                                {
+                                    var s = await _settings.GetAsync();
+                                    bool enable = root.TryGetProperty("enable", out var v) && v.GetBoolean();
+                                    s.Autoplay = enable;
+                                    await _settings.SaveAsync(s);
+                                    await JsNotifyAsync("settings.current", s);
+                                    return;
+                                }
+
+                            case "settings.applyZoom":
+                                {
+                                    var s = await _settings.GetAsync();
+                                    int percent = root.TryGetProperty("percent", out var p) ? p.GetInt32() : 100;
+                                    s.ZoomPercent = percent;
+                                    await _settings.SaveAsync(s);
+                                    _settings.ApplyZoom(webView, percent);   // dùng WPF WebView2.ZoomFactor
+                                    await JsNotifyAsync("settings.current", s);
+                                    return;
+                                }
+
+                            case "storage.pickFolder":
+                                {
+                                    var dlg = new Microsoft.Win32.OpenFileDialog()
+                                    {
+                                        Title = "Select Offline Storage Folder",
+                                        CheckFileExists = false,
+                                        CheckPathExists = true,
+                                        FileName = "Select Folder"
+                                    };
+                                    if (dlg.ShowDialog() == true)
+                                    {
+                                        string? picked = System.IO.Path.GetDirectoryName(dlg.FileName);
+                                        if (!string.IsNullOrWhiteSpace(picked))
+                                        {
+                                            var s = await _settings.GetAsync();
+                                            s.OfflineStoragePath = picked!;
+                                            _settings.EnsureStorageFolder(s);
+                                            await _settings.SaveAsync(s);
+
+                                            await JsNotifyAsync("storage.folderPicked", new { ok = true, path = picked });
+                                            await JsNotifyAsync("settings.current", s);
+                                            return;
+                                        }
+                                    }
+                                    await JsNotifyAsync("storage.folderPicked", new { ok = false });
+                                    return;
+                                }
+
+                            case "storage.clearOffline":
+                                {
+                                    var s = await _settings.GetAsync();
+                                    _settings.EnsureStorageFolder(s);
+
+                                    string downloadsDir = System.IO.Path.Combine(s.OfflineStoragePath, "Downloads");
+                                    if (System.IO.Directory.Exists(downloadsDir))
+                                    {
+                                        try { System.IO.Directory.Delete(downloadsDir, recursive: true); }
+                                        catch
+                                        {
+                                            foreach (var f in System.IO.Directory.EnumerateFiles(downloadsDir, "*", System.IO.SearchOption.AllDirectories))
+                                            { try { System.IO.File.Delete(f); } catch { } }
+                                        }
+                                    }
+                                    System.IO.Directory.CreateDirectory(downloadsDir);
+
+                                    await JsNotifyAsync("storage.clearOffline.done", new { ok = true });
+                                    await JsNotifyAsync("settings.current", s);
+                                    return;
+                                }
+
+                            case "nav.goHome":
+                                {
+                                    await webView.CoreWebView2.ExecuteScriptAsync("window.loadPage && window.loadPage('home');");
+                                    return;
+                                }
+                        }
+                    }
+
+
+
                 }
                 //  "type" (Mini-player messages)
                 else if (root.TryGetProperty("type", out var typeProperty))
@@ -193,13 +320,18 @@ public partial class MainWindow : Window
                             }
                         case "playerState":
                             {
-                                _lastPlayerStateRawJson = jsonMessage; 
+                                _lastPlayerStateRawJson = jsonMessage;
                                 _mini?.SendToMiniRaw(jsonMessage);     // forward sang mini
                                 break;
                             }
                     }
                 }
+
+                
+
             }
+
+
 
             else if (root.ValueKind == JsonValueKind.String)
             {

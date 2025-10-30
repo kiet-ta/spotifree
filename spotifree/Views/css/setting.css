@@ -80,7 +80,7 @@
         stroke-width: 2;
     }
 
-    .search-bar::placeholder {
+    .search-bar input::placeholder {
         color: rgba(255, 255, 255, 0.5);
     }
 
@@ -351,17 +351,23 @@
 }
 
 .settings .s-tiles {
-    display: grid;
-    grid-template-columns: repeat(3,1fr);
+    display: inline-flex; /* xếp theo hàng ngang */
     gap: 16px;
-    margin-bottom: 10px;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: nowrap; /* không cho xuống dòng */
+    white-space: nowrap; /* đề phòng caption gây wrap */
+    max-width: 100%;
+    overflow-x: auto; /* nếu thiếu chỗ -> kéo ngang */
 }
 
+/* mỗi ô là một “item” cố định, không co dãn */
 .settings .s-tile {
-    display: flex;
+    display: inline-flex;
     flex-direction: column;
     align-items: center;
     gap: 8px;
+    flex: 0 0 auto; /* KHÔNG giãn, KHÔNG co */
 }
 
 .settings .s-tile__img {

@@ -1,4 +1,4 @@
-async function loadPage(pageName) {
+﻿async function loadPage(pageName) {
     try {
         const url = `/pages/${pageName}.html`;
 
@@ -18,6 +18,17 @@ async function loadPage(pageName) {
                 console.error("initLibrary function not found");
             }
         }
+        const p = String(pageName || '').toLowerCase();
+           // Gọi init theo cách "chắc chắn chạy" cho settings
+               if (p === 'setting' || p === 'settings') {
+                     queueMicrotask(() => {
+                           if (typeof window.initSettings === 'function') {
+                                 window.initSettings();
+                               } else {
+                                 console.error('initSettings() not found. Did you include js/settings.js?');
+                               }
+                         });
+                   }
     } catch (error) {
         console.error("Error loading page:", error);
         document.getElementById('content-container').innerHTML = "<h1>Error!</h1>";
