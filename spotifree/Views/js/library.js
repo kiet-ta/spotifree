@@ -6,6 +6,17 @@ function initLibrary() {
     const createBtn = document.getElementById('create-playlist-btn');
     const grid = document.querySelector('.playlists-grid');
 
+    const homeBtn = document.getElementById('library-home-button');
+    if (homeBtn) {
+        homeBtn.addEventListener('click', () => {
+            if (typeof window.loadPage === 'function') {
+                window.loadPage('home'); // Gọi lại hàm navigation
+            } else {
+                console.error('loadPage function is not defined!');
+            }
+        });
+    }
+
     if (createBtn) {
         createBtn.addEventListener('click', () => {
             console.log('Create playlist button clicked!');
@@ -44,6 +55,30 @@ function initLibrary() {
     });
 
     createContextMenu();
+
+    const searchInput = document.getElementById('library-search-input');
+    const playlistGrid = document.querySelector('.playlists-grid');
+
+    if (searchInput && playlistGrid) {
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const cards = playlistGrid.querySelectorAll('.playlist-card');
+
+            cards.forEach(card => {
+                const nameElement = card.querySelector('.playlist-name');
+                if (!nameElement) return;
+
+                const playlistName = nameElement.textContent.toLowerCase();
+
+                // playlist contain the keyword, it will show
+                if (playlistName.includes(searchTerm)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
 
     if (window.chrome && window.chrome.webview) {
         if (grid) {

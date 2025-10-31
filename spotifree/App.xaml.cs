@@ -27,7 +27,7 @@ namespace spotifree
 
             
             services.AddTransient<MusicDetail>();
-            services.AddTransient<MainWindow>();
+            services.AddTransient<Spotifree>();
 
             _serviceProvider = services.BuildServiceProvider();
         }
@@ -46,15 +46,15 @@ namespace spotifree
             // Register your services and view models here
             services.AddSingleton(new SpotifyAuth(ClientId, RedirectUri, Scopes));
             services.AddSingleton<ISpotifyService, SpotifyApi>();
-            services.AddSingleton<MainWindow>();
+            services.AddSingleton<Spotifree>();
             services.AddSingleton<ISettingsService, SettingsService>();
         }
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+            var spotifree = _serviceProvider.GetRequiredService<Spotifree>();
 
-            mainWindow.Show();
+            spotifree.Show();
 
             //var musicDetail = _serviceProvider.GetRequiredService<MusicDetail>();
             //musicDetail.Show();
