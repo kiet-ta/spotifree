@@ -1,0 +1,141 @@
+﻿<section class="settings settings--bw">
+  <header class="s-header">
+    <h1 class="s-title">Settings</h1>
+  </header>
+
+  <!-- header tools -->
+  <div class="s-row s-row--between" style="margin-bottom:12px">
+    <div class="search-bar" style="max-width:360px">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+      <input id="settingsSearch" type="text" placeholder="Search settings…" data-i18n-placeholder="search.placeholder" />
+    </div>
+    <button id="btnBackHome" class="s-btn s-btn--pill s-btn--ghost" data-i18n="nav.backHome">Back to Home</button>
+  </div>
+
+  <!-- Account -->
+  <div class="s-card" data-search="account login sign in">
+    <div class="s-row s-row--between">
+      <div class="s-col s-col--label">
+          <div class="s-label" data-i18n="section.account">Account</div>
+          <div class="s-hint" data-i18n="account.hint">Edit login methods</div>
+      </div>
+      <div class="s-col s-col--control">
+          <button id="btnEditAccount" class="s-btn s-btn--ghost s-btn--pill" data-i18n="account.edit">
+              Edit <span class="s-ext"></span>
+          </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Language -->
+  <div class="s-card" data-search="language tiếng việt english ngôn ngữ">
+    <div class="s-row s-row--between">
+        <div class="s-col s-col--label">
+            <div class="s-label" data-i18n="section.language">Language</div>
+            <div class="s-hint" data-i18n="language.hint">Choose language – Changes will be applied after restarting the app</div>
+        </div>
+      <div class="s-col s-col--control">
+        <div class="s-select">
+          <select id="language" aria-label="Language">
+            <option value="en-US">English (English)</option>
+            <option value="vi-VN">Tiếng Việt (Vietnamese)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Autoplay -->
+  <div class="s-card" data-search="autoplay tự động phát play next nonstop">
+    <div class="s-row s-row--between">
+        <div class="s-col s-col--label">
+            <div class="s-label" data-i18n="section.autoplay">Autoplay</div>
+            <div class="s-hint" data-i18n="autoplay.hint">
+                Enjoy nonstop listening. When your audio ends, we’ll play you something similar
+            </div>
+        </div>
+      <div class="s-col s-col--control">
+        <label class="s-switch">
+          <input type="checkbox" id="autoplay"/>
+          <span class="s-slider"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zoom level -->
+  <div class="s-card s-card--stack" data-search="zoom phóng to thu nhỏ">
+    <div class="s-row">
+        <div class="s-col s-col--label">
+            <div class="s-label" data-i18n="section.zoom">Zoom level</div>
+            <div class="s-hint" data-i18n="zoom.hint1">Adjusting the zoom level can help you make the most of the app.</div>
+            <div class="s-hint">
+                You can also change it with <kbd class="s-k">Ctrl</kbd>
+                <span class="s-k s-k--pill">-</span> or <kbd class="s-k">Ctrl</kbd>
+                <span class="s-k s-k--pill">+</span>
+            </div>
+        </div>
+
+        <div class="s-col s-col--control s-zoomgrid">
+            <div class="s-tiles">
+                <div class="s-tile">
+                    <div class="s-tile__img s-tile--dense"></div>
+                    <div class="s-tile__caption" data-i18n="zoom.dense">Dense</div>
+                </div>
+
+                <div class="s-tile s-tile--active">
+                    <div class="s-tile__img s-tile--default"></div>
+                    <div class="s-tile__caption" data-i18n="zoom.default">Default</div>
+                </div>
+
+                <div class="s-tile">
+                    <div class="s-tile__img s-tile--spacious"></div>
+                    <div class="s-tile__caption" data-i18n="zoom.spacious">Spacious</div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="s-zoomline" id="zoomLine">
+          <label class="s-radio"><input type="radio" name="zoomRadio" value="70"><span></span><em>70%</em></label>
+          <label class="s-radio"><input type="radio" name="zoomRadio" value="80"><span></span><em>80%</em></label>
+          <label class="s-radio"><input type="radio" name="zoomRadio" value="90"><span></span><em>90%</em></label>
+          <label class="s-radio"><input type="radio" name="zoomRadio" value="100" checked><span></span><em>100%</em></label>
+          <label class="s-radio"><input type="radio" name="zoomRadio" value="110"><span></span><em>110%</em></label>
+          <label class="s-radio"><input type="radio" name="zoomRadio" value="120"><span></span><em>120%</em></label>
+          <label class="s-radio"><input type="radio" name="zoomRadio" value="130"><span></span><em>130%</em></label>
+        </div>
+
+        <button id="btnZoomReset" class="s-btn s-btn--ghost s-btn--pill s-zoomreset" data-i18n="zoom.reset">Reset</button>
+    </div>
+  </div>
+ 
+
+  <!-- Storage -->
+  <div class="s-card s-card--stack" data-search="storage downloads offline cache bộ nhớ tải về">
+    <div class="s-row s-row--top">
+      <div class="s-col s-col--label"><div class="s-label">Storage</div></div>
+      <div class="s-col s-col--control s-storage">
+          <div class="s-storage__row">
+              <div>
+                  <div class="s-label s-label--sub" data-i18n="storage.downloads">Downloads</div>
+                  <div class="s-hint"><span id="storageDownloads">—</span></div>
+                  <div class="s-hint" data-i18n="storage.downloadsHint">Content you have downloaded for offline use</div>
+              </div>
+              <button class="s-btn s-btn--ghost s-btn--pill" id="btnRemoveDownloads" data-i18n="storage.removeAll">Remove all downloads</button>
+          </div>
+
+          <div class="s-storage__row">
+              <div>
+                  <div class="s-label s-label--sub" data-i18n="storage.location">Offline storage location</div>
+                  <div class="s-hint s-path" id="storagePath">C:\\Users\\You\\AppData\\Local\\Spotifree\\Storage</div>
+              </div>
+              <button class="s-btn s-btn--ghost s-btn--pill" id="btnChangeLocation" data-i18n="storage.change">Change location</button>
+          </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- chỉ load script, KHÔNG chèn style -->
+<script src="/js/settings.js"></script>

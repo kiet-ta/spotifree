@@ -1,0 +1,111 @@
+﻿<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://spotifree.local; img-src * data: blob:; media-src * blob: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mini Player</title>
+    <style>
+        /* Layout tổng thể mini card */
+        .wrap {
+            position: relative;
+            display: grid;
+            grid-template-columns: 112px 1fr auto;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 12px 8px 12px;
+        }
+
+        /* Thông tin bài hát */
+        .info h3 {
+            margin: 0;
+            font-size: 14px;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .info small {
+            color: #bbb;
+            font-size: 12px;
+        }
+
+        /* Vùng hover overlay (ẩn mặc định) */
+        .hover {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-rows: 28px 1fr;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .15s ease;
+        }
+
+        .wrap:hover .hover {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Thanh bar nổi trên cùng khi hover */
+        .hover .bar {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            padding: 4px 8px;
+            background: linear-gradient(#00000066, #0000);
+        }
+
+        /* Slider seek giống vibe Spotify (mảnh, tròn) */
+        .slider {
+            align-self: end;
+            padding: 0 10px 10px 10px;
+        }
+
+            .slider input[type=range] {
+                width: 100%;
+                height: 4px;
+                outline: none;
+                -webkit-appearance: none;
+                background: #2b2b2b;
+                border-radius: 999px;
+            }
+
+                .slider input[type=range]::-webkit-slider-thumb {
+                    -webkit-appearance: none;
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 50%;
+                    background: #fff;
+                    box-shadow: 0 0 0 4px #1db95455; /* focus ring cảm giác Spotify */
+                }
+
+                .slider input[type=range]:hover {
+                    height: 6px;
+                }
+    </style>
+</head>
+<body>
+    <div class="root">
+        <div class="wrap">
+            <div class="cover"><img id="img" alt=""></div>
+            <div class="info">
+                <div class="title" id="title">Chưa phát</div>
+                <div class="artist" id="artist"></div>
+            </div>
+        </div>
+
+        <div class="hover">
+            <div class="bar">
+                <div style="pointer-events:auto; opacity:.8" id="dragArea">Mini Player</div>
+                <button class="btn" id="btnClose">✕</button>
+            </div>
+            <div class="slider">
+                <input id="seek" type="range" min="0" value="0" step="0.01">
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/mini.js"></script>
+</body>
+</html>

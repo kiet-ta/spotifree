@@ -2,6 +2,7 @@
 <html>
 <head>
     <link rel="stylesheet" href="/css/library.css" />
+    <link rel="stylesheet" href="/css/setting.css" />
     <link rel="stylesheet" href="/css/chatbot.css" />
 </head>
 <body>
@@ -10,6 +11,8 @@
         <button onclick="loadPage('playlist')">Playlist</button>
         <button onclick="loadPage('settings')">Setting</button>
         <button onclick="loadPage('library')">library</button>
+        <button onclick="loadPage('album')">album</button>
+        <button id="btn-mini" title="Picture-in-Picture">⇲ Mini</button>
     </nav>
 
     <div id="player-bar">
@@ -17,10 +20,6 @@
     </div>
 
     <main id="content-container"></main>
-
-    <script src="/js/navigation.js"></script>
-    <script src="/js/player.js"></script>
-    <script src="/js/chatbot.js"></script>
 
     <!-- Chatbot -->
     <div id="chatbot-container">
@@ -34,6 +33,12 @@
         </div>
     </div>
 
-
+    <script src="/js/library.js"></script>
+    <script src="/js/navigation.js"></script>
+    <script src="/js/player.js"></script>
+    <script src="/js/chatbot.js"></script>
+    <script src="/js/interop.js"></script>
+    <script src="/js/storage.js"></script>
+    <script src="/js/settings.js"></script>
 </body>
 </html>
