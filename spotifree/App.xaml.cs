@@ -53,7 +53,7 @@ namespace spotifree
         protected override void OnStartup(StartupEventArgs e)
         {
             var spotifree = _serviceProvider.GetRequiredService<Spotifree>();
-
+            
             spotifree.Show();
 
             //var musicDetail = _serviceProvider.GetRequiredService<MusicDetail>();

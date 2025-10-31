@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
-
+using Spotifree.Audio;
 namespace spotifree;
 
 public partial class Spotifree : Window
@@ -14,10 +14,11 @@ public partial class Spotifree : Window
     private MiniWeb? _mini;
     private readonly ISpotifyService _spotifyService;
     private readonly SpotifyAuth _auth;
+    private readonly LocalAudioService _engine = new();
     private readonly ISettingsService _settings;
     private string? _lastPlayerStateRawJson; // cache để mini mở lên có state ngay
     private string _viewsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Views");
-
+    private PlayerBridge? _bridge;
     public Spotifree(ISpotifyService spotifyService, SpotifyAuth auth, ISettingsService settings)
     {
         
@@ -89,6 +90,7 @@ public partial class Spotifree : Window
         {
             MessageBox.Show(ex.StackTrace.ToString());
         }
+    }
 
         /// <summary>
         /// ✅ Hàm nhận tin nhắn từ chatbot.js gửi sang qua window.chrome.webview.postMessage()
@@ -127,7 +129,6 @@ public partial class Spotifree : Window
                 MessageBox.Show($"Lỗi xử lý chatbot message: {ex.Message}");
             }
         }
-    }
 
     private async void HandleWebMessage(object? sender, CoreWebView2WebMessageReceivedEventArgs args)
     {
@@ -449,5 +450,11 @@ public partial class Spotifree : Window
         if (webView?.CoreWebView2 == null) return;
         var json = JsonSerializer.Serialize(payload);
         webView.CoreWebView2.PostWebMessageAsJson(json);
+    }
+    private async void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+        await webView.EnsureCoreWebView2Async();
+        _bridge = new PlayerBridge(_engine, webView);
+        webView.CoreWebView2.AddHostObjectToScript("player", _bridge);
     }
 }
