@@ -9,7 +9,7 @@ using System.Windows;
 
 namespace spotifree;
 
-public partial class MainWindow : Window
+public partial class Spotifree : Window
 {
     private MiniWeb? _mini;
     private readonly ISpotifyService _spotifyService;
@@ -18,7 +18,7 @@ public partial class MainWindow : Window
     private string? _lastPlayerStateRawJson; // cache để mini mở lên có state ngay
     private string _viewsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Views");
 
-    public MainWindow(ISpotifyService spotifyService, SpotifyAuth auth, ISettingsService settings)
+    public Spotifree(ISpotifyService spotifyService, SpotifyAuth auth, ISettingsService settings)
     {
         
         _spotifyService = spotifyService;
