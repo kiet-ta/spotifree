@@ -17,6 +17,12 @@
             }else {
                 console.error("initLibrary function not found");
             }
+        } else if (pageName === 'home') {
+            if (typeof initHome === 'function') {
+                initHome();
+            } else {
+                console.error("initHome function not found");
+            }
         }
         const p = String(pageName || '').toLowerCase();
            // Gọi init theo cách "chắc chắn chạy" cho settings

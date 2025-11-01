@@ -1,7 +1,4 @@
 // album.js
-< !--album.html head-- >
-  <script defer src="./album.js"></script>
-
 (() => {
   // =======================
   // Helpers & Token

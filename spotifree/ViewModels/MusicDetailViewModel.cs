@@ -84,15 +84,27 @@ namespace spotifree.ViewModels
         public string VolumeIcon => Volume > 0 ? "🔊" : "🔇";
 
         // SỬA LỖI: Lấy trực tiếp từ các thuộc tính 'flat' của SpotifyTrack
-        public string TrackTitle => CurrentTrack?.Title ?? "Unknown Title";
-        public string ArtistName => CurrentTrack?.ArtistName ?? "Unknown Artist";
-        public string AlbumArtUrl => CurrentTrack?.AlbumArtLargeUrl;
-        public string ThumbnailUrl => CurrentTrack?.AlbumArtSmallUrl ?? AlbumArtUrl; // Dùng ảnh nhỏ, nếu không có thì dùng ảnh lớn
+        public string TrackTitle => CurrentTrack?.Name ?? "Unknown Title";
+        public string ArtistName => CurrentTrack?.Artist ?? "Unknown Artist";
+        public string AlbumArtUrl => CurrentTrack?.ImageUrl ?? "";
+        public string ThumbnailUrl => CurrentTrack?.ImageUrl ?? ""; // Dùng ảnh cover
 
-        // SỬA LỖI: Xử lý thời gian từ thuộc tính 'Duration' (TimeSpan)
-        public double CurrentTrackDurationSeconds => CurrentTrack?.Duration.TotalSeconds ?? 100.0;
+        // SỬA LỖI: Xử lý thời gian từ thuộc tính 'Duration' (string "3:42")
+        public double CurrentTrackDurationSeconds
+        {
+            get
+            {
+                if (CurrentTrack?.Duration == null) return 100.0;
+                var parts = CurrentTrack.Duration.Split(':');
+                if (parts.Length == 2 && int.TryParse(parts[0], out int minutes) && int.TryParse(parts[1], out int seconds))
+                {
+                    return minutes * 60 + seconds;
+                }
+                return 100.0;
+            }
+        }
         public string CurrentPositionString => TimeSpan.FromSeconds(CurrentPositionSeconds).ToString(@"m\:ss");
-        public string TotalDurationString => CurrentTrack?.Duration.ToString(@"m\:ss") ?? "0:00";
+        public string TotalDurationString => CurrentTrack?.Duration ?? "0:00";
 
         // --- Commands cho các Buttons ---
         public ICommand PlayPauseCommand { get; }
@@ -178,14 +190,19 @@ namespace spotifree.ViewModels
 
         private void LoadMockData()
         {
-            // SỬA LỖI: Cập nhật MockData để khớp với model SpotifyTrack.cs
+            // SỬA LỖI: Cập nhật MockData để khớp với model SpotifyTrack.cs mới
             CurrentTrack = new SpotifyTrack
             {
-                Title = "Chuyện Chúng Ta Sau Này", // Sửa từ 'Name'
-                ArtistName = "Hà Đăng Quyền, Wean Le", // Sửa từ 'Artists' (List)
-                Duration = TimeSpan.FromMinutes(4).Add(TimeSpan.FromSeconds(5)), // Sửa từ 'DurationMs' (int)
-                AlbumArtLargeUrl = "https://i.scdn.co/image/ab67616d0000b273bcfc65feb861c009c664b9d3", // Sửa từ 'Album' (object)
-                AlbumArtSmallUrl = "https://i.scdn.co/image/ab67616d00001e02bcfc65feb861c009c664b9d3"  // Sửa từ 'Album' (object)
+                Id = "mock-track-1",
+                Name = "Chuyện Chúng Ta Sau Này",
+                Artist = "Hà Đăng Quyền, Wean Le",
+                Album = "Single",
+                Duration = "4:05", // Format: "M:SS"
+                Popularity = 85,
+                ImageUrl = "https://i.scdn.co/image/ab67616d0000b273bcfc65feb861c009c664b9d3",
+                PreviewUrl = null,
+                ReleaseDate = "2023-01-01",
+                SpotifyUrl = "https://open.spotify.com/track/mock"
             };
             CurrentPositionSeconds = 46; // 0:46
         }
