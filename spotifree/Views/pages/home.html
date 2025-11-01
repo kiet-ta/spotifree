@@ -1,7 +1,13 @@
 <!-- Homepage replicated in HTML to mirror Homepage.xaml layout/styles -->
 <style>
   /* Scoped styles to this page only */
-  .home-page { color: #fff; background:#000; font-family: system-ui, Segoe UI, Arial; }
+  .home-page { 
+    color: #fff; 
+    background:#000; 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
   .home-header { display:flex; justify-content:space-between; align-items:center; padding:24px 32px; }
   .nav-arrows { display:flex; gap:8px; }
   .nav-circle { width:32px; height:32px; border-radius:16px; background:#333; display:flex; align-items:center; justify-content:center; }
@@ -12,21 +18,144 @@
   .hero { background: linear-gradient(135deg,#667EEA,#764BA2); border-radius:8px; padding:24px; display:grid; grid-template-columns:200px 1fr; gap:24px; }
   .hero-cover { width:200px; height:200px; border-radius:8px; background:#FF9A9E; display:flex; align-items:center; justify-content:center; font-size:48px; }
   .hero-actions { display:flex; gap:16px; margin-top:12px; }
-  .btn-pill { border-radius:20px; padding:12px 24px; border:1px solid #666; background:transparent; color:#fff; cursor:pointer; }
-  .btn-pill.primary { background:#1DB954; border:none; font-weight:700; }
+  .btn-pill { 
+    border-radius:20px; 
+    padding:12px 24px; 
+    border:1px solid #666; 
+    background:transparent; 
+    color:#fff; 
+    cursor:pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+    outline: none;
+  }
+  .btn-pill:hover { 
+    background:#2a2a2a; 
+    border-color:#999;
+    transform: scale(1.05);
+  }
+  .btn-pill.primary { 
+    background:#1DB954; 
+    border:none; 
+    font-weight:700;
+    font-size: 15px;
+  }
+  .btn-pill.primary:hover {
+    background:#1ed760;
+    transform: scale(1.05);
+  }
 
   .filters { display:flex; gap:8px; margin:16px 0; }
-  .filters .btn-pill.active { background:#1A1A1A; border:none; }
+  .filters .btn-pill { 
+    font-size: 13px;
+    padding: 8px 18px;
+  }
+  .filters .btn-pill.active { 
+    background:#fff; 
+    color:#000;
+    border:none; 
+    font-weight: 700;
+  }
 
   .h-scroll { overflow:auto hidden; padding-bottom:8px; }
+  .h-scroll::-webkit-scrollbar { height:8px; }
+  .h-scroll::-webkit-scrollbar-track { background:#181818; border-radius:4px; }
+  .h-scroll::-webkit-scrollbar-thumb { background:#535353; border-radius:4px; }
+  .h-scroll::-webkit-scrollbar-thumb:hover { background:#666; }
+  
   .card-row { display:flex; gap:16px; min-width:max-content; }
-  .music-card { width:180px; background:#1A1A1A; border-radius:8px; padding:16px; }
-  .music-thumb { height:160px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:12px; }
-  .subtitle { color:#ccc; font-size:14px; }
+  .music-card { 
+    width:180px; 
+    background:#1A1A1A; 
+    border-radius:8px; 
+    padding:16px; 
+    transition:transform 0.2s, background 0.2s;
+    overflow:hidden;
+  }
+  .music-card:hover { transform:translateY(-4px); background:#242424; }
+  .card-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.5;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .music-card > div:not(.music-thumb):not(.card-title):not(.subtitle) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .music-thumb { 
+    height:160px; 
+    border-radius:8px; 
+    display:flex; 
+    align-items:center; 
+    justify-content:center; 
+    font-size:24px; 
+    margin-bottom:12px; 
+    background-size:cover !important;
+    background-position:center !important;
+  }
+  .subtitle { 
+    color:#b3b3b3; 
+    font-size:13px; 
+    margin-top:6px;
+    font-weight: 400;
+    line-height: 1.3;
+  }
+  
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .loading-spinner { display:inline-block; animation:spin 1s linear infinite; }
+  
+  /* Better text rendering for Vietnamese & special characters */
+  .home-page * {
+    text-rendering: optimizeLegibility;
+    -webkit-font-feature-settings: "kern" 1;
+    font-feature-settings: "kern" 1;
+  }
+  
+  /* Emoji support */
+  .home-page {
+    font-variant-emoji: emoji;
+  }
 
   .section { margin-top:24px; }
   .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  .section-header h3 {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.04em;
+  }
+  .section-header a {
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .section-header a:hover {
+    color: #fff !important;
+  }
   .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  
+  /* Hero text styling */
+  #hero-title {
+    font-size: 48px;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+    text-rendering: optimizeLegibility;
+  }
+  #hero-desc {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.9);
+  }
 
   @media (max-width: 1100px) { .grid { grid-template-columns:repeat(2,1fr); } }
   @media (max-width: 800px) { .hero { grid-template-columns:1fr; } .hero-cover { width:100%; height:180px; } }
@@ -83,11 +212,11 @@
       </div>
     </div>
 
-    <!-- Made For You: horizontal like "It's New Music Today" -->
+    <!-- Made For You: Hiển thị bài hát đã lưu từ /me/tracks -->
     <div class="section" id="section-made">
       <div class="section-header">
-        <h3 style="margin:0;">Made For You</h3>
-        <a style="color:#ccc; cursor:pointer;">Show all</a>
+        <h3 style="margin:0;">🎵 Bài Hát Yêu Thích Của Bạn</h3>
+        <a style="color:#ccc; cursor:pointer;" id="show-all-saved">Show all</a>
       </div>
       <div class="h-scroll">
         <div class="card-row" id="made-for-you-row"></div>

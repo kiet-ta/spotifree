@@ -3,6 +3,7 @@ using spotifree.IServices;
 using spotifree.Services;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Windows;
 
@@ -12,19 +13,21 @@ public partial class MainWindow : Window
 {
     private MiniWeb? _mini;
     private readonly ISpotifyService _spotifyService;
+    private readonly ILocalMusicService _localMusicService;
     private readonly SpotifyAuth _auth;
     private string? _lastPlayerStateRawJson; // cache để mini mở lên có state ngay
     private string _viewsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Views");
 
-    public MainWindow(ISpotifyService spotifyService, SpotifyAuth auth)
+    public MainWindow(ISpotifyService spotifyService, ILocalMusicService localMusicService, SpotifyAuth auth)
     {
         InitializeComponent();
-        InitializeAsync();
+        InitializeAsync(); //CheeseCream: ok
         _spotifyService = spotifyService;
+        _localMusicService = localMusicService;
         _auth = auth;
     }
 
-    private async void InitializeAsync()
+    private async void InitializeAsync() //CheeseCream: ok
     {
         try
         {
@@ -33,7 +36,7 @@ public partial class MainWindow : Window
 
             webView.CoreWebView2.WebMessageReceived += HandleWebMessage;
 
-            Debug.WriteLine("[C#] Checking token...");
+            Debug.WriteLine("[C#] Checking token..."); //CheeseCream: đã lấy được token
             bool ok = await _auth.EnsureTokenAsync();
 
             if (!ok)
@@ -64,6 +67,19 @@ public partial class MainWindow : Window
 
             // navigate to the local html file via the virtual host
             webView.CoreWebView2.Navigate("https://spotifree.local/index.html");
+
+            // Inject hardcoded token into JS for testing
+            if (_auth != null && !string.IsNullOrEmpty(_auth.AccessToken))
+            {
+                await webView.CoreWebView2.ExecuteScriptAsync($@"
+                    window.__ACCESS_TOKEN__ = '{_auth.AccessToken}';
+                    if (window.localStorage) {{
+                        window.localStorage.setItem('spotify_access_token', '{_auth.AccessToken}');
+                        window.localStorage.setItem('spotify_token_expiry', new Date(Date.now() + 3600000).toISOString());
+                    }}
+                    console.log('✅ Hardcoded token injected from C#');
+                ");
+            }
 
             // check if in debug mode
             webView.CoreWebView2.OpenDevToolsWindow();
@@ -174,6 +190,80 @@ public partial class MainWindow : Window
                         {
                             Debug.WriteLine($"[C#] ERROR PLAYLIST: {ex.Message}");
                             string errorScript = $"window.showNotification('ERROR load: {ex.Message.Replace("'", "\\'")}', 'error');";
+                            await webView.CoreWebView2.ExecuteScriptAsync(errorScript);
+                        }
+                    }
+                    else if (action == "getLocalLibrary")
+                    {
+                        try
+                        {
+                            Debug.WriteLine($"[C#] Đang lấy local music library...");
+                            var localTracks = await _localMusicService.GetLocalLibraryAsync();
+
+                            Debug.WriteLine($"[C#] Found {localTracks.Count} local tracks. sending to JS...");
+
+                            // Convert LocalMusicTrack to format JS expects
+                            var libraryData = localTracks.Select(track => new
+                            {
+                                id = track.Id,
+                                name = track.Title,
+                                artist = track.Artist,
+                                album = track.Album,
+                                type = "Local Music",
+                                filePath = track.FilePath,
+                                duration = track.Duration,
+                                dateAdded = track.DateAdded.ToString("yyyy-MM-dd")
+                            }).ToList();
+
+                            string script = $"window.populateLocalLibrary({JsonSerializer.Serialize(libraryData)});";
+                            await webView.CoreWebView2.ExecuteScriptAsync(script);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[C#] ERROR LOCAL LIBRARY: {ex.Message}");
+                            string errorScript = $"window.showNotification('ERROR load local library: {ex.Message.Replace("'", "\\'")}', 'error');";
+                            await webView.CoreWebView2.ExecuteScriptAsync(errorScript);
+                        }
+                    }
+                    else if (action == "scanLocalLibrary")
+                    {
+                        try
+                        {
+                            Debug.WriteLine($"[C#] Đang scan thư mục nhạc local...");
+                            var directory = _localMusicService.GetLibraryDirectory();
+                            
+                            if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory))
+                            {
+                                string errorScript = $"window.showNotification('Thư mục nhạc không tồn tại. Vui lòng cấu hình trong Settings.', 'error');";
+                                await webView.CoreWebView2.ExecuteScriptAsync(errorScript);
+                                return;
+                            }
+
+                            var localTracks = await _localMusicService.ScanDirectoryAsync(directory);
+                            Debug.WriteLine($"[C#] Scan thành công {localTracks.Count} tracks.");
+
+                            var libraryData = localTracks.Select(track => new
+                            {
+                                id = track.Id,
+                                name = track.Title,
+                                artist = track.Artist,
+                                album = track.Album,
+                                type = "Local Music",
+                                filePath = track.FilePath,
+                                duration = track.Duration,
+                                dateAdded = track.DateAdded.ToString("yyyy-MM-dd")
+                            }).ToList();
+
+                            string script = $"window.populateLocalLibrary({JsonSerializer.Serialize(libraryData)});";
+                            await webView.CoreWebView2.ExecuteScriptAsync(script);
+
+                            string successScript = $"window.showNotification('Đã tìm thấy {localTracks.Count} bài hát local.', 'success');";
+                            await webView.CoreWebView2.ExecuteScriptAsync(successScript);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[C#] ERROR SCAN LOCAL: {ex.Message}");
+                            string errorScript = $"window.showNotification('Lỗi scan: {ex.Message.Replace("'", "\\'")}', 'error');";
                             await webView.CoreWebView2.ExecuteScriptAsync(errorScript);
                         }
                     }

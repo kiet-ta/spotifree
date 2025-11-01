@@ -1,0 +1,90 @@
+/* 
+ * Font Configuration cho Spotifree
+ * Optimized cho tiếng Việt và emoji
+ */
+
+@charset "UTF-8";
+
+/* Global Font Stack - Best fonts cho Vietnamese */
+:root {
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --font-mono: "SF Mono", "Consolas", "Monaco", "Courier New", monospace;
+}
+
+* {
+    font-family: var(--font-family);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Vietnamese diacritics rendering */
+body {
+    font-feature-settings: "kern" 1;
+    -webkit-font-feature-settings: "kern" 1;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+/* Text elements */
+p, span, div {
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+/* Links */
+a {
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+/* Buttons */
+button {
+    font-family: var(--font-family);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Input fields */
+input, textarea {
+    font-family: var(--font-family);
+    font-size: 14px;
+}
+
+/* Code/Mono */
+code, pre {
+    font-family: var(--font-mono);
+}
+
+/* Emoji consistent rendering */
+.emoji {
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Android Emoji", "EmojiSymbols", "EmojiOne", sans-serif;
+    font-style: normal;
+    font-weight: normal;
+}
+
+/* Fix cho Vietnamese tone marks */
+.vietnamese-text {
+    font-variant-ligatures: common-ligatures;
+    text-rendering: optimizeLegibility;
+}
+
+/* Anti-aliasing for better readability */
+.smooth-text {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevent text selection issues */
+.no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
