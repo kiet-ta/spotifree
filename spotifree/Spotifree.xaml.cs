@@ -590,6 +590,7 @@ public partial class Spotifree : Window
             Debug.WriteLine($"[C#] Login exception: {ex.Message}");
             await JsNotifyAsync("spotify.login.failed", new { error = ex.Message });
         }
+    }
     private async void Window_Loaded(object sender, RoutedEventArgs e)
     {
         await webView.EnsureCoreWebView2Async();
