@@ -1,5 +1,5 @@
 ﻿document.addEventListener("DOMContentLoaded", () => {
-  // 💬 Create toggle button
+  // 💬 Create chatbot toggle button
   const chatbotToggle = document.createElement("div");
   chatbotToggle.id = "chatbot-toggle";
   chatbotToggle.innerHTML = "💬";
@@ -89,11 +89,14 @@
     setTimeout(() => {
       typing.remove();
       callback();
-    }, 1000);
+    }, 800);
   }
 
+  // ===============================
+  // Chatbot reply logic
+  // ===============================
   function getBotReply(userInput) {
-    const input = userInput.toLowerCase();
+    const inputLower = userInput.toLowerCase();
 
     const moodReplies = {
       happy: ["🎉 Happy - Pharrell Williams", "🌞 Can’t Stop The Feeling", "🕺 Uptown Funk"],
@@ -101,34 +104,82 @@
       chill: ["☕ Let Her Go", "🌊 Ocean Eyes", "🎶 ILY - Surf Mesa"]
     };
 
-    let response = "I'm not sure what you mean 😅";
+    let response = "🤖 I'm not sure what you mean 😅";
 
     // mood detection
     for (const mood in moodReplies) {
-      if (input.includes(mood)) {
+      if (inputLower.includes(mood)) {
         const songs = moodReplies[mood];
         const randomSong = songs[Math.floor(Math.random() * songs.length)];
         response = `🎵 Suggested song: ${randomSong}`;
+
+        // ✅ Send this to C# to save playlist
+        if (window.chrome?.webview) {
+          const payload = {
+            action: "chatbot.addPlaylist",
+            title: randomSong,
+            artist: "Auto-Suggested",
+            album: "Mood Mix",
+            filePath: "",
+          };
+          window.chrome.webview.postMessage(JSON.stringify(payload));
+        }
         break;
       }
     }
 
-    // play song command
-    if (input.includes("play")) {
+    // play command
+    if (inputLower.includes("play")) {
       if (window.chrome?.webview) {
-        window.chrome.webview.postMessage(
-          JSON.stringify({ action: "playMusic", song: "Let Her Go" })
-        );
+        const payload = {
+          action: "playMusic",
+          song: "Let Her Go"
+        };
+        window.chrome.webview.postMessage(JSON.stringify(payload));
       }
       response = "🎶 Playing 'Let Her Go'...";
     }
 
     // help command
-    if (input.includes("help")) {
+    if (inputLower.includes("help")) {
       response =
-        "✨ You can type:\n- 'I'm happy/sad/chill'\n- 'Play a song'\n- Or type any artist or mood.";
+        "✨ You can type:\n- 'I'm happy/sad/chill'\n- 'Play a song'\n- 'Show library'";
+    }
+
+    // show library command
+    if (inputLower.includes("library") || inputLower.includes("my songs")) {
+      if (window.chrome?.webview) {
+        const payload = { action: "chatbot.getLibrary" };
+        window.chrome.webview.postMessage(JSON.stringify(payload));
+      }
+      response = "📚 Loading your saved songs...";
     }
 
     addMessage(response, false);
+  }
+
+  // ===============================
+  // WPF to JS Interop
+  // ===============================
+  // Called by C# via JsNotifyAsync("chatbot.libraryData", tracks)
+  window.__fromWpf = function (message) {
+    if (!message) return;
+    const { action, data } = message;
+    if (action === "chatbot.libraryData") {
+      showLibrary(data);
+    } else if (action === "chatbot.saved") {
+      addMessage(`✅ Playlist updated. Total songs: ${data.count}`, false);
+    }
+  };
+
+  function showLibrary(tracks) {
+    if (!tracks || !tracks.length) {
+      addMessage("📭 Your library is empty.", false);
+      return;
+    }
+    addMessage("🎧 Your Saved Songs:", false);
+    tracks.forEach((t, i) => {
+      addMessage(`${i + 1}. ${t.title} - ${t.artist}`, false);
+    });
   }
 });
