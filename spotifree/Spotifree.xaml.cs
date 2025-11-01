@@ -231,7 +231,6 @@ public partial class Spotifree : Window
 
 
                     // ========== SETTINGS INTEROP ==========
-                    // ===== SETTINGS INTEROP =====
                     if (root.TryGetProperty("action", out var actProp))
                     {
                         string actionName = actProp.GetString() ?? string.Empty;
