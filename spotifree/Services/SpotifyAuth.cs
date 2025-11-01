@@ -108,20 +108,17 @@ namespace spotifree.Services
             return await FullAuthAsync(showDialog: false);
         }
 
-        /// <summary>
-        /// Phiên bản mở rộng – ép re-consent (show_dialog=true, force xoá cache).
-        /// </summary>
-        public async Task<bool> EnsureTokenAsync(bool force, bool showDialog)
+        public async Task<bool> EnsureTokenValidAsync_NoPopup()
         {
-            if (force) ClearToken();
             if (IsValid()) return true;
 
-            if (!string.IsNullOrEmpty(RefreshToken) && !force)
+            if (!string.IsNullOrEmpty(RefreshToken))
             {
                 if (await RefreshAsync()) return true;
             }
 
-            return await FullAuthAsync(showDialog);
+            // Không gọi FullAuthAsync()
+            return IsValid();
         }
 
         /* ===========================================================

@@ -5,8 +5,24 @@ function initLibrary() {
     console.log("initLibrary() is running!");
     const createBtn = document.getElementById('create-playlist-btn');
     const grid = document.querySelector('.playlists-grid');
-
     const homeBtn = document.getElementById('library-home-button');
+
+    const addLocalBtn = document.getElementById('add-local-music-btn');
+    if (addLocalBtn) {
+        addLocalBtn.addEventListener('click', () => {
+            console.log('Add local music button clicked!');
+            if (window.chrome && window.chrome.webview) {
+                // Gửi yêu cầu mở File Dialog đến C#
+                window.chrome.webview.postMessage({
+                    action: 'local.addMusic'
+                });
+            } else {
+                console.error("Cannot communicate with C# backend");
+                alert("This feature is only available in the app.");
+            }
+        });
+    }
+
     if (homeBtn) {
         homeBtn.addEventListener('click', () => {
             if (typeof window.loadPage === 'function') {
@@ -35,6 +51,7 @@ function initLibrary() {
             }
         });
     }
+
 
     if (grid) {
         grid.addEventListener('contextmenu', (e) => {
@@ -175,7 +192,7 @@ window.showNotification = function (message, type = 'info') {
     alert(`[${type}] ${message}`);
 }
 
-window.populateLibrary = function(playlistsData) {
+window.populateLibrary = function (playlistsData) {
 
     let playlists;
     if (typeof playlistsData === 'string') {
@@ -187,7 +204,7 @@ window.populateLibrary = function(playlistsData) {
             return;
         }
     } else {
-        playlists = playlistsData; 
+        playlists = playlistsData;
     }
 
     const grid = document.querySelector('.playlists-grid');
@@ -208,18 +225,18 @@ window.populateLibrary = function(playlistsData) {
 
     console.log(`[JS] Start looping through the ${playlists.length} playlist to...`);
     playlists.forEach((playlist, index) => {
-        try { 
+        try {
             console.log(`[JS] Rendering playlist #${index}: ${playlist ? playlist.name : 'null/undefined'}`);
             if (!playlist || typeof playlist.id === 'undefined' || typeof playlist.name === 'undefined') {
-                 console.warn(`[JS] Playlist #${index} Missing ID or Name, skip.`);
-                 return;
+                console.warn(`[JS] Playlist #${index} Missing ID or Name, skip.`);
+                return;
             }
             renderPlaylistCard(playlist);
 
         } catch (renderError) {
-            
+
             console.error(`[JS] LỖI KHI RENDER playlist #${index}:`, renderError, playlist);
-            
+
         }
     });
 
@@ -256,3 +273,25 @@ window.addNewPlaylistCard = function (playlist) {
     renderPlaylistCard(playlist);
     console.log("[JS] card already in UI!");
 }
+
+window.handleLocalMusicAdded = (data) => {
+    if (data && data.length > 0) {
+        console.log("[JS] Files added from C#:", data);
+        // TODO: Thêm logic để hiển thị các file này trong thư viện
+        alert(`Added ${data.length} local files! Check console for paths.`);
+
+        // Ví dụ: Render chúng ra
+        data.forEach(filePath => {
+            // Tách tên file từ đường dẫn
+            const fileName = filePath.split('\\').pop().split('/').pop();
+            renderPlaylistCard({
+                id: filePath, // Dùng path làm ID tạm
+                name: fileName,
+                type: "Local File"
+            });
+        });
+
+    } else {
+        console.log("[JS] User cancelled adding local files.");
+    }
+};

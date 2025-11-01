@@ -1,4 +1,5 @@
 using Microsoft.Web.WebView2.Core;
+using Microsoft.Win32;
 using spotifree.IServices;
 using spotifree.Services;
 using System;
@@ -20,7 +21,7 @@ public partial class Spotifree : Window
 
     public Spotifree(ISpotifyService spotifyService, SpotifyAuth auth, ISettingsService settings)
     {
-        
+
         _spotifyService = spotifyService;
         _auth = auth;
         _settings = settings;
@@ -46,16 +47,6 @@ public partial class Spotifree : Window
             webView.CoreWebView2.WebMessageReceived += HandleWebMessage;
             //webView.CoreWebView2.Settings.IsWebMessageEnabled = true;
 
-            Debug.WriteLine("[C#] Checking token...");
-            bool ok = await _auth.EnsureTokenAsync();
-
-            if (!ok)
-            {
-                Debug.WriteLine("[C#] Login failed!");
-                MessageBox.Show("Unable to connect to Spotify. Please try again..");
-                return;
-            }
-
             // Get the folder path where the .exe file is running
             // (Ex: C:\MyProject\bin\Debug\)
             string appDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -78,6 +69,9 @@ public partial class Spotifree : Window
             var cur = await _settings.GetAsync();
             _settings.ApplyZoom(webView, cur.ZoomPercent);
 
+            // Kích hoạt polling nếu token file cũ vẫn còn hạn
+            _spotifyService.StartPollingIfNeeded();
+
             // navigate to the local html file via the virtual host
             webView.CoreWebView2.Navigate("https://spotifree.local/index.html");
 
@@ -89,43 +83,43 @@ public partial class Spotifree : Window
         {
             MessageBox.Show(ex.StackTrace.ToString());
         }
+    }
 
-        /// <summary>
-        /// ✅ Hàm nhận tin nhắn từ chatbot.js gửi sang qua window.chrome.webview.postMessage()
-        /// </summary>
-        private void CoreWebView2_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
+    /// <summary>
+    /// ✅ Hàm nhận tin nhắn từ chatbot.js gửi sang qua window.chrome.webview.postMessage()
+    /// </summary>
+    private void CoreWebView2_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
+    {
+        try
         {
-            try
-            {
-                // Lấy nội dung JSON hoặc string từ JS
-                string message = e.TryGetWebMessageAsString();
+            // Lấy nội dung JSON hoặc string từ JS
+            string message = e.TryGetWebMessageAsString();
 
-                // Debug
-                Console.WriteLine($"[JS -> C#] Nhận tin nhắn: {message}");
+            // Debug
+            Console.WriteLine($"[JS -> C#] Nhận tin nhắn: {message}");
 
-                // ✅ Tùy theo message mà xử lý hành động
-                if (message.Contains("playMusic"))
-                {
-                    // Ở đây bạn có thể gọi service phát nhạc của bạn
-                    MessageBox.Show("🎧 Đang phát nhạc từ chatbot!");
-                    // Ví dụ:
-                    // musicService.Play("Let Her Go");
-                }
-                else if (message.Contains("pauseMusic"))
-                {
-                    MessageBox.Show("⏸ Tạm dừng nhạc");
-                    // musicService.Pause();
-                }
-                else
-                {
-                    // Xử lý các lệnh khác nếu cần
-                    Console.WriteLine($"Không nhận dạng được hành động từ chatbot: {message}");
-                }
-            }
-            catch (Exception ex)
+            // ✅ Tùy theo message mà xử lý hành động
+            if (message.Contains("playMusic"))
             {
-                MessageBox.Show($"Lỗi xử lý chatbot message: {ex.Message}");
+                // Ở đây bạn có thể gọi service phát nhạc của bạn
+                MessageBox.Show("🎧 Đang phát nhạc từ chatbot!");
+                // Ví dụ:
+                // musicService.Play("Let Her Go");
             }
+            else if (message.Contains("pauseMusic"))
+            {
+                MessageBox.Show("⏸ Tạm dừng nhạc");
+                // musicService.Pause();
+            }
+            else
+            {
+                // Xử lý các lệnh khác nếu cần
+                Console.WriteLine($"Không nhận dạng được hành động từ chatbot: {message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Lỗi xử lý chatbot message: {ex.Message}");
         }
     }
 
@@ -162,8 +156,7 @@ public partial class Spotifree : Window
                             Debug.WriteLine($"[C#] Playlist created! ID: {newPlaylist.Id}");
 
                             // sent to js
-                            string script = $"window.addNewPlaylistCard({JsonSerializer.Serialize(newPlaylist)});";
-                            await webView.CoreWebView2.ExecuteScriptAsync(script);
+                            await JsNotifyAsync("addNewPlaylistCard", newPlaylist);
                         }
                         catch (Exception ex)
                         {
@@ -206,8 +199,7 @@ public partial class Spotifree : Window
                             Debug.WriteLine($"[C#] calling API delete: {playlistId}");
                             await _spotifyService.DeletePlaylistAsync(playlistId);
 
-                            string script = $"window.playlistDeletedSuccess('{playlistId}');";
-                            await webView.CoreWebView2.ExecuteScriptAsync(script);
+                            await JsNotifyAsync("playlistDeletedSuccess", playlistId);
                         }
                         catch (Exception ex)
                         {
@@ -223,8 +215,7 @@ public partial class Spotifree : Window
 
                             Debug.WriteLine($"[C#] Get susscess {playlists.Count} playlist. sending to JS...");
 
-                            string script = $"window.populateLibrary({JsonSerializer.Serialize(playlists)});";
-                            await webView.CoreWebView2.ExecuteScriptAsync(script);
+                            await JsNotifyAsync("populateLibrary", playlists);
                         }
                         catch (Exception ex)
                         {
@@ -233,6 +224,11 @@ public partial class Spotifree : Window
                             await webView.CoreWebView2.ExecuteScriptAsync(errorScript);
                         }
                     }
+                    else if (action == "local.addMusic")
+                    {
+                        await HandleAddLocalMusicAsync();
+                    }
+
 
                     // ========== SETTINGS INTEROP ==========
                     // ===== SETTINGS INTEROP =====
@@ -242,6 +238,11 @@ public partial class Spotifree : Window
 
                         switch (actionName)
                         {
+                            case "spotify.login":
+                                {
+                                    await HandleSpotifyLoginAsync();
+                                    return;
+                                }
                             case "settings.get":
                                 {
                                     var s = await _settings.GetAsync();
@@ -365,7 +366,7 @@ public partial class Spotifree : Window
                     }
                 }
 
-                
+
 
             }
 
@@ -449,5 +450,64 @@ public partial class Spotifree : Window
         if (webView?.CoreWebView2 == null) return;
         var json = JsonSerializer.Serialize(payload);
         webView.CoreWebView2.PostWebMessageAsJson(json);
+    }
+    private async Task HandleAddLocalMusicAsync()
+    {
+        Debug.WriteLine("[C#] Received local.addMusic request.");
+
+        var dlg = new OpenFileDialog
+        {
+            Title = "Select Music Files",
+            Multiselect = true, // Cho phép chọn nhiều file
+            Filter = "Music Files|*.mp3;*.wav;*.flac;*.m4a|All Files|*.*"
+        };
+
+        // ShowDialog() cần chạy trên UI thread, nhưng HandleWebMessage
+        // có thể đang ở background. Dùng Dispatcher để đảm bảo an toàn.
+        bool? result = await Application.Current.Dispatcher.InvokeAsync(() => dlg.ShowDialog());
+
+        if (result == true)
+        {
+            // Lấy danh sách các đường dẫn file đã chọn
+            string[] filePaths = dlg.FileNames;
+            Debug.WriteLine($"[C#] User selected {filePaths.Length} files.");
+
+            // Gửi mảng đường dẫn file về lại cho JS
+            // (JS sẽ nhận được một object: { action: "local.musicAdded", data: ["C:\\path1.mp3", ...] })
+            await JsNotifyAsync("local.musicAdded", filePaths);
+        }
+        else
+        {
+            Debug.WriteLine("[C#] User cancelled file dialog.");
+            await JsNotifyAsync("local.musicAdded", Array.Empty<string>()); // Gửi mảng rỗng
+        }
+    }
+    private async Task HandleSpotifyLoginAsync()
+    {
+        try
+        {
+            Debug.WriteLine("[C#] Received spotify.login request.");
+
+            bool ok = await _auth.EnsureTokenAsync(); // Hàm này sẽ mở browser nếu cần
+
+            if (ok)
+            {
+                Debug.WriteLine("[C#] Login successful!");
+                // Báo cho JS biết đã login OK
+                await JsNotifyAsync("spotify.login.success", new { status = "connected" });
+                _spotifyService.StartPollingIfNeeded();
+            }
+            else
+            {
+                Debug.WriteLine("[C#] Login failed!");
+                // Báo cho JS biết login thất bại
+                await JsNotifyAsync("spotify.login.failed", new { error = "Login failed or was cancelled." });
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[C#] Login exception: {ex.Message}");
+            await JsNotifyAsync("spotify.login.failed", new { error = ex.Message });
+        }
     }
 }
