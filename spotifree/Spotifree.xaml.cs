@@ -5,24 +5,28 @@ using spotifree.Services;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Windows;
-
+using Spotifree.Audio;
 namespace spotifree;
 
 public partial class Spotifree : Window
 {
     private MiniWeb? _mini;
     private readonly ISpotifyService _spotifyService;
+    private readonly ILocalMusicService _localMusicService;
     private readonly SpotifyAuth _auth;
+    private readonly LocalAudioService _engine = new();
     private readonly ISettingsService _settings;
+    private PlayerBridge? _bridge;
     private string? _lastPlayerStateRawJson; // cache để mini mở lên có state ngay
     private string _viewsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Views");
 
-    public Spotifree(ISpotifyService spotifyService, SpotifyAuth auth, ISettingsService settings)
+    public Spotifree(ISpotifyService spotifyService, ILocalMusicService localMusicService, SpotifyAuth auth, ISettingsService settings)
     {
-
         _spotifyService = spotifyService;
+        _localMusicService = localMusicService;
         _auth = auth;
         _settings = settings;
 
@@ -74,6 +78,19 @@ public partial class Spotifree : Window
 
             // navigate to the local html file via the virtual host
             webView.CoreWebView2.Navigate("https://spotifree.local/index.html");
+
+            // Inject hardcoded token into JS for testing
+            if (_auth != null && !string.IsNullOrEmpty(_auth.AccessToken))
+            {
+                await webView.CoreWebView2.ExecuteScriptAsync($@"
+                    window.__ACCESS_TOKEN__ = '{_auth.AccessToken}';
+                    if (window.localStorage) {{
+                        window.localStorage.setItem('spotify_access_token', '{_auth.AccessToken}');
+                        window.localStorage.setItem('spotify_token_expiry', new Date(Date.now() + 3600000).toISOString());
+                    }}
+                    console.log('✅ Hardcoded token injected from C#');
+                ");
+            }
 
             // check if in debug mode
             webView.CoreWebView2.OpenDevToolsWindow();
@@ -229,6 +246,81 @@ public partial class Spotifree : Window
                         await HandleAddLocalMusicAsync();
                     }
 
+                    else if (action == "getLocalLibrary")
+                    {
+                        try
+                        {
+                            Debug.WriteLine($"[C#] Đang lấy local music library...");
+                            var localTracks = await _localMusicService.GetLocalLibraryAsync();
+
+                            Debug.WriteLine($"[C#] Found {localTracks.Count} local tracks. sending to JS...");
+
+                            // Convert LocalMusicTrack to format JS expects
+                            var libraryData = localTracks.Select(track => new
+                            {
+                                id = track.Id,
+                                name = track.Title,
+                                artist = track.Artist,
+                                album = track.Album,
+                                type = "Local Music",
+                                filePath = track.FilePath,
+                                duration = track.Duration,
+                                dateAdded = track.DateAdded.ToString("yyyy-MM-dd")
+                            }).ToList();
+
+                            string script = $"window.populateLocalLibrary({JsonSerializer.Serialize(libraryData)});";
+                            await webView.CoreWebView2.ExecuteScriptAsync(script);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[C#] ERROR LOCAL LIBRARY: {ex.Message}");
+                            string errorScript = $"window.showNotification('ERROR load local library: {ex.Message.Replace("'", "\\'")}', 'error');";
+                            await webView.CoreWebView2.ExecuteScriptAsync(errorScript);
+                        }
+                    }
+                    else if (action == "scanLocalLibrary")
+                    {
+                        try
+                        {
+                            Debug.WriteLine($"[C#] Đang scan thư mục nhạc local...");
+                            var directory = _localMusicService.GetLibraryDirectory();
+                            
+                            if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory))
+                            {
+                                string errorScript = $"window.showNotification('Thư mục nhạc không tồn tại. Vui lòng cấu hình trong Settings.', 'error');";
+                                await webView.CoreWebView2.ExecuteScriptAsync(errorScript);
+                                return;
+                            }
+
+                            var localTracks = await _localMusicService.ScanDirectoryAsync(directory);
+                            Debug.WriteLine($"[C#] Scan thành công {localTracks.Count} tracks.");
+
+                            var libraryData = localTracks.Select(track => new
+                            {
+                                id = track.Id,
+                                name = track.Title,
+                                artist = track.Artist,
+                                album = track.Album,
+                                type = "Local Music",
+                                filePath = track.FilePath,
+                                duration = track.Duration,
+                                dateAdded = track.DateAdded.ToString("yyyy-MM-dd")
+                            }).ToList();
+
+                            string script = $"window.populateLocalLibrary({JsonSerializer.Serialize(libraryData)});";
+                            await webView.CoreWebView2.ExecuteScriptAsync(script);
+
+                            string successScript = $"window.showNotification('Đã tìm thấy {localTracks.Count} bài hát local.', 'success');";
+                            await webView.CoreWebView2.ExecuteScriptAsync(successScript);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[C#] ERROR SCAN LOCAL: {ex.Message}");
+                            string errorScript = $"window.showNotification('Lỗi scan: {ex.Message.Replace("'", "\\'")}', 'error');";
+                            await webView.CoreWebView2.ExecuteScriptAsync(errorScript);
+                        }
+                    }
+                }
 
                     // ========== SETTINGS INTEROP ==========
                     if (root.TryGetProperty("action", out var actProp))
@@ -339,10 +431,6 @@ public partial class Spotifree : Window
                                 }
                         }
                     }
-
-
-
-                }
                 //  "type" (Mini-player messages)
                 else if (root.TryGetProperty("type", out var typeProperty))
                 {
@@ -364,13 +452,7 @@ public partial class Spotifree : Window
                             }
                     }
                 }
-
-
-
             }
-
-
-
             else if (root.ValueKind == JsonValueKind.String)
             {
                 string messageText = root.GetString();
@@ -507,6 +589,37 @@ public partial class Spotifree : Window
         {
             Debug.WriteLine($"[C#] Login exception: {ex.Message}");
             await JsNotifyAsync("spotify.login.failed", new { error = ex.Message });
+        }
+    private async void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+        await webView.EnsureCoreWebView2Async();
+        _bridge = new PlayerBridge(_engine, webView);
+        webView.CoreWebView2.AddHostObjectToScript("player", _bridge);
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        try
+        {
+            // Tắt mini nếu còn mở
+            if (_mini != null)
+            {
+                _mini.Close();
+                _mini = null;
+            }
+
+            // Giải phóng WebView2 để tránh giữ lock exe khi rebuild
+            if (webView != null)
+            {
+                try { webView.CoreWebView2?.Navigate("about:blank"); } catch { }
+                try { webView.Dispose(); } catch { }
+            }
+        }
+        finally
+        {
+            base.OnClosed(e);
+            Application.Current.Shutdown();
+            Environment.Exit(0);
         }
     }
 }

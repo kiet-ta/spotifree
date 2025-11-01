@@ -4,6 +4,7 @@ let currentPlaylistId = null;
 function initLibrary() {
     console.log("initLibrary() is running!");
     const createBtn = document.getElementById('create-playlist-btn');
+    const scanLocalBtn = document.getElementById('scan-local-btn');
     const grid = document.querySelector('.playlists-grid');
     const homeBtn = document.getElementById('library-home-button');
 
@@ -51,7 +52,6 @@ function initLibrary() {
             }
         });
     }
-
 
     if (grid) {
         grid.addEventListener('contextmenu', (e) => {
@@ -101,10 +101,13 @@ function initLibrary() {
         if (grid) {
             grid.innerHTML = '';
         }
-        // request backend to get playlists again
-        console.log("[JS] requesting backend get playlists again!");
+        // request backend to get playlists and local library
+        console.log("[JS] requesting backend get playlists and local library!");
         window.chrome.webview.postMessage({
             action: 'getLibraryPlaylists'
+        });
+        window.chrome.webview.postMessage({
+            action: 'getLocalLibrary'
         });
     } else {
         console.error("Cannot communicate with C# backend to get playlists");

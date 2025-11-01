@@ -273,7 +273,7 @@ public class SpotifyApi : ISpotifyService
         // Đây là endpoint quan trọng nhất
         var req = await BuildAsync(HttpMethod.Get, "me/player");
         var res = await _http.SendAsync(req);
-
+        Console.WriteLine("MewMew: ", res.Content);
         // 204 No Content = không có gì đang phát
         if (!res.IsSuccessStatusCode || res.StatusCode == System.Net.HttpStatusCode.NoContent)
         {
@@ -309,14 +309,21 @@ public class SpotifyApi : ISpotifyService
                 _lastTrackId = trackId;
 
                 // Map dữ liệu từ API về Model 'SpotifyTrack' của bạn
+                var durationMs = itemElement.GetProperty("duration_ms").GetInt32();
+                var duration = TimeSpan.FromMilliseconds(durationMs);
+                var durationFormatted = $"{(int)duration.TotalMinutes}:{duration.Seconds:D2}";
+                
                 var newTrack = new SpotifyTrack
                 {
-                    Title = itemElement.GetProperty("name").GetString(),
-                    SpotifyTrackId = trackId,
-                    Duration = TimeSpan.FromMilliseconds(itemElement.GetProperty("duration_ms").GetInt32()),
-                    ArtistName = string.Join(", ", itemElement.GetProperty("artists").EnumerateArray().Select(a => a.GetProperty("name").GetString())),
-                    AlbumArtLargeUrl = itemElement.GetProperty("album").GetProperty("images").EnumerateArray().FirstOrDefault().GetProperty("url").GetString(),
-                    AlbumArtSmallUrl = itemElement.GetProperty("album").GetProperty("images").EnumerateArray().LastOrDefault().GetProperty("url").GetString()
+                    Id = trackId,
+                    Name = itemElement.GetProperty("name").GetString() ?? "",
+                    Duration = durationFormatted,
+                    Artist = string.Join(", ", itemElement.GetProperty("artists").EnumerateArray().Select(a => a.GetProperty("name").GetString())),
+                    Album = itemElement.GetProperty("album").GetProperty("name").GetString() ?? "",
+                    ImageUrl = itemElement.GetProperty("album").GetProperty("images").EnumerateArray().FirstOrDefault().GetProperty("url").GetString() ?? "",
+                    Popularity = itemElement.GetProperty("popularity").GetInt32(),
+                    PreviewUrl = itemElement.TryGetProperty("preview_url", out var previewUrl) ? previewUrl.GetString() : null,
+                    SpotifyUrl = itemElement.GetProperty("external_urls").GetProperty("spotify").GetString() ?? ""
                 };
                 TrackChanged?.Invoke(newTrack); // Kích hoạt sự kiện
             }
