@@ -6,8 +6,24 @@ function initLibrary() {
     const createBtn = document.getElementById('create-playlist-btn');
     const scanLocalBtn = document.getElementById('scan-local-btn');
     const grid = document.querySelector('.playlists-grid');
-
     const homeBtn = document.getElementById('library-home-button');
+
+    const addLocalBtn = document.getElementById('add-local-music-btn');
+    if (addLocalBtn) {
+        addLocalBtn.addEventListener('click', () => {
+            console.log('Add local music button clicked!');
+            if (window.chrome && window.chrome.webview) {
+                // Gửi yêu cầu mở File Dialog đến C#
+                window.chrome.webview.postMessage({
+                    action: 'local.addMusic'
+                });
+            } else {
+                console.error("Cannot communicate with C# backend");
+                alert("This feature is only available in the app.");
+            }
+        });
+    }
+
     if (homeBtn) {
         homeBtn.addEventListener('click', () => {
             if (typeof window.loadPage === 'function') {
@@ -33,19 +49,6 @@ function initLibrary() {
                 } else {
                     console.error("Cannot communicate with C# backend");
                 }
-            }
-        });
-    }
-
-    if (scanLocalBtn) {
-        scanLocalBtn.addEventListener('click', () => {
-            console.log('Scan Local Music button clicked!');
-            if (window.chrome && window.chrome.webview) {
-                window.chrome.webview.postMessage({
-                    action: 'scanLocalLibrary'
-                });
-            } else {
-                console.error("Cannot communicate with C# backend");
             }
         });
     }
@@ -192,7 +195,7 @@ window.showNotification = function (message, type = 'info') {
     alert(`[${type}] ${message}`);
 }
 
-window.populateLibrary = function(playlistsData) {
+window.populateLibrary = function (playlistsData) {
 
     let playlists;
     if (typeof playlistsData === 'string') {
@@ -204,7 +207,7 @@ window.populateLibrary = function(playlistsData) {
             return;
         }
     } else {
-        playlists = playlistsData; 
+        playlists = playlistsData;
     }
 
     const grid = document.querySelector('.playlists-grid');
@@ -225,18 +228,18 @@ window.populateLibrary = function(playlistsData) {
 
     console.log(`[JS] Start looping through the ${playlists.length} playlist to...`);
     playlists.forEach((playlist, index) => {
-        try { 
+        try {
             console.log(`[JS] Rendering playlist #${index}: ${playlist ? playlist.name : 'null/undefined'}`);
             if (!playlist || typeof playlist.id === 'undefined' || typeof playlist.name === 'undefined') {
-                 console.warn(`[JS] Playlist #${index} Missing ID or Name, skip.`);
-                 return;
+                console.warn(`[JS] Playlist #${index} Missing ID or Name, skip.`);
+                return;
             }
             renderPlaylistCard(playlist);
 
         } catch (renderError) {
-            
+
             console.error(`[JS] LỖI KHI RENDER playlist #${index}:`, renderError, playlist);
-            
+
         }
     });
 
@@ -274,98 +277,24 @@ window.addNewPlaylistCard = function (playlist) {
     console.log("[JS] card already in UI!");
 }
 
-// Function to populate local library (called from C#)
-window.populateLocalLibrary = function(localTracksData) {
-    console.log("[JS] populateLocalLibrary called with:", localTracksData);
+window.handleLocalMusicAdded = (data) => {
+    if (data && data.length > 0) {
+        console.log("[JS] Files added from C#:", data);
+        // TODO: Thêm logic để hiển thị các file này trong thư viện
+        alert(`Added ${data.length} local files! Check console for paths.`);
 
-    let localTracks;
-    if (typeof localTracksData === 'string') {
-        try {
-            localTracks = JSON.parse(localTracksData);
-        } catch (e) {
-            console.error("[JS] LỖI PARSE JSON cho local library!", e);
-            return;
-        }
+        // Ví dụ: Render chúng ra
+        data.forEach(filePath => {
+            // Tách tên file từ đường dẫn
+            const fileName = filePath.split('\\').pop().split('/').pop();
+            renderPlaylistCard({
+                id: filePath, // Dùng path làm ID tạm
+                name: fileName,
+                type: "Local File"
+            });
+        });
+
     } else {
-        localTracks = localTracksData;
+        console.log("[JS] User cancelled adding local files.");
     }
-
-    const grid = document.querySelector('.playlists-grid');
-    if (!grid) {
-        console.error("[JS] Cannot find .playlists-grid");
-        return;
-    }
-
-    if (!Array.isArray(localTracks)) {
-        console.error("[JS] localTracks is not an array:", localTracks);
-        return;
-    }
-
-    if (localTracks.length === 0) {
-        console.log("[JS] Local library is empty.");
-        return;
-    }
-
-    console.log(`[JS] Rendering ${localTracks.length} local tracks...`);
-    localTracks.forEach((track, index) => {
-        try {
-            if (!track || !track.id || !track.name) {
-                console.warn(`[JS] Local track #${index} missing required fields, skip.`);
-                return;
-            }
-            renderLocalMusicCard(track);
-        } catch (renderError) {
-            console.error(`[JS] LỖI KHI RENDER local track #${index}:`, renderError, track);
-        }
-    });
-}
-
-function renderLocalMusicCard(track) {
-    const grid = document.querySelector('.playlists-grid');
-    if (!grid) return;
-
-    const card = document.createElement('div');
-    card.className = 'playlist-card local-music-card';
-    card.dataset.playlistId = track.id;
-    card.dataset.filePath = track.filePath || '';
-    card.style.cursor = 'pointer';
-
-    // Create a visual indicator for local music
-    const artistDisplay = track.artist ? ` • ${track.artist}` : '';
-    const albumDisplay = track.album ? ` • ${track.album}` : '';
-    
-    card.innerHTML = `
-        <div class="playlist-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-          <svg viewBox="0 0 100 100" style="fill: white; opacity: 0.8;"> 
-            <circle cx="50" cy="30" r="8" />
-            <path d="M 30 70 L 50 50 L 70 70 L 50 50 L 30 70" stroke="white" stroke-width="3" fill="none"/>
-          </svg>
-        </div>
-        <div class="playlist-info">
-          <div class="playlist-name">${escapeHtml(track.name)}</div>
-          <div class="playlist-type">${escapeHtml(track.type || 'Local Music')}${escapeHtml(artistDisplay)}${escapeHtml(albumDisplay)}</div> 
-        </div>
-    `;
-
-    // Add click handler to play local music
-    card.addEventListener('click', (e) => {
-        if (!e.target.closest('.context-menu')) {
-            console.log(`[JS] Clicked local track: ${track.name}`, track.filePath);
-            // TODO: Implement play local music functionality
-            if (window.playLocalMusic) {
-                window.playLocalMusic(track.filePath, track);
-            } else {
-                console.warn("[JS] playLocalMusic function not available");
-            }
-        }
-    });
-
-    grid.appendChild(card);
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+};

@@ -111,26 +111,45 @@
     }
 
     // ---------- WPF -> JS ----------
-    window.__fromWpf = (payload) => {
-        try {
-            const { action, data } = payload || {};
-            if (action === "settings.current") {
-                hydrate(data);                 // set trạng thái input
-                applyI18n(data?.language || "en-US"); // dịch ngay theo state hiện tại
-            } else if (action === "storage.folderPicked") {
-                if (data?.ok) {
-                    const p = $("storagePath");
-                    if (p) p.textContent = data.path || "";
-                }
-            } else if (action === "storage.clearOffline.done") {
-                const dl = $("storageDownloads");
-                if (dl) dl.textContent = "—";
-            } else if (action === "settings.error") {
-                console.error("[Settings] backend error:", data?.message);
-            }
-        } catch (e) {
-            console.error("[Settings] __fromWpf error:", e);
+    window.handleSpotifyLoginSuccess = (data) => {
+        const btn = $("btnConnectSpotify");
+        const hint = $("accountHint");
+        if (btn) {
+            btn.textContent = "✅ Connected";
+            btn.disabled = true;
+            btn.style.opacity = 0.7;
         }
+        if (hint) hint.textContent = "Successfully connected to Spotify!";
+        // Tự động yêu cầu tải library sau khi login
+        send("getLibraryPlaylists");
+    };
+
+    window.handleSpotifyLoginFailed = (data) => {
+        const btn = $("btnConnectSpotify");
+        const hint = $("accountHint");
+        if (btn) btn.textContent = "Connect to Spotify";
+        if (hint) hint.textContent = `Login failed: ${data?.error || "Unknown error"}. Please try again.`;
+    };
+
+    window.handleSettingsCurrent = (data) => {
+        hydrate(data);
+        applyI18n(data?.language || "en-US");
+    };
+
+    window.handleStorageFolderPicked = (data) => {
+        if (data?.ok) {
+            const p = $("storagePath");
+            if (p) p.textContent = data.path || "";
+        }
+    };
+
+    window.handleClearOfflineDone = (data) => {
+        const dl = $("storageDownloads");
+        if (dl) dl.textContent = "—";
+    };
+
+    window.handleSettingsError = (data) => {
+        console.error("[Settings] backend error:", data?.message);
     };
 
     // ---------- Fill UI từ AppSettings (NO visual change, chỉ value/checked) ----------
@@ -203,6 +222,17 @@
                 // fallback phòng hờ (không bắt buộc)
                 window.location.href = "/index.html#home";
             }
+        });
+
+        on($("btnConnectSpotify"), "click", () => {
+            console.log("Requesting Spotify login...");
+            const btn = $("btnConnectSpotify");
+            const hint = $("accountHint");
+            if (btn) btn.textContent = "Logging in...";
+            if (hint) hint.textContent = "Please check the browser window to log in...";
+
+            // Gửi yêu cầu login đến C#
+            send("spotify.login");
         });
 
         // Search (giữ nguyên bố cục, chỉ display: none)
