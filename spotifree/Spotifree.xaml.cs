@@ -18,21 +18,18 @@ public partial class Spotifree : Window
     private readonly SpotifyAuth _auth;
     private readonly LocalAudioService _engine = new();
     private readonly ISettingsService _settings;
+    private PlayerBridge? _bridge;
     private string? _lastPlayerStateRawJson; // cache để mini mở lên có state ngay
     private string _viewsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Views");
 
-    public MainWindow(ISpotifyService spotifyService, ILocalMusicService localMusicService, SpotifyAuth auth)
+    public Spotifree(ISpotifyService spotifyService, ILocalMusicService localMusicService, SpotifyAuth auth, ISettingsService settings)
     {
-        
         _spotifyService = spotifyService;
+        _localMusicService = localMusicService;
         _auth = auth;
         _settings = settings;
 
         InitializeComponent();
-        InitializeAsync(); //CheeseCream: ok
-        _spotifyService = spotifyService;
-        _localMusicService = localMusicService;
-        _auth = auth;
         InitializeAsync();
     }
     // ===== Helper: notify JS =====
@@ -434,10 +431,6 @@ public partial class Spotifree : Window
                                 }
                         }
                     }
-
-
-
-                }
                 //  "type" (Mini-player messages)
                 else if (root.TryGetProperty("type", out var typeProperty))
                 {
@@ -459,13 +452,7 @@ public partial class Spotifree : Window
                             }
                     }
                 }
-
-                
-
             }
-
-
-
             else if (root.ValueKind == JsonValueKind.String)
             {
                 string messageText = root.GetString();

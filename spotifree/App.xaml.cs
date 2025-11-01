@@ -47,7 +47,7 @@ namespace spotifree
             services.AddSingleton(new SpotifyAuth(ClientId, RedirectUri, Scopes));
             services.AddSingleton<ISpotifyService, SpotifyApi>();
             services.AddSingleton<ILocalMusicService, LocalMusicService>();
-            services.AddSingleton<MainWindow>();
+            services.AddSingleton<Spotifree>();
             services.AddSingleton<ISettingsService, SettingsService>();
         }
 

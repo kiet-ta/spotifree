@@ -20,8 +20,8 @@
 
 /* Vietnamese diacritics rendering */
 body {
-    font-feature-settings: "kern" 1;
     -webkit-font-feature-settings: "kern" 1;
+    font-feature-settings: "kern" 1;
 }
 
 /* Headings */
