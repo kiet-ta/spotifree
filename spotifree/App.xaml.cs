@@ -48,6 +48,7 @@ namespace spotifree
             services.AddSingleton<ISpotifyService, SpotifyApi>();
             services.AddSingleton<MainWindow>();
             services.AddSingleton<ISettingsService, SettingsService>();
+            services.AddSingleton<ILocalLibraryService, LocalLibraryService>();
         }
 
         protected override void OnStartup(StartupEventArgs e)

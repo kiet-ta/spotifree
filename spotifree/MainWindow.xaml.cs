@@ -15,13 +15,15 @@ public partial class MainWindow : Window
     private readonly SpotifyAuth _auth;
     private string? _lastPlayerStateRawJson; // cache để mini mở lên có state ngay
     private string _viewsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Views");
+    private readonly ILocalLibraryService _libraryService;
 
-    public MainWindow(ISpotifyService spotifyService, SpotifyAuth auth)
+    public MainWindow(ISpotifyService spotifyService, SpotifyAuth auth, ILocalLibraryService libraryService)
     {
         InitializeComponent();
         InitializeAsync();
         _spotifyService = spotifyService;
         _auth = auth;
+        _libraryService = new LocalLibraryService();
     }
 
     private async void InitializeAsync()
@@ -274,6 +276,40 @@ public partial class MainWindow : Window
         _mini.Activate();
         this.WindowState = WindowState.Minimized;
     }
+
+    private async void TestScanButton_Click(object sender, RoutedEventArgs e)
+    {
+        Debug.WriteLine("--- BẮT ĐẦU QUÉT THƯ VIỆN ---");
+
+        string musicFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
+
+        Debug.WriteLine($"Đang quét thư mục: {musicFolderPath}");
+
+        var musicList = await _libraryService.ScanLibraryAsync(musicFolderPath);
+
+        if (musicList.Count == 0)
+        {
+            Debug.WriteLine(">>> KHÔNG TÌM THẤY FILE NHẠC NÀO. (Hãy kiểm tra lại đường dẫn).");
+        }
+        else
+        {
+            Debug.WriteLine($"--- ĐÃ QUÉT XONG! TÌM THẤY {musicList.Count} FILE ---");
+            foreach (var musicFile in musicList)
+            {
+                Debug.WriteLine($"  > Tiêu đề: {musicFile.Title}");
+                Debug.WriteLine($"    Nghệ sĩ: {musicFile.Artist}");
+                Debug.WriteLine($"    Album:   {musicFile.Album}");
+                Debug.WriteLine($"    Thời lượng: {musicFile.Duration:mm\\:ss}");
+                Debug.WriteLine($"    Đường dẫn: {musicFile.FilePath}");
+                Debug.WriteLine("    --------------------");
+            }
+        }
+
+        Debug.WriteLine("--- KẾT THÚC TEST QUÉT THƯ VIỆN ---");
+
+        MessageBox.Show("Đã quét xong! Hãy kiểm tra cửa sổ Output trong Visual Studio.");
+    }
+
     private void SendToMainPage(object payload)
     {
         if (webView?.CoreWebView2 == null) return;

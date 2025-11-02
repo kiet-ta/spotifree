@@ -9,5 +9,11 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <wv2:WebView2 Name="webView" />
+        <Button Content="Test Quét Thư Viện" 
+                HorizontalAlignment="Left" 
+                VerticalAlignment="Top" 
+                Margin="20"
+                Padding="10"
+                Click="TestScanButton_Click"/>
     </Grid>
 </Window>

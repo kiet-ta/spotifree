@@ -1,0 +1,100 @@
+﻿using spotifree.IServices;
+using spotifree.Models;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace spotifree.Services
+{
+    public class LocalLibraryService : ILocalLibraryService
+    {
+        private readonly string[] _supportedExtensions = { ".mp3", ".m4a", ".flac", ".wav", ".aac" };
+
+        
+        public async Task<List<MusicFileDetail>> ScanLibraryAsync(string directoryPath)
+        {
+            var musicFiles = new List<MusicFileDetail>();
+            if (!Directory.Exists(directoryPath))
+            {
+                Console.WriteLine($"Lỗi: Không tìm thấy thư mục '{directoryPath}'");
+                return musicFiles; 
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    var files = Directory.EnumerateFiles(directoryPath, "*.*", SearchOption.AllDirectories)
+                                         .Where(f => _supportedExtensions.Contains(Path.GetExtension(f).ToLower()));
+
+                    foreach (var filePath in files)
+                    {
+                        var fileDetail = GetMusicFileDetails(filePath);
+                        if (fileDetail != null)
+                        {
+                            musicFiles.Add(fileDetail);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Lỗi khi quét thư viện: {ex.Message}");
+                }
+            });
+
+            return musicFiles;
+        }
+
+        public MusicFileDetail? GetMusicFileDetails(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+            {
+                return null;
+            }
+
+            try
+            {
+                using (var tagFile = TagLib.File.Create(filePath))
+                {
+                    var tag = tagFile.Tag;
+
+                    var detail = new MusicFileDetail
+                    {
+                        FilePath = filePath,
+                        Title = !string.IsNullOrEmpty(tag.Title) ? tag.Title : Path.GetFileNameWithoutExtension(filePath),
+                        Artist = tag.Performers != null && tag.Performers.Length > 0 ? string.Join(", ", tag.Performers) : "Unknown Artist",
+                        Album = !string.IsNullOrEmpty(tag.Album) ? tag.Album : "Unknown Album",
+                        Year = tag.Year,
+                        Genre = tag.Genres != null && tag.Genres.Length > 0 ? string.Join(", ", tag.Genres) : "Unknown",
+                        Duration = tagFile.Properties.Duration
+                    };
+
+                    // TODO: Trích xuất ảnh bìa nếu bạn muốn
+                    // if (tag.Pictures != null && tag.Pictures.Length > 0)
+                    // {
+                    //     detail.AlbumArt = tag.Pictures[0].Data.Data;
+                    // }
+
+                    return detail;
+                }
+            }
+            catch (TagLib.CorruptFileException)
+            {
+                return new MusicFileDetail
+                {
+                    FilePath = filePath,
+                    Title = Path.GetFileNameWithoutExtension(filePath)
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi khi đọc tag file '{filePath}': {ex.Message}");
+                return null;
+            }
+        }
+    }
+}
