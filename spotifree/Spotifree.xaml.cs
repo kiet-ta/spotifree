@@ -1,14 +1,15 @@
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Win32;
 using spotifree.IServices;
+using spotifree.Models;
 using spotifree.Services;
+using Spotifree.Audio;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Windows;
-using Spotifree.Audio;
 namespace spotifree;
 
 public partial class Spotifree : Window
@@ -22,6 +23,7 @@ public partial class Spotifree : Window
     private PlayerBridge? _bridge;
     private string? _lastPlayerStateRawJson; // cache để mini mở lên có state ngay
     private string _viewsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Views");
+    private ChatbotBridge? _chatbotBridge;
 
     public Spotifree(ISpotifyService spotifyService, ILocalMusicService localMusicService, SpotifyAuth auth, ISettingsService settings)
     {
@@ -95,6 +97,8 @@ public partial class Spotifree : Window
             // check if in debug mode
             webView.CoreWebView2.OpenDevToolsWindow();
 
+            _chatbotBridge = new ChatbotBridge(webView.CoreWebView2);
+
         }
         catch (Exception ex)
         {
@@ -156,6 +160,42 @@ public partial class Spotifree : Window
                 if (root.TryGetProperty("action", out var actionProperty))
                 {
                     string action = actionProperty.GetString();
+                    // ✅ Chatbot actions
+                    if (action == "chatbot.addPlaylist")
+                    {
+                        Debug.WriteLine("[Chatbot] Saving playlist to local JSON...");
+                        string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "library.json");
+                        var service = new LocalLibraryService<LocalMusicTrack>(path);
+                        var tracks = await service.LoadLibraryAsync();
+
+                        var newTrack = new LocalMusicTrack
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            Title = root.GetProperty("title").GetString() ?? "Untitled",
+                            Artist = root.GetProperty("artist").GetString() ?? "Unknown",
+                            Album = root.GetProperty("album").GetString() ?? "Unknown",
+                            FilePath = root.GetProperty("filePath").GetString() ?? "",
+                            DateAdded = DateTime.Now
+                        };
+
+                        tracks.Add(newTrack);
+                        await service.SaveLibraryAsync(tracks);
+
+                        await JsNotifyAsync("chatbot.saved", new { ok = true, count = tracks.Count });
+                        return;
+                    }
+
+                    if (action == "chatbot.getLibrary")
+                    {
+                        Debug.WriteLine("[Chatbot] Loading playlist from local JSON...");
+                        string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "library.json");
+                        var service = new LocalLibraryService<LocalMusicTrack>(path);
+                        var tracks = await service.LoadLibraryAsync();
+
+                        await JsNotifyAsync("chatbot.libraryData", tracks);
+                        return;
+                    }
+
 
                     if (action == "createPlaylist")
                     {
