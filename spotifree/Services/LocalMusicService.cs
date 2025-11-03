@@ -193,7 +193,21 @@ public class LocalMusicService : ILocalMusicService
             _cachedLibrary = new List<LocalMusicTrack>();
         }
     }
+    public async Task AddTrackAsync(LocalMusicTrack track)
+    {
+        if (_cachedLibrary.Count == 0)
+        {
+            LoadLibraryFromDisk();
+        }
 
+        // check existed
+        var existing = _cachedLibrary.FirstOrDefault(t => t.Id == track.Id);
+        if (existing == null)
+        {
+            _cachedLibrary.Add(track);
+            await SaveLibraryToDiskAsync();
+        }
+    }
     private async Task SaveLibraryToDiskAsync()
     {
         try

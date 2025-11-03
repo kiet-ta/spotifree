@@ -12,5 +12,6 @@ public interface ILocalMusicService
     Task RemoveFromLibraryAsync(string trackId);
     string? GetLibraryDirectory();
     void SetLibraryDirectory(string? directoryPath);
+    Task AddTrackAsync(LocalMusicTrack track);
 }
 

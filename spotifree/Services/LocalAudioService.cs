@@ -50,20 +50,29 @@ namespace Spotifree.Audio
             if (!File.Exists(filePath)) throw new FileNotFoundError(filePath);
 
             await System.Threading.Tasks.Task.Yield();
+            try
+            {
+                lock (_gate)
+                {
+                    CleanupOutput();
 
-            lock (_gate)
+                    _state = PlayerState.Loading;
+                    CurrentPath = filePath;
+
+                    _reader = new AudioFileReader(filePath);   // MP3/WAV/AIFF...
+                    _output = new NAudio.Wave.WasapiOut();
+                    _output.Init(_reader);
+                    _output.PlaybackStopped += OnPlaybackStopped;
+
+                    _state = PlayerState.Paused;               // ready
+                }
+            }
+            catch (Exception ex)
             {
                 CleanupOutput();
-
-                _state = PlayerState.Loading;
-                CurrentPath = filePath;
-
-                _reader = new AudioFileReader(filePath);   // MP3/WAV/AIFF...
-                _output = new WaveOutEvent();
-                _output.Init(_reader);
-                _output.PlaybackStopped += OnPlaybackStopped;
-
-                _state = PlayerState.Paused;               // ready
+                _state = PlayerState.Idle;
+                CurrentPath = null;
+                throw;
             }
         }
 
@@ -159,7 +168,7 @@ namespace Spotifree.Audio
     }
 
     public sealed class FileNotFoundError : Exception
-    {
-        public FileNotFoundError(string path) : base($"Local file not found: {path}") { }
-    }
+{
+    public FileNotFoundError(string path) : base($"Local file not found: {path}") { }
+}
 }

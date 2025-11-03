@@ -48,7 +48,8 @@ public partial class Spotifree : Window
         {
             // waiting webview2 really to run
             await webView.EnsureCoreWebView2Async(null);
-
+            _bridge = new PlayerBridge(_engine, webView);
+            webView.CoreWebView2.AddHostObjectToScript("player", _bridge);
             // Web messages
             webView.CoreWebView2.WebMessageReceived += HandleWebMessage;
             //webView.CoreWebView2.Settings.IsWebMessageEnabled = true;
@@ -163,10 +164,10 @@ public partial class Spotifree : Window
                     // ✅ Chatbot actions
                     if (action == "chatbot.addPlaylist")
                     {
-                        Debug.WriteLine("[Chatbot] Saving playlist to local JSON...");
-                        string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "library.json");
-                        var service = new LocalLibraryService<LocalMusicTrack>(path);
-                        var tracks = await service.LoadLibraryAsync();
+                        Debug.WriteLine("[Chatbot] Adding track to local library...");
+
+                        // _localMusicService đã được inject, ta dùng nó
+                        var service = _localMusicService;
 
                         var newTrack = new LocalMusicTrack
                         {
@@ -178,19 +179,22 @@ public partial class Spotifree : Window
                             DateAdded = DateTime.Now
                         };
 
-                        tracks.Add(newTrack);
-                        await service.SaveLibraryAsync(tracks);
+                        // Sử dụng phương thức AddTrackAsync mới của chúng ta
+                        await service.AddTrackAsync(newTrack);
 
+                        // Lấy tổng số track mới để báo cáo
+                        var tracks = await service.GetLocalLibraryAsync();
                         await JsNotifyAsync("chatbot.saved", new { ok = true, count = tracks.Count });
                         return;
                     }
-
+                    
                     if (action == "chatbot.getLibrary")
                     {
                         Debug.WriteLine("[Chatbot] Loading playlist from local JSON...");
-                        string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "library.json");
-                        var service = new LocalLibraryService<LocalMusicTrack>(path);
-                        var tracks = await service.LoadLibraryAsync();
+
+                        var service = _localMusicService;
+
+                        var tracks = await service.GetLocalLibraryAsync();
 
                         await JsNotifyAsync("chatbot.libraryData", tracks);
                         return;
@@ -631,13 +635,6 @@ public partial class Spotifree : Window
             await JsNotifyAsync("spotify.login.failed", new { error = ex.Message });
         }
     }
-    private async void Window_Loaded(object sender, RoutedEventArgs e)
-    {
-        await webView.EnsureCoreWebView2Async();
-        _bridge = new PlayerBridge(_engine, webView);
-        webView.CoreWebView2.AddHostObjectToScript("player", _bridge);
-    }
-
     protected override void OnClosed(EventArgs e)
     {
         try

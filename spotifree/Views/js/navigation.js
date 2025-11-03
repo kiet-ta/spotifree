@@ -23,9 +23,14 @@
             } else {
                 console.error("initHome function not found");
             }
+        } else if (pageName === 'music_detail') {
+            if (typeof initMusicDetail === 'function') {
+                initMusicDetail();
+            } else {
+                console.error("initMusicDetail function not found");
+            }
         }
         const p = String(pageName || '').toLowerCase();
-           // Gọi init theo cách "chắc chắn chạy" cho settings
                if (p === 'setting' || p === 'settings') {
                      queueMicrotask(() => {
                            if (typeof window.initSettings === 'function') {

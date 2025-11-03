@@ -31,9 +31,9 @@ namespace spotifree.Services
             _scope = scope;
 
             // HARDCODED TOKEN FOR LOCAL TESTING
-            AccessToken = "BQC4Q518LIAWx_MOVHiirytiqDvob_rzX8Ml5_zSb2szXaRO_n76L0xNPyYrxFPW_rFw8wbpuaiHgK2HtfhIjMOZV2eHneVF0pZTuzXL8h-lmmQ3uHvtLm-Uc21K9tSGYg_igK6kmkI955NOLQBY5JV79C3kWIv4bTimD3XO6i-5Hdx8eAkWhMD3V-lup8AxlnwX8CLTihh5zWiOtv3QlkRxG_ZieJ2xXzHIQQpRAbhTQmUyMDCHlC6G1mWe3g0hOgAG26GUqhRC2fRq_DJvPkOwWVY";
-            RefreshToken = "AQBsHjf3wRmW9xJaUj9HqSM1ffhujjful-29OAlM8PmuS_61sDagJjZ_fnLHFDA1-fEZBIZGmpqQ2zSMJ88_82AtU3s9Kp7p2QmsxGqY0s0X0-NNAeGLSzmqMBvE5cDKQbs";
-            ExpiresAtUtc = DateTime.UtcNow.AddHours(1); // expires_in = 3600 seconds = 1 hour
+            //AccessToken = "BQC4Q518LIAWx_MOVHiirytiqDvob_rzX8Ml5_zSb2szXaRO_n76L0xNPyYrxFPW_rFw8wbpuaiHgK2HtfhIjMOZV2eHneVF0pZTuzXL8h-lmmQ3uHvtLm-Uc21K9tSGYg_igK6kmkI955NOLQBY5JV79C3kWIv4bTimD3XO6i-5Hdx8eAkWhMD3V-lup8AxlnwX8CLTihh5zWiOtv3QlkRxG_ZieJ2xXzHIQQpRAbhTQmUyMDCHlC6G1mWe3g0hOgAG26GUqhRC2fRq_DJvPkOwWVY";
+            //RefreshToken = "AQBsHjf3wRmW9xJaUj9HqSM1ffhujjful-29OAlM8PmuS_61sDagJjZ_fnLHFDA1-fEZBIZGmpqQ2zSMJ88_82AtU3s9Kp7p2QmsxGqY0s0X0-NNAeGLSzmqMBvE5cDKQbs";
+            //ExpiresAtUtc = DateTime.UtcNow.AddHours(1); // expires_in = 3600 seconds = 1 hour
 
             // auto load token cache if yet (will be overridden by hardcoded values above)
             // LoadToken();

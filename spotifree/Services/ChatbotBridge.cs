@@ -1,4 +1,5 @@
 ﻿using Microsoft.Web.WebView2.Core;
+using spotifree.IServices;
 using spotifree.Models;
 using System;
 using System.Collections.Generic;
@@ -12,13 +13,12 @@ namespace spotifree.Services
 {
     public class ChatbotBridge
     {
-        private readonly LocalLibraryService<LocalMusicTrack> _libraryService;
+        private readonly ILocalMusicService _libraryService;
         private readonly CoreWebView2 _webView;
 
         public ChatbotBridge(CoreWebView2 webView)
         {
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "library.json");
-            _libraryService = new LocalLibraryService<LocalMusicTrack>(path);
+            _libraryService = new LocalMusicService();
             _webView = webView;
             _webView.WebMessageReceived += OnWebMessageReceived;
         }
@@ -35,13 +35,13 @@ namespace spotifree.Services
                     case "addSong":
                         if (msg.Song != null)
                         {
-                            await _libraryService.AddItemAsync(msg.Song);
+                            await _libraryService.AddTrackAsync(msg.Song);
                             await SendAsync("✅ Added to playlist!");
                         }
                         break;
 
                     case "getPlaylist":
-                        var data = await _libraryService.LoadLibraryAsync();
+                        var data = await _libraryService.GetLocalLibraryAsync();
                         if (data.Count == 0)
                             await SendAsync("📭 Your playlist is empty!");
                         else
