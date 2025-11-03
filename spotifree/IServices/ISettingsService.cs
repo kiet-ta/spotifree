@@ -1,22 +1,16 @@
-﻿using Microsoft.Web.WebView2.Wpf;
+﻿using System.Threading.Tasks;
 using spotifree.Models;
+using Microsoft.Web.WebView2.Wpf;
 
-namespace spotifree.IServices;
-
-public interface ISettingsService
+namespace spotifree.IServices
 {
-    AppSettings Current { get; }
+    public interface ISettingsService
+    {
+        Task<AppSettings> GetAsync();
+        Task SaveAsync(AppSettings s);
 
-    Task LoadAsync();
-    Task SaveAsync();
-
-    // Áp dụng/thiết lập
-    void ApplyZoom(WebView2 web, int percent);
-    void SetStartup(string mode); // off|normal|minimized
-    void SetCloseToTray(bool enable);
-
-    // Storage
-    string? PickFolder();
-    Task ClearWebCacheAsync(WebView2 web);
-    Task RemoveAllDownloadsAsync();
+        // tiện ích
+        void ApplyZoom(WebView2 webView, int percent);
+        void EnsureStorageFolder(AppSettings s);
+    }
 }

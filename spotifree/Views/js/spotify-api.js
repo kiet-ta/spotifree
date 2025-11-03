@@ -2,7 +2,7 @@ class SpotifyAPI {
     constructor() {
         this.clientId = '8105bc07cf1a4611a714f641cf61cf2d';
         this.clientSecret = 'f9e2f2ba56144e67beb3e65fde494d21';
-        this.redirectUri = 'https://localhost:3000';
+        this.redirectUri = 'https://oauth.pstmn.io/v1/callback';
         this.accessToken = null;
         this.tokenExpiry = null;
         this.baseURL = 'https://api.spotify.com/v1';
@@ -11,110 +11,49 @@ class SpotifyAPI {
 
     async initializeAuth() {
         try {
-            if (!this.clientId || !this.clientSecret) {
-                console.warn('⚠️ Spotify credentials chưa được cấu hình. Chế độ fallback sẽ được sử dụng.');
-                this.enableFallbackMode();
+            // PRIORITY 1: Check if token was injected by C# (from MainWindow)
+            if (window.__ACCESS_TOKEN__) {
+                this.accessToken = window.__ACCESS_TOKEN__;
+                this.tokenExpiry = new Date(Date.now() + 3600 * 1000);
+                this.tokenType = "Bearer";
+                console.log('🎵 Token loaded from C# injection');
+                console.log('   ✅ Token type: Bearer');
+                console.log('   ⏰ Expires at:', this.tokenExpiry.toLocaleString('vi-VN'));
+                
+                // Save to localStorage
+                localStorage.setItem('spotify_access_token', this.accessToken);
+                localStorage.setItem('spotify_token_expiry', this.tokenExpiry.toISOString());
                 return;
             }
 
+            // PRIORITY 2: Check localStorage for existing valid token
             const savedToken = localStorage.getItem('spotify_access_token');
             const savedExpiry = localStorage.getItem('spotify_token_expiry');
 
             if (savedToken && savedExpiry && new Date() < new Date(savedExpiry)) {
                 this.accessToken = savedToken;
                 this.tokenExpiry = new Date(savedExpiry);
-                console.log('🎵 Spotify token loaded from cache');
+                this.tokenType = "Bearer";
+                console.log('🎵 Token loaded from localStorage cache');
+                console.log('   ⏰ Expires at:', this.tokenExpiry.toLocaleString('vi-VN'));
                 return;
             }
 
-            await this.getClientCredentialsToken();
+            // PRIORITY 3: Try to get Client Credentials token (fallback)
+            if (this.clientId && this.clientSecret) {
+                console.log('🔄 Getting new token with Client Credentials...');
+                await this.getClientCredentialsToken();
+                return;
+            }
+
+            // No token available
+            throw new Error('❌ No valid token available. Please login first.');
         } catch (error) {
             console.error('❌ Error initializing Spotify auth:', error);
-            console.warn('⚠️ Chuyển sang chế độ fallback');
-            this.enableFallbackMode();
+            throw error;
         }
     }
 
-    enableFallbackMode() {
-        this.fallbackMode = true;
-        console.log('🔄 Spotify fallback mode enabled - sử dụng dữ liệu mẫu');
-    }
-
-    getFallbackData() {
-        return {
-            tracks: [
-                {
-                    id: 'fallback-1',
-                    name: 'Shape of You',
-                    artist: 'Ed Sheeran',
-                    album: '÷ (Divide)',
-                    duration: '3:53',
-                    popularity: 95,
-                    preview_url: null,
-                    external_urls: { spotify: 'https://open.spotify.com/track/fallback-1' },
-                    images: [{ url: 'https://via.placeholder.com/300x300?text=Ed+Sheeran' }],
-                    release_date: '2017-01-06'
-                },
-                {
-                    id: 'fallback-2',
-                    name: 'Perfect',
-                    artist: 'Ed Sheeran',
-                    album: '÷ (Divide)',
-                    duration: '4:23',
-                    popularity: 92,
-                    preview_url: null,
-                    external_urls: { spotify: 'https://open.spotify.com/track/fallback-2' },
-                    images: [{ url: 'https://via.placeholder.com/300x300?text=Perfect' }],
-                    release_date: '2017-01-06'
-                },
-                {
-                    id: 'fallback-3',
-                    name: 'Thinking Out Loud',
-                    artist: 'Ed Sheeran',
-                    album: 'x (Multiply)',
-                    duration: '4:41',
-                    popularity: 88,
-                    preview_url: null,
-                    external_urls: { spotify: 'https://open.spotify.com/track/fallback-3' },
-                    images: [{ url: 'https://via.placeholder.com/300x300?text=Thinking+Out+Loud' }],
-                    release_date: '2014-06-20'
-                }
-            ],
-            artists: [
-                {
-                    id: 'fallback-artist-1',
-                    name: 'Ed Sheeran',
-                    popularity: 95,
-                    genres: ['pop', 'acoustic', 'folk'],
-                    followers: 50000000,
-                    images: [{ url: 'https://via.placeholder.com/300x300?text=Ed+Sheeran' }],
-                    external_urls: { spotify: 'https://open.spotify.com/artist/fallback-artist-1' }
-                }
-            ],
-            albums: [
-                {
-                    id: 'fallback-album-1',
-                    name: '÷ (Divide)',
-                    artist: 'Ed Sheeran',
-                    release_date: '2017-03-03',
-                    total_tracks: 16,
-                    images: [{ url: 'https://via.placeholder.com/300x300?text=Divide' }],
-                    external_urls: { spotify: 'https://open.spotify.com/album/fallback-album-1' }
-                }
-            ],
-            playlists: [
-                {
-                    id: 'fallback-playlist-1',
-                    name: 'Today\'s Top Hits',
-                    description: 'The most played songs right now',
-                    tracks: 50,
-                    images: [{ url: 'https://via.placeholder.com/300x300?text=Top+Hits' }],
-                    external_urls: { spotify: 'https://open.spotify.com/playlist/fallback-playlist-1' },
-                    owner: 'Spotify'
-                }
-            ]
-        };
-    }
 
     async getClientCredentialsToken() {
         try {
@@ -167,12 +106,6 @@ class SpotifyAPI {
 
     async searchTracks(query, limit = 10, offset = 0) {
         try {
-            if (this.fallbackMode) {
-                console.log('🔄 Using fallback data for track search');
-                const fallbackData = this.getFallbackData();
-                return fallbackData.tracks.slice(0, limit);
-            }
-
             await this.ensureValidToken();
 
             const params = new URLSearchParams({
@@ -197,12 +130,6 @@ class SpotifyAPI {
             return this.formatTrackResults(data.tracks);
         } catch (error) {
             console.error('❌ Error searching tracks:', error);
-            if (!this.fallbackMode) {
-                console.log('🔄 Falling back to sample data');
-                this.enableFallbackMode();
-                const fallbackData = this.getFallbackData();
-                return fallbackData.tracks.slice(0, limit);
-            }
             throw error;
         }
     }
@@ -405,18 +332,6 @@ class SpotifyAPI {
 
     async smartSearch(query, limit = 10) {
         try {
-            if (this.fallbackMode) {
-                console.log('🔄 Using fallback data for smart search');
-                const fallbackData = this.getFallbackData();
-                return {
-                    tracks: fallbackData.tracks.slice(0, Math.ceil(limit * 0.4)),
-                    artists: fallbackData.artists.slice(0, Math.ceil(limit * 0.2)),
-                    albums: fallbackData.albums.slice(0, Math.ceil(limit * 0.2)),
-                    playlists: fallbackData.playlists.slice(0, Math.ceil(limit * 0.2)),
-                    total: fallbackData.tracks.length + fallbackData.artists.length + fallbackData.albums.length + fallbackData.playlists.length
-                };
-            }
-
             const [tracks, artists, albums, playlists] = await Promise.all([
                 this.searchTracks(query, Math.ceil(limit * 0.4)),
                 this.searchArtists(query, Math.ceil(limit * 0.2)),
@@ -433,18 +348,6 @@ class SpotifyAPI {
             };
         } catch (error) {
             console.error('❌ Error in smart search:', error);
-            if (!this.fallbackMode) {
-                console.log('🔄 Falling back to sample data for smart search');
-                this.enableFallbackMode();
-                const fallbackData = this.getFallbackData();
-                return {
-                    tracks: fallbackData.tracks.slice(0, Math.ceil(limit * 0.4)),
-                    artists: fallbackData.artists.slice(0, Math.ceil(limit * 0.2)),
-                    albums: fallbackData.albums.slice(0, Math.ceil(limit * 0.2)),
-                    playlists: fallbackData.playlists.slice(0, Math.ceil(limit * 0.2)),
-                    total: fallbackData.tracks.length + fallbackData.artists.length + fallbackData.albums.length + fallbackData.playlists.length
-                };
-            }
             throw error;
         }
     }
@@ -588,6 +491,181 @@ class SpotifyAPI {
             throw error;
         }
     }
+
+    async getNewTracks(limit = 20) {
+        try {
+            await this.ensureValidToken();
+
+            // Get current year for filtering
+            const currentYear = new Date().getFullYear();
+            
+            // Search for new tracks with multiple strategies
+            const params = new URLSearchParams({
+                q: `year:${currentYear} tag:new`,
+                type: 'track',
+                limit: limit.toString(),
+                market: 'VN'
+            });
+
+            const response = await fetch(`${this.baseURL}/search?${params}`, {
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (!data.tracks || !data.tracks.items || data.tracks.items.length === 0) {
+                // Fallback: search with just year if tag:new doesn't work
+                console.log('🔄 Trying fallback search without tag:new...');
+                return await this.searchTracks(`year:${currentYear}`, limit);
+            }
+            
+            return this.formatTrackResults(data.tracks);
+        } catch (error) {
+            console.error('❌ Error getting new tracks:', error);
+            throw error;
+        }
+    }
+
+    async getSavedTracks(limit = 10, offset = 0) {
+        try {
+            await this.ensureValidToken();
+
+            const params = new URLSearchParams({
+                limit: limit.toString(),
+                offset: offset.toString(),
+                market: 'VN'
+            });
+
+            const response = await fetch(`${this.baseURL}/me/tracks?${params}`, {
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`
+                }
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    console.warn('⚠️ Unauthorized - Token có thể đã hết hạn hoặc không có quyền user-library-read');
+                }
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            // Format saved tracks data
+            const formattedTracks = data.items.map(item => ({
+                id: item.track.id,
+                name: item.track.name,
+                artist: item.track.artists.map(artist => artist.name).join(', '),
+                album: item.track.album.name,
+                duration: this.formatDuration(item.track.duration_ms),
+                popularity: item.track.popularity,
+                preview_url: item.track.preview_url,
+                external_urls: item.track.external_urls,
+                images: item.track.album.images,
+                release_date: item.track.album.release_date,
+                added_at: item.added_at,
+                genres: item.track.artists.flatMap(artist => artist.genres || [])
+            }));
+
+            return {
+                items: formattedTracks,
+                total: data.total,
+                limit: data.limit,
+                offset: data.offset
+            };
+        } catch (error) {
+            console.error('❌ Error getting saved tracks:', error);
+            throw error;
+        }
+    }
+
+    async getPodcasts(limit = 5) {
+        try {
+            await this.ensureValidToken();
+
+            const params = new URLSearchParams({
+                q: 'genre:podcast',
+                type: 'show',
+                market: 'VN',
+                limit: limit.toString()
+            });
+
+            const response = await fetch(`${this.baseURL}/search?${params}`, {
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            // Format podcast/show data
+            if (!data.shows || !data.shows.items) {
+                return [];
+            }
+
+            return data.shows.items.map(show => ({
+                id: show.id,
+                name: show.name,
+                publisher: show.publisher,
+                description: show.description,
+                images: show.images,
+                total_episodes: show.total_episodes,
+                external_urls: show.external_urls
+            }));
+        } catch (error) {
+            console.error('❌ Error getting podcasts:', error);
+            throw error;
+        }
+    }
+
+    async getCategories(limit = 5) {
+        try {
+            await this.ensureValidToken();
+
+            const params = new URLSearchParams({
+                country: 'VN',
+                locale: 'vi_VN',
+                limit: limit.toString()
+            });
+
+            const response = await fetch(`${this.baseURL}/browse/categories?${params}`, {
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            // Format categories data
+            if (!data.categories || !data.categories.items) {
+                return [];
+            }
+
+            return data.categories.items.map(category => ({
+                id: category.id,
+                name: category.name,
+                icons: category.icons,
+                href: category.href
+            }));
+        } catch (error) {
+            console.error('❌ Error getting categories:', error);
+            throw error;
+        }
+    }
 }
 
 window.spotifyAPI = new SpotifyAPI();
@@ -626,6 +704,42 @@ window.SpotifyHelpers = {
         } catch (error) {
             console.error('Error in smart search:', error);
             return { tracks: [], artists: [], albums: [], playlists: [], total: 0 };
+        }
+    },
+
+    getSavedTracks: async (limit = 10, offset = 0) => {
+        try {
+            return await window.spotifyAPI.getSavedTracks(limit, offset);
+        } catch (error) {
+            console.error('Error getting saved tracks:', error);
+            return { items: [], total: 0, limit: limit, offset: offset };
+        }
+    },
+
+    getPodcasts: async (limit = 5) => {
+        try {
+            return await window.spotifyAPI.getPodcasts(limit);
+        } catch (error) {
+            console.error('Error getting podcasts:', error);
+            return [];
+        }
+    },
+
+    getCategories: async (limit = 5) => {
+        try {
+            return await window.spotifyAPI.getCategories(limit);
+        } catch (error) {
+            console.error('Error getting categories:', error);
+            return [];
+        }
+    },
+
+    getNewTracks: async (limit = 20) => {
+        try {
+            return await window.spotifyAPI.getNewTracks(limit);
+        } catch (error) {
+            console.error('Error getting new tracks:', error);
+            return [];
         }
     }
 };

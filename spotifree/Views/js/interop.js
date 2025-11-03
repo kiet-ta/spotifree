@@ -1,49 +1,57 @@
-﻿// === Interop helper: gửi sang WPF ===
-function postMsg(obj) {
-    try { window.chrome?.webview?.postMessage?.(JSON.stringify(obj)); } catch { }
-}
+﻿(() => {
+    // central dispatcher
+    window.__fromWpf = (payload) => {
+        const { action, data } = payload || {};
+        if (!action) return;
 
-// === Gắn sự kiện cho các control ===
-// 1) Account
-document.getElementById("btnAccount")?.addEventListener("click", () =>
-    postMsg({ type: "openAccount" })
-);
+        // Ghi log để debug
+        console.log(`[WPF->JS] Action: ${action}`, data);
 
-// 2) Language (select#language)
-document.getElementById("language")?.addEventListener("change", (e) =>
-    postMsg({ type: "setLanguage", value: e.target.value })
-);
+        // 1. Gửi tin nhắn cho trang SETTINGS 
+        if (action === "settings.current") {
+            if (typeof window.handleSettingsCurrent === 'function') window.handleSettingsCurrent(data);
+        }
+        else if (action === "storage.folderPicked") {
+            if (typeof window.handleStorageFolderPicked === 'function') window.handleStorageFolderPicked(data);
+        }
+        else if (action === "storage.clearOffline.done") {
+            if (typeof window.handleClearOfflineDone === 'function') window.handleClearOfflineDone(data);
+        }
+        else if (action === "settings.error") {
+            if (typeof window.handleSettingsError === 'function') window.handleSettingsError(data);
+        }
+        else if (action === "spotify.login.success") {
+            if (typeof window.handleSpotifyLoginSuccess === 'function') window.handleSpotifyLoginSuccess(data);
+        }
+        else if (action === "spotify.login.failed") {
+            if (typeof window.handleSpotifyLoginFailed === 'function') window.handleSpotifyLoginFailed(data);
+        }
 
-// 3) Autoplay (checkbox#autoplay)
-document.getElementById("autoplay")?.addEventListener("change", (e) =>
-    postMsg({ type: "setAutoplay", value: e.target.checked })
-);
+        // 2. Gửi tin nhắn cho trang LIBRARY (nếu hàm tồn tại)
+        else if (action === "local.musicAdded") {
+            if (typeof window.handleLocalMusicAdded === 'function') window.handleLocalMusicAdded(data);
+        }
+        else if (action === "populateLibrary") { /
+            if (typeof window.populateLibrary === 'function') window.populateLibrary(data);
+        }
+        else if (action === "addNewPlaylistCard") { 
+            if (typeof window.addNewPlaylistCard === 'function') window.addNewPlaylistCard(data);
+        }
+        else if (action === "playlistDeletedSuccess") {
+            if (typeof window.playlistDeletedSuccess === 'function') window.playlistDeletedSuccess(data);
+        }
+    };
 
-// 4) Zoom (các nút/radio có data-zoom="70|80|...|130")
-document.querySelectorAll("[data-zoom]").forEach((el) => {
-    el.addEventListener("click", () => {
-        const pct = parseInt(el.dataset.zoom, 10);
-        if (!Number.isNaN(pct)) postMsg({ type: "setZoom", value: pct });
-    });
-});
-
-// 5) Startup mode (select#startupMode: off|normal|minimized)
-document.getElementById("startupMode")?.addEventListener("change", (e) =>
-    postMsg({ type: "setStartupMode", value: e.target.value })
-);
-
-// 6) Close to tray (checkbox#closeToTray)
-document.getElementById("closeToTray")?.addEventListener("change", (e) =>
-    postMsg({ type: "setCloseToTray", value: e.target.checked })
-);
-
-// 7) Storage
-document.getElementById("btnChangeLocation")?.addEventListener("click", () =>
-    postMsg({ type: "changeStorageLocation" })
-);
-document.getElementById("btnClearCache")?.addEventListener("click", () =>
-    postMsg({ type: "clearCache" })
-);
-document.getElementById("btnRemoveDownloads")?.addEventListener("click", () =>
-    postMsg({ type: "removeAllDownloads" })
-);
+    // Đăng ký listener 1 lần duy nhất
+    try {
+        window.chrome?.webview?.addEventListener("message", (e) => {
+            if (typeof window.__fromWpf === "function") {
+                // e.data đã là object (vì C# dùng JsNotifyAsync)
+                window.__fromWpf(e?.data);
+            }
+        });
+        console.log("Interop listener registered.");
+    } catch (e) {
+        console.error("Failed to register interop listener.", e);
+    }
+})();

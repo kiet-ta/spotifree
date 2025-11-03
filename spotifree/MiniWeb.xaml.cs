@@ -56,7 +56,7 @@ namespace spotifree
                         case "seek":
                             if (root.TryGetProperty("seconds", out var secEl) && secEl.TryGetDouble(out var sec))
                             {
-                                // chuyển tiếp về MainWindow → trang chính
+                                // chuyển tiếp về spotifree → trang chính
                                 OnSeek?.Invoke(sec);
                             }
                             break;

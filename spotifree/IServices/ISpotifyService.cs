@@ -26,6 +26,7 @@ public interface ISpotifyService
     Task SetVolumeAsync(double volume); // Thay cho void SetVolume(double volume)
     Task ToggleShuffleAsync();      // Thay cho void ToggleShuffle(bool isActive)
     Task SetRepeatModeAsync();
+    void StartPollingIfNeeded();
 
     event Action<SpotifyTrack> TrackChanged;
     event Action<bool> PlaybackStateChanged;

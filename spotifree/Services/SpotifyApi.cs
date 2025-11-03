@@ -1,13 +1,14 @@
 ﻿using spotifree.IServices;
 using spotifree.Models;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;  
 using System;                   
 using System.Collections.Generic; 
+using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;  
 
 namespace spotifree.Services;
 
@@ -15,6 +16,7 @@ public class SpotifyApi : ISpotifyService
 {
     private readonly SpotifyAuth _auth;
     private readonly HttpClient _http = new HttpClient();
+    private bool _isPolling = false;
 
     // --- State cho Polling và Toggles ---
     private string _lastTrackId = null;
@@ -34,14 +36,18 @@ public class SpotifyApi : ISpotifyService
         _auth = auth;
         _http.BaseAddress = new System.Uri("https://api.spotify.com/v1/");
 
-
-
-        StartPolling();
     }
 
     private async Task<HttpRequestMessage> BuildAsync(HttpMethod method, string url, HttpContent? content = null)
     {
-        await _auth.EnsureTokenAsync();
+        bool valid = await _auth.EnsureTokenValidAsync_NoPopup();
+        if (!valid)
+        {
+            // Nếu token hết hạn và không thể refresh, 
+            // dừng polling thay vì mở browser
+            _isPolling = false;
+            throw new System.Exception("Spotify token invalid/expired.");
+        }
         var req = new HttpRequestMessage(method, url);
         req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _auth.AccessToken);
         if (content != null) req.Content = content;
@@ -235,8 +241,8 @@ public class SpotifyApi : ISpotifyService
 
     private async void StartPolling()
     {
-        // Vòng lặp vô tận chạy nền để kiểm tra trạng thái
-        while (true)
+        // Kiểm tra trạng thái liên tục
+        while (_isPolling)
         {
             await Task.Delay(2000); // Kiểm tra mỗi 2 giây
             try
@@ -252,13 +258,22 @@ public class SpotifyApi : ISpotifyService
             }
         }
     }
+    public void StartPollingIfNeeded()
+    {
+        // Chỉ start nếu CHƯA polling VÀ đã login
+        if (_isPolling || !_auth.IsValid()) return;
+
+        _isPolling = true;
+        Debug.WriteLine("[C# SpotifyApi] Polling started.");
+        StartPolling();
+    }
 
     private async Task PollPlayerStateAsync()
     {
         // Đây là endpoint quan trọng nhất
         var req = await BuildAsync(HttpMethod.Get, "me/player");
         var res = await _http.SendAsync(req);
-
+        Console.WriteLine("MewMew: ", res.Content);
         // 204 No Content = không có gì đang phát
         if (!res.IsSuccessStatusCode || res.StatusCode == System.Net.HttpStatusCode.NoContent)
         {
@@ -294,14 +309,21 @@ public class SpotifyApi : ISpotifyService
                 _lastTrackId = trackId;
 
                 // Map dữ liệu từ API về Model 'SpotifyTrack' của bạn
+                var durationMs = itemElement.GetProperty("duration_ms").GetInt32();
+                var duration = TimeSpan.FromMilliseconds(durationMs);
+                var durationFormatted = $"{(int)duration.TotalMinutes}:{duration.Seconds:D2}";
+                
                 var newTrack = new SpotifyTrack
                 {
-                    Title = itemElement.GetProperty("name").GetString(),
-                    SpotifyTrackId = trackId,
-                    Duration = TimeSpan.FromMilliseconds(itemElement.GetProperty("duration_ms").GetInt32()),
-                    ArtistName = string.Join(", ", itemElement.GetProperty("artists").EnumerateArray().Select(a => a.GetProperty("name").GetString())),
-                    AlbumArtLargeUrl = itemElement.GetProperty("album").GetProperty("images").EnumerateArray().FirstOrDefault().GetProperty("url").GetString(),
-                    AlbumArtSmallUrl = itemElement.GetProperty("album").GetProperty("images").EnumerateArray().LastOrDefault().GetProperty("url").GetString()
+                    Id = trackId,
+                    Name = itemElement.GetProperty("name").GetString() ?? "",
+                    Duration = durationFormatted,
+                    Artist = string.Join(", ", itemElement.GetProperty("artists").EnumerateArray().Select(a => a.GetProperty("name").GetString())),
+                    Album = itemElement.GetProperty("album").GetProperty("name").GetString() ?? "",
+                    ImageUrl = itemElement.GetProperty("album").GetProperty("images").EnumerateArray().FirstOrDefault().GetProperty("url").GetString() ?? "",
+                    Popularity = itemElement.GetProperty("popularity").GetInt32(),
+                    PreviewUrl = itemElement.TryGetProperty("preview_url", out var previewUrl) ? previewUrl.GetString() : null,
+                    SpotifyUrl = itemElement.GetProperty("external_urls").GetProperty("spotify").GetString() ?? ""
                 };
                 TrackChanged?.Invoke(newTrack); // Kích hoạt sự kiện
             }
