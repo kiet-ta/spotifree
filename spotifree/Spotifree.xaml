@@ -1,4 +1,4 @@
-﻿<Window x:Class="spotifree.Spotifree"
+<Window x:Class="spotifree.Spotifree"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -9,5 +9,11 @@
         Title="Spotifree" Height="450" Width="800">
     <Grid>
         <wv2:WebView2 Name="webView" />
+		<Button Content="Test Quét Thư Viện" 
+                HorizontalAlignment="Left" 
+                VerticalAlignment="Top" 
+                Margin="20"
+                Padding="10"
+                Click="TestScanButton_Click"/>
     </Grid>
 </Window>

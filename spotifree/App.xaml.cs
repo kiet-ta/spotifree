@@ -49,6 +49,7 @@ namespace spotifree
             services.AddSingleton<ILocalMusicService, LocalMusicService>();
             services.AddSingleton<Spotifree>();
             services.AddSingleton<ISettingsService, SettingsService>();
+            services.AddSingleton<ILocalLibraryService, LocalLibraryService>();
         }
 
         protected override void OnStartup(StartupEventArgs e)
