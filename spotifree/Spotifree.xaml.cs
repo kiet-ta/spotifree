@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Win32;
 using spotifree.IServices;
@@ -374,7 +375,30 @@ public partial class Spotifree : Window
                                     await HandleSpotifyLoginAsync();
                                     return;
                                 }
-                            case "settings.get":
+
+                        case "nav.openMusicDetail":
+                            {
+                                // Đảm bảo chạy trên luồng giao diện chính
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    // 1. Lấy ServiceProvider từ App.xaml.cs
+                                    var serviceProvider = (Application.Current as App)?.ServiceProvider;
+                                    if (serviceProvider == null)
+                                    {
+                                        MessageBox.Show("Lỗi nghiêm trọng: ServiceProvider bị null!");
+                                        return;
+                                    }
+
+                                    // 2. Yêu cầu ServiceProvider tạo một cửa sổ MusicDetail MỚI
+                                    // (Đây là lý do bạn đã đăng ký nó là 'AddTransient')
+                                    var musicDetailWindow = serviceProvider.GetRequiredService<MusicDetail>();
+
+                                    // 3. Hiển thị cửa sổ đó
+                                    musicDetailWindow.Show();
+                                         });
+                                return; // Đừng quên return
+                            }
+                        case "settings.get":
                                 {
                                     var s = await _settings.GetAsync();
                                     await JsNotifyAsync("settings.current", s);

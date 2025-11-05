@@ -41,6 +41,17 @@
     }
 }
 
+// Thêm hàm này vào file JavaScript của bạn
+function openMusicDetailWindow() {
+    if (window.chrome && window.chrome.webview) {
+        // Gửi một tin nhắn cho C# (Spotifree.xaml.cs)
+        // Yêu cầu nó mở cửa sổ "MusicDetail"
+        window.chrome.webview.postMessage({ action: 'nav.openMusicDetail' });
+    } else {
+        console.warn('Không thể giao tiếp với C# host.');
+    }
+}
+
 window.onload = () => {
     loadPage('home');
 };
