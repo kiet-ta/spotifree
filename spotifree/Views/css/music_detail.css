@@ -9,32 +9,17 @@
     --highlight-color: #535353;
 }
 
-/* LƯU Ý: Bạn có thể cần xóa 'body' ở đây nếu nó 
-   ảnh hưởng đến 'index.html' của bạn. 
-   Nhưng nếu nó chỉ áp dụng cho trang detail thì giữ lại.
-   Hoặc đổi 'body' thành '.main-container' nếu cần.
-*/
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background-color: #1a1a1a;
     color: #fff;
 }
-
-/* --- BỐ CỤC MỚI: 2 CỘT --- */
 .main-container {
-/*    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-primary-color);
-    display: flex;
-    height: 100vh;
-    margin: 0;
-    overflow: hidden;*/
     display: flex;
     width: 100%;
     height: 100%;
 }
 
-/* Cột 1: Trình phát nhạc */
 .player-column {
     flex: 1;
     display: flex;
@@ -45,19 +30,6 @@ body {
     position: relative;
 }
 
-/* Cột 1: Trình phát nhạc */
-.player-column {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    padding: 30px;
-    /* --- CSS MỚI: Đảm bảo các nút position absolute --- */
-    position: relative;
-}
-
-/* Cột 2: Danh sách phát */
 .playlist-column {
     width: 300px;
     background-color: #121212;
@@ -75,7 +47,6 @@ body {
     padding-bottom: 10px;
 }
 
-/* --- NÚT ẨN/HIỆN THƯ VIỆN (WPF) --- */
 #toggleLibraryBtn {
     position: absolute;
     top: 20px;
@@ -94,18 +65,17 @@ body {
         background-color: var(--highlight-color);
     }
 
-/* --- NÚT MŨI TÊN MỚI (ĐỂ ẨN/HIỆN PLAYLIST HTML) --- */
 #togglePlaylistBtn {
     position: absolute;
     top: 20px;
-    right: 20px; /* Đặt ở góc phải */
+    right: 20px; 
     background-color: #444;
     border: none;
     color: white;
-    width: 38px; /* Vuông vắn hơn */
+    width: 38px; 
     height: 38px;
     padding: 8px;
-    border-radius: 50%; /* Làm nó tròn */
+    border-radius: 50%; 
     cursor: pointer;
     font-size: 14px;
     z-index: 100;
@@ -119,13 +89,8 @@ body {
         fill: white;
         width: 100%;
         height: 100%;
-        /* Thêm hiệu ứng xoay */
         transition: transform 0.3s ease;
     }
-/* --- KẾT THÚC CSS MỚI --- */
-
-
-/* Style cho mỗi bài hát trong danh sách phát */
 .playlist-item {
     padding: 10px;
     border-radius: 5px;
@@ -186,7 +151,6 @@ body {
         color: var(--text-primary-color);
     }
 
-/* Thẻ trình phát nhạc (giữ nguyên) */
 .player-card {
     background-color: var(--card-color);
     border-radius: 12px;

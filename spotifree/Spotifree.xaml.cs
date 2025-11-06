@@ -407,16 +407,7 @@ public partial class Spotifree : Window
                                     await HandleSpotifyLoginAsync();
                                     return;
                                 }
-
-                        //case "nav.openMusicDetail":
-                        //    {
-                        //        // Thay vì mở cửa sổ mới, chúng ta điều hướng webView chính
-                        //        Debug.WriteLine("[C#] Navigating main webView to music_detail.html");
-                        //        string htmlPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Views", "pages", "music_detail.html");
-                        //        webView.CoreWebView2.Navigate(htmlPath);
-                        //        return; // Rất quan trọng: return để dừng xử lý
-                        //    }
-                        case "settings.get":
+                            case "settings.get":
                                 {
                                     var s = await _settings.GetAsync();
                                     await JsNotifyAsync("settings.current", s);
@@ -538,7 +529,6 @@ public partial class Spotifree : Window
                                 {
                                     isLibraryVisible = !isLibraryVisible;
 
-                                    // YÊU CẦU: Phải có <ColumnDefinition x:Name="LibraryColumn" /> trong Spotifree.xaml
                                     if (this.FindName("LibraryColumn") is ColumnDefinition col)
                                     {
                                         col.Width = isLibraryVisible ? new GridLength(250) : new GridLength(0);
