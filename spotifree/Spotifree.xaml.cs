@@ -4,6 +4,7 @@ using Microsoft.Win32;
 using spotifree.IServices;
 using spotifree.Models;
 using spotifree.Services;
+using spotifree.ViewModels;
 using Spotifree.Audio;
 using System;
 using System.Diagnostics;
@@ -11,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Controls;
 namespace spotifree;
 
 public partial class Spotifree : Window
@@ -26,12 +28,24 @@ public partial class Spotifree : Window
     private string _viewsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Views");
     private ChatbotBridge? _chatbotBridge;
 
-    public Spotifree(ISpotifyService spotifyService, ILocalMusicService localMusicService, SpotifyAuth auth, ISettingsService settings)
+    // [LOGIC TỪ MUSICDETAIL]
+    private readonly MainViewModel _mainViewModel;
+    private bool isLibraryVisible = false;
+
+    public Spotifree(ISpotifyService spotifyService,
+                     ILocalMusicService localMusicService,
+                     SpotifyAuth auth,
+                     ISettingsService settings,
+                     MainViewModel mainViewModel) // [LOGIC TỪ MUSICDETAIL]
     {
         _spotifyService = spotifyService;
         _localMusicService = localMusicService;
         _auth = auth;
         _settings = settings;
+
+        // [LOGIC TỪ MUSICDETAIL]
+        _mainViewModel = mainViewModel;
+        this.DataContext = _mainViewModel; // Gán DataContext
 
         InitializeComponent();
         InitializeAsync();
@@ -52,10 +66,28 @@ public partial class Spotifree : Window
 
             // Web messages
             webView.CoreWebView2.WebMessageReceived += HandleWebMessage;
-            //webView.CoreWebView2.Settings.IsWebMessageEnabled = true;
+
+            // [LOGIC TỪ MUSICDETAIL] - Ánh xạ tất cả ổ đĩa
+            Debug.WriteLine("[C#] Mapping all fixed drives...");
+            foreach (var drive in DriveInfo.GetDrives())
+            {
+                if (drive.IsReady && drive.DriveType == DriveType.Fixed)
+                {
+                    // Ví dụ: C:\ -> "c.drive.local"
+                    string hostName = $"{drive.Name[0]}.drive.local".ToLower();
+                    string folderPath = drive.Name; // Ví dụ: "C:\"
+
+                    webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                        hostName, folderPath, CoreWebView2HostResourceAccessKind.Allow);
+
+                    Debug.WriteLine($"[C#] Mapped {hostName} -> {folderPath}");
+                }
+            }
+
+            // [LOGIC TỪ MUSICDETAIL] - Khởi tạo bridge của MainViewModel
+            _mainViewModel.InitializeBridge(webView.CoreWebView2);
 
             // Get the folder path where the .exe file is running
-            // (Ex: C:\MyProject\bin\Debug\)
             string appDir = AppDomain.CurrentDomain.BaseDirectory;
 
             // Combine that path with the WebApp folder and the index.html file
@@ -86,13 +118,13 @@ public partial class Spotifree : Window
             if (_auth != null && !string.IsNullOrEmpty(_auth.AccessToken))
             {
                 await webView.CoreWebView2.ExecuteScriptAsync($@"
-                    window.__ACCESS_TOKEN__ = '{_auth.AccessToken}';
-                    if (window.localStorage) {{
-                        window.localStorage.setItem('spotify_access_token', '{_auth.AccessToken}');
-                        window.localStorage.setItem('spotify_token_expiry', new Date(Date.now() + 3600000).toISOString());
-                    }}
-                    console.log('✅ Hardcoded token injected from C#');
-                ");
+                        window.__ACCESS_TOKEN__ = '{_auth.AccessToken}';
+                        if (window.localStorage) {{
+                            window.localStorage.setItem('spotify_access_token', '{_auth.AccessToken}');
+                            window.localStorage.setItem('spotify_token_expiry', new Date(Date.now() + 3600000).toISOString());
+                        }}
+                        console.log('✅ Hardcoded token injected from C#');
+                    ");
             }
 
             // check if in debug mode
@@ -376,28 +408,14 @@ public partial class Spotifree : Window
                                     return;
                                 }
 
-                        case "nav.openMusicDetail":
-                            {
-                                // Đảm bảo chạy trên luồng giao diện chính
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    // 1. Lấy ServiceProvider từ App.xaml.cs
-                                    var serviceProvider = (Application.Current as App)?.ServiceProvider;
-                                    if (serviceProvider == null)
-                                    {
-                                        MessageBox.Show("Lỗi nghiêm trọng: ServiceProvider bị null!");
-                                        return;
-                                    }
-
-                                    // 2. Yêu cầu ServiceProvider tạo một cửa sổ MusicDetail MỚI
-                                    // (Đây là lý do bạn đã đăng ký nó là 'AddTransient')
-                                    var musicDetailWindow = serviceProvider.GetRequiredService<MusicDetail>();
-
-                                    // 3. Hiển thị cửa sổ đó
-                                    musicDetailWindow.Show();
-                                         });
-                                return; // Đừng quên return
-                            }
+                        //case "nav.openMusicDetail":
+                        //    {
+                        //        // Thay vì mở cửa sổ mới, chúng ta điều hướng webView chính
+                        //        Debug.WriteLine("[C#] Navigating main webView to music_detail.html");
+                        //        string htmlPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Views", "pages", "music_detail.html");
+                        //        webView.CoreWebView2.Navigate(htmlPath);
+                        //        return; // Rất quan trọng: return để dừng xử lý
+                        //    }
                         case "settings.get":
                                 {
                                     var s = await _settings.GetAsync();
@@ -512,6 +530,24 @@ public partial class Spotifree : Window
                             {
                                 _lastPlayerStateRawJson = jsonMessage;
                                 _mini?.SendToMiniRaw(jsonMessage);     // forward sang mini
+                                break;
+                            }
+                        case "toggleLibrary":
+                            {
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    isLibraryVisible = !isLibraryVisible;
+
+                                    // YÊU CẦU: Phải có <ColumnDefinition x:Name="LibraryColumn" /> trong Spotifree.xaml
+                                    if (this.FindName("LibraryColumn") is ColumnDefinition col)
+                                    {
+                                        col.Width = isLibraryVisible ? new GridLength(250) : new GridLength(0);
+                                    }
+                                    else
+                                    {
+                                        Debug.WriteLine("[C#] WARN: 'LibraryColumn' not found in Spotifree.xaml. 'toggleLibrary' action had no effect.");
+                                    }
+                                });
                                 break;
                             }
                     }

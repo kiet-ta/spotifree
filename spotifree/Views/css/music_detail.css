@@ -1,0 +1,360 @@
+/* LƯU TẠI: Views/css/music_detail.css */
+
+:root {
+    --bg-color: #282828;
+    --card-color: #1e1e1e;
+    --text-primary-color: #ffffff;
+    --text-secondary-color: #b3b3b3;
+    --accent-color: #1DB954;
+    --highlight-color: #535353;
+}
+
+/* LƯU Ý: Bạn có thể cần xóa 'body' ở đây nếu nó 
+   ảnh hưởng đến 'index.html' của bạn. 
+   Nhưng nếu nó chỉ áp dụng cho trang detail thì giữ lại.
+   Hoặc đổi 'body' thành '.main-container' nếu cần.
+*/
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #1a1a1a;
+    color: #fff;
+}
+
+/* --- BỐ CỤC MỚI: 2 CỘT --- */
+.main-container {
+/*    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary-color);
+    display: flex;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;*/
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+/* Cột 1: Trình phát nhạc */
+.player-column {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 30px;
+    position: relative;
+}
+
+/* Cột 1: Trình phát nhạc */
+.player-column {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 30px;
+    /* --- CSS MỚI: Đảm bảo các nút position absolute --- */
+    position: relative;
+}
+
+/* Cột 2: Danh sách phát */
+.playlist-column {
+    width: 300px;
+    background-color: #121212;
+    padding: 20px;
+    overflow-y: auto;
+    border-left: 1px solid #000;
+    transition: width 0.3s ease, padding 0.3s ease;
+}
+
+#playlist-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--highlight-color);
+    padding-bottom: 10px;
+}
+
+/* --- NÚT ẨN/HIỆN THƯ VIỆN (WPF) --- */
+#toggleLibraryBtn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: #444;
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    z-index: 100;
+}
+
+    #toggleLibraryBtn:hover {
+        background-color: var(--highlight-color);
+    }
+
+/* --- NÚT MŨI TÊN MỚI (ĐỂ ẨN/HIỆN PLAYLIST HTML) --- */
+#togglePlaylistBtn {
+    position: absolute;
+    top: 20px;
+    right: 20px; /* Đặt ở góc phải */
+    background-color: #444;
+    border: none;
+    color: white;
+    width: 38px; /* Vuông vắn hơn */
+    height: 38px;
+    padding: 8px;
+    border-radius: 50%; /* Làm nó tròn */
+    cursor: pointer;
+    font-size: 14px;
+    z-index: 100;
+}
+
+    #togglePlaylistBtn:hover {
+        background-color: var(--highlight-color);
+    }
+
+    #togglePlaylistBtn svg {
+        fill: white;
+        width: 100%;
+        height: 100%;
+        /* Thêm hiệu ứng xoay */
+        transition: transform 0.3s ease;
+    }
+/* --- KẾT THÚC CSS MỚI --- */
+
+
+/* Style cho mỗi bài hát trong danh sách phát */
+.playlist-item {
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: background-color 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+    .playlist-item:hover {
+        background-color: var(--highlight-color);
+    }
+
+    .playlist-item.active {
+        background-color: var(--accent-color);
+        color: #fff;
+    }
+
+    .playlist-item .title {
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding-right: 25px;
+    }
+
+    .playlist-item .artist {
+        font-size: 12px;
+        color: var(--text-secondary-color);
+    }
+
+    .playlist-item.active .artist {
+        color: #eee;
+    }
+
+    .playlist-item .delete-btn {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-secondary-color);
+        background: none;
+        border: none;
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
+        display: none;
+        line-height: 1;
+        padding: 5px;
+    }
+
+    .playlist-item:hover .delete-btn {
+        display: inline-block;
+    }
+
+    .playlist-item .delete-btn:hover {
+        color: var(--text-primary-color);
+    }
+
+/* Thẻ trình phát nhạc (giữ nguyên) */
+.player-card {
+    background-color: var(--card-color);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    width: 350px;
+    padding: 30px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.cover-art-wrapper {
+    width: 100%;
+    padding-bottom: 100%;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #333;
+}
+
+#coverArt {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#songTitle {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 20px 0 5px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#songArtist {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--text-secondary-color);
+    margin: 0 0 20px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.main-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.main-control-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+}
+
+    .main-control-btn svg {
+        width: 24px;
+        height: 24px;
+        fill: var(--text-secondary-color);
+        transition: fill 0.2s;
+    }
+
+    .main-control-btn:hover svg {
+        fill: var(--text-primary-color);
+    }
+
+#playPauseButton {
+    background-color: var(--text-primary-color);
+    border-radius: 50%;
+    padding: 12px;
+    margin: 0 5px;
+}
+
+    #playPauseButton svg {
+        width: 28px;
+        height: 28px;
+        fill: #000;
+    }
+
+    #playPauseButton:hover {
+        transform: scale(1.05);
+        background-color: var(--accent-color);
+    }
+
+.sliders {
+    margin-top: 20px;
+}
+
+    .sliders input[type="range"] {
+        width: 90%;
+        cursor: pointer;
+        -webkit-appearance: none;
+        appearance: none;
+        background: #535353;
+        height: 4px;
+        border-radius: 2px;
+        outline: none;
+    }
+
+        .sliders input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--text-primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+#timeDisplay {
+    color: var(--text-secondary-color);
+    margin-top: 5px;
+    font-size: 12px;
+}
+
+.volume-control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 15px;
+    gap: 10px;
+}
+
+    .volume-control svg {
+        width: 20px;
+        height: 20px;
+        fill: var(--text-secondary-color);
+    }
+
+    .volume-control input[type="range"] {
+        width: 100px;
+    }
+
+.secondary-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.control-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    opacity: 0.7;
+}
+
+    .control-btn svg {
+        width: 20px;
+        height: 20px;
+        fill: var(--text-secondary-color);
+        transition: fill 0.2s;
+    }
+
+    .control-btn.active {
+        opacity: 1;
+    }
+
+
+.control-btn.active svg {
+    fill: var(--accent-color);
+}
