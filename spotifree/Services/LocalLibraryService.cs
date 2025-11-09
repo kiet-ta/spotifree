@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace spotifree.Services
 {
-    public class LocalLibraryService : ILocalLibraryService
+    public class LocalLibraryService<T> : ILocalLibraryService
     {
         private readonly string[] _supportedExtensions = { ".mp3", ".m4a", ".flac", ".wav", ".aac" };
 		private readonly string _filePath;
@@ -26,9 +26,9 @@ namespace spotifree.Services
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir!);
         }
         
-		public async Task<List<MusicFileDetail>> ScanLibraryAsync(string directoryPath)
+		public async Task<List<Song>> ScanLibraryAsync(string directoryPath)
         {
-            var musicFiles = new List<MusicFileDetail>();
+            var musicFiles = new List<Song>();
             if (!Directory.Exists(directoryPath))
             {
                 Console.WriteLine($"Lỗi: Không tìm thấy thư mục '{directoryPath}'");
@@ -60,7 +60,7 @@ namespace spotifree.Services
             return musicFiles;
         }
 
-        public MusicFileDetail? GetMusicFileDetails(string filePath)
+        public Song? GetMusicFileDetails(string filePath)
         {
             if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
             {
@@ -73,15 +73,15 @@ namespace spotifree.Services
                 {
                     var tag = tagFile.Tag;
 
-                    var detail = new MusicFileDetail
+                    var detail = new Song
                     {
                         FilePath = filePath,
                         Title = !string.IsNullOrEmpty(tag.Title) ? tag.Title : Path.GetFileNameWithoutExtension(filePath),
                         Artist = tag.Performers != null && tag.Performers.Length > 0 ? string.Join(", ", tag.Performers) : "Unknown Artist",
-                        Album = !string.IsNullOrEmpty(tag.Album) ? tag.Album : "Unknown Album",
-                        Year = tag.Year,
-                        Genre = tag.Genres != null && tag.Genres.Length > 0 ? string.Join(", ", tag.Genres) : "Unknown",
-                        Duration = tagFile.Properties.Duration
+                        //Album = !string.IsNullOrEmpty(tag.Album) ? tag.Album : "Unknown Album",
+                        //Year = tag.Year,
+                        //Genre = tag.Genres != null && tag.Genres.Length > 0 ? string.Join(", ", tag.Genres) : "Unknown",
+                        //Duration = tagFile.Properties.Duration
                     };
 
                     // TODO: Trích xuất ảnh bìa nếu bạn muốn
@@ -95,7 +95,7 @@ namespace spotifree.Services
             }
             catch (TagLib.CorruptFileException)
             {
-                return new MusicFileDetail
+                return new Song
                 {
                     FilePath = filePath,
                     Title = Path.GetFileNameWithoutExtension(filePath)

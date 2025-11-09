@@ -9,7 +9,7 @@ namespace spotifree.IServices
 {
     public interface ILocalLibraryService
     {
-        Task<List<MusicFileDetail>> ScanLibraryAsync(string directoryPath);
-        MusicFileDetail? GetMusicFileDetails(string filePath);
+        Task<List<Song>> ScanLibraryAsync(string directoryPath);
+        Song? GetMusicFileDetails(string filePath);
     }
 }
