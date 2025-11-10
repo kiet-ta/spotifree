@@ -6,12 +6,13 @@ This project is built to solve the challenge of managing scattered local music f
 
 ## Table of Contents
 
-  - [About The Project](https://www.google.com/search?q=%23about-the-project)
-  - [Key Features](https://www.google.com/search?q=%23key-features)
-  - [Tech Stack](https://www.google.com/search?q=%23tech-stack)
-  - [Getting Started](https://www.google.com/search?q=%23getting-started)
-  - [Screenshots](https://www.google.com/search?q=%23screenshots)
-  - [License](https://www.google.com/search?q=%23license)
+  - [About The Project](#about-the-project)
+  - [Key Features](#key-features)
+  - [Tech Stack](#tech-stack)
+  - [Getting Started](#getting-started)
+  - [Screenshots](#screenshots)
+  - [License](#license)
+  - [Author](#author)
 
 ## About The Project
 
