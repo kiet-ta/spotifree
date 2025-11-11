@@ -1,16 +1,17 @@
-
 let audioPlayer, coverArt, songTitle, songArtist;
 let seekSlider, volumeSlider;
-let playPauseButton, playPauseIcon, prevButton, nextButton, repeatButton, shuffleButton;
-let currentTimeDisplay, totalTimeDisplay;
-
+let playPauseButton, playPauseIcon, prevButton, nextButton, repeatButton; // shuffleButton đã bị xóa
 let toggleLibraryBtn, togglePlaylistBtn, playlistContainer, playlistToggleIcon;
 
 let playlist = [];
 let currentPlaylistIndex = -1;
 let isRepeatPlaylist = false;
-let isShuffle = false;
+let isShuffle = false; // Biến vẫn ở đây, nhưng nút bị vô hiệu hóa
 let isPlaylistVisible = true;
+
+// Định nghĩa các icon path
+const iconPathPlay = "M8 5v14l11-7z";
+const iconPathPause = "M6 6h4v12H6zm8 0h4v12h-4z"; // Icon pause
 
 function postMessageToCSharp(message) {
     if (window.chrome && window.chrome.webview) {
@@ -60,13 +61,17 @@ function showPlaylist(show) {
         playlistContainer.style.width = '300px';
         playlistContainer.style.padding = '20px';
         playlistContainer.style.overflowY = 'auto';
-        playlistToggleIcon.style.transform = 'rotate(0deg)';
+        if (playlistToggleIcon) {
+            playlistToggleIcon.style.transform = 'rotate(0deg)';
+        }
         isPlaylistVisible = true;
     } else {
         playlistContainer.style.width = '0px';
         playlistContainer.style.padding = '0px';
         playlistContainer.style.overflowY = 'hidden';
-        playlistToggleIcon.style.transform = 'rotate(180deg)';
+        if (playlistToggleIcon) {
+            playlistToggleIcon.style.transform = 'rotate(180deg)';
+        }
         isPlaylistVisible = false;
     }
 }
@@ -116,8 +121,10 @@ function loadSong(index) {
 
     audioPlayer.src = webUrl;
 
-    currentTimeDisplay.textContent = "0:00";
-    totalTimeDisplay.textContent = "0:00";
+    const timeDisplay = document.getElementById('timeDisplay');
+    if (timeDisplay) {
+        timeDisplay.textContent = "0:00 / 0:00";
+    }
 }
 
 function playSongFromPlaylist(index) {
@@ -141,7 +148,7 @@ function playNext() {
             if (isRepeatPlaylist) {
                 nextIndex = 0;
             } else {
-                return;
+                return; // Dừng phát nếu hết danh sách và không lặp lại
             }
         }
     }
@@ -157,7 +164,7 @@ function playPrevious() {
             if (isRepeatPlaylist && playlist.length > 0) {
                 prevIndex = playlist.length - 1;
             } else {
-                prevIndex = 0;
+                prevIndex = 0; // Quay lại bài đầu tiên
             }
         }
         playSongFromPlaylist(prevIndex);
@@ -198,8 +205,11 @@ function renderPlaylist() {
 }
 function updatePlayPauseIcon(isPlaying) {
     if (playPauseIcon) {
-        const iconName = isPlaying ? "#i-pause" : "#i-play";
-        playPauseIcon.innerHTML = `<use href="${iconName}" />`;
+        const pathElement = playPauseIcon.querySelector('path');
+        if (pathElement) {
+            // Cập nhật 'd' attribute của path
+            pathElement.setAttribute('d', isPlaying ? iconPathPause : iconPathPlay);
+        }
     }
     if (playPauseButton) {
         playPauseButton.title = isPlaying ? "Pause" : "Play";
@@ -229,15 +239,16 @@ function initMusicDetailPage() {
     seekSlider = document.getElementById('seekSlider');
     volumeSlider = document.getElementById('volumeSlider');
 
-    currentTimeDisplay = document.getElementById('currentTimeDisplay');
-    totalTimeDisplay = document.getElementById('totalTimeDisplay');
+    // Không cần tìm 'currentTimeDisplay' và 'totalTimeDisplay' ở đây nữa
 
     playPauseButton = document.getElementById('playPauseButton');
     playPauseIcon = document.getElementById('playPauseIcon');
     prevButton = document.getElementById('prevButton');
     nextButton = document.getElementById('nextButton');
     repeatButton = document.getElementById('repeatButton');
-    shuffleButton = document.getElementById('shuffleButton');
+
+    // ĐÃ BÌNH LUẬN LẠI ĐỂ TRÁNH LỖI CRASH
+    // shuffleButton = document.getElementById('shuffleButton');
 
     toggleLibraryBtn.addEventListener('click', () => {
         postMessageToCSharp({ type: 'toggleLibrary' });
@@ -264,10 +275,14 @@ function initMusicDetailPage() {
         isRepeatPlaylist = !isRepeatPlaylist;
         repeatButton.classList.toggle('active', isRepeatPlaylist);
     });
-    shuffleButton.addEventListener('click', () => {
-        isShuffle = !isShuffle;
-        shuffleButton.classList.toggle('active', isShuffle);
-    });
+
+    // ĐÃ BÌNH LUẬN LẠI ĐỂ TRÁNH LỖI CRASH
+    // shuffleButton.addEventListener('click', () => {
+    //     isShuffle = !isShuffle;
+    //     shuffleButton.classList.toggle('active', isShuffle);
+    // });
+
+    // TẤT CẢ CÁC SỰ KIỆN NÀY SẼ CHẠY SAU KHI SỬA LỖI `shuffleButton`
     audioPlayer.addEventListener('ended', () => {
         playNext();
     });
@@ -282,13 +297,20 @@ function initMusicDetailPage() {
             const percentage = (audioPlayer.currentTime / audioPlayer.duration) * 100;
             seekSlider.value = percentage;
 
-            currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
-            totalTimeDisplay.textContent = formatTime(audioPlayer.duration);
+            // Sửa lại logic hiển thị thời gian
+            const timeDisplay = document.getElementById('timeDisplay');
+            if (timeDisplay) {
+                timeDisplay.textContent = `${formatTime(audioPlayer.currentTime)} / ${formatTime(audioPlayer.duration)}`;
+            }
         }
     });
 
     audioPlayer.addEventListener('loadedmetadata', () => {
-        totalTimeDisplay.textContent = formatTime(audioPlayer.duration);
+        // Sửa lại logic hiển thị thời gian
+        const timeDisplay = document.getElementById('timeDisplay');
+        if (timeDisplay && audioPlayer.duration) {
+            timeDisplay.textContent = `0:00 / ${formatTime(audioPlayer.duration)}`;
+        }
     });
 
     seekSlider.addEventListener('input', () => {
@@ -298,9 +320,13 @@ function initMusicDetailPage() {
     });
 
     volumeSlider.addEventListener('input', () => {
-        audioPlayer.volume = volumeSlider.value / 100;
+        // SỬA LỖI LOGIC: Bỏ chia 100
+        audioPlayer.volume = volumeSlider.value;
     });
+
     renderPlaylist();
     showPlaylist(true);
-    audioPlayer.volume = volumeSlider.value / 100;
+
+    // SỬA LỖI LOGIC: Bỏ chia 100
+    audioPlayer.volume = volumeSlider.value;
 }
