@@ -98,6 +98,9 @@ public partial class Spotifree : Window
 
             // [LOGIC TỪ MUSICDETAIL] - Khởi tạo bridge của MainViewModel
             _mainViewModel.InitializeBridge(webView.CoreWebView2);
+            _bridge = new PlayerBridge(_engine, webView);
+            webView.CoreWebView2.AddHostObjectToScript("player", _bridge);
+            Debug.WriteLine("[C#] PlayerBridge injected as 'window.chrome.webview.hostObjects.player'");
 
             // Get the folder path where the .exe file is running
             string appDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -786,12 +789,6 @@ public partial class Spotifree : Window
             Debug.WriteLine($"[C#] Login exception: {ex.Message}");
             await JsNotifyAsync("spotify.login.failed", new { error = ex.Message });
         }
-    }
-    private async void Window_Loaded(object sender, RoutedEventArgs e)
-    {
-        await webView.EnsureCoreWebView2Async();
-        _bridge = new PlayerBridge(_engine, webView);
-        webView.CoreWebView2.AddHostObjectToScript("player", _bridge);
     }
 
     protected override void OnClosed(EventArgs e)
