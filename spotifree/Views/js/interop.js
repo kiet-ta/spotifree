@@ -31,7 +31,7 @@
         else if (action === "local.musicAdded") {
             if (typeof window.handleLocalMusicAdded === 'function') window.handleLocalMusicAdded(data);
         }
-        else if (action === "populateLibrary") { /
+        else if (action === "populateLibrary") {
             if (typeof window.populateLibrary === 'function') window.populateLibrary(data);
         }
         else if (action === "addNewPlaylistCard") { 

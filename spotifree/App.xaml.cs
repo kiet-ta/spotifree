@@ -43,7 +43,6 @@ namespace spotifree
             services.AddSingleton<ILocalMusicService, LocalMusicService>();
             services.AddSingleton<ISettingsService, SettingsService>();
 
-            // ??ng ký LocalLibraryService<T> (cách này ?úng)
             services.AddSingleton<LocalLibraryService<LocalMusicTrack>>(provider =>
             {
                 string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "library.json");

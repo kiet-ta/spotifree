@@ -123,22 +123,18 @@ namespace spotifree.ViewModels
                 if (!playableSongs.Any()) return;
 
                 // Gửi toàn bộ danh sách cho JS
-                string jsonPlaylist = JsonSerializer.Serialize(playableSongs);
-                _coreWebView?.ExecuteScriptAsync($"window.loadFullLibrary({jsonPlaylist});");
+                string script = $"window.playFromLibrary('wpf_library', 0);";
+                _coreWebView?.ExecuteScriptAsync(script);
             });
         }
 
         private void LoadSongs()
         {
-            // --- BẮT ĐẦU SỬA LỖI ---
 
-            // 1. Lấy đường dẫn của thư mục chứa file .exe (ví dụ: ...\bin\Debug)
             string exePath = AppDomain.CurrentDomain.BaseDirectory;
 
-            // 2. Kết hợp nó với tên thư mục "Library"
-            //    Điều này giả định rằng thư mục "Library" nằm NGANG HÀNG với file .exe
             string libraryPath = Path.Combine(exePath, "Library");
-
+            Console.WriteLine(libraryPath);
             if (!Directory.Exists(libraryPath))
             {
                 Songs.Add(new Song { Title = "Lỗi: Không tìm thấy thư mục", Artist = libraryPath });

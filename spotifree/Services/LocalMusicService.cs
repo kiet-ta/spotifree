@@ -57,7 +57,40 @@ public class LocalMusicService : ILocalMusicService
     public void SetLibraryDirectory(string? directoryPath)
     {
         _libraryDirectory = directoryPath;
-        // Save to settings if needed
+        
+        // Save to settings
+        var settingsPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "spotifree",
+            "settings.json");
+            
+        try
+        {
+            var settingsDir = Path.GetDirectoryName(settingsPath);
+            if (!Directory.Exists(settingsDir))
+                Directory.CreateDirectory(settingsDir);
+                
+            Dictionary<string, object> settings;
+            if (File.Exists(settingsPath))
+            {
+                var json = File.ReadAllText(settingsPath);
+                settings = JsonSerializer.Deserialize<Dictionary<string, object>>(json) ?? new Dictionary<string, object>();
+            }
+            else
+            {
+                settings = new Dictionary<string, object>();
+            }
+            
+            settings["LocalMusicDirectory"] = directoryPath ?? "";
+            var newJson = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(settingsPath, newJson);
+            
+            Debug.WriteLine($"[LocalMusic] Đã lưu thư mục nhạc vào settings: {directoryPath}");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[LocalMusic] Lỗi khi lưu settings: {ex.Message}");
+        }
     }
 
     public async Task<List<LocalMusicTrack>> GetLocalLibraryAsync()
@@ -110,21 +143,23 @@ public class LocalMusicService : ILocalMusicService
         return tracks;
     }
 
-    public async Task AddToLibraryAsync(string filePath)
+    public async Task<LocalMusicTrack?> AddToLibraryAsync(string filePath)
     {
         if (!File.Exists(filePath))
-            return;
+            return null;
 
         var existing = _cachedLibrary.FirstOrDefault(t => t.FilePath.Equals(filePath, StringComparison.OrdinalIgnoreCase));
         if (existing != null)
-            return;
+            return existing;
 
         var track = await CreateTrackFromFileAsync(filePath);
         if (track != null)
         {
             _cachedLibrary.Add(track);
             await SaveLibraryToDiskAsync();
+            return track;
         }
+        return null;
     }
 
     public async Task RemoveFromLibraryAsync(string trackId)

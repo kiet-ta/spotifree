@@ -10,12 +10,11 @@
         const htmlContent = await response.text();
         document.getElementById('content-container').innerHTML = htmlContent;
 
-        // --- PHẦN SỬA ĐỔI ---
         // Gộp tất cả các lệnh gọi 'init' vào một nơi
         // và dùng 'queueMicrotask' cho tất cả để đảm bảo DOM sẵn sàng.
         const p = String(pageName || '').toLowerCase();
 
-        queueMicrotask(() => {
+        setTimeout(() => {
             if (p === 'home') {
                 if (typeof initHome === 'function') {
                     initHome();

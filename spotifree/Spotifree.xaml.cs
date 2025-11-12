@@ -47,6 +47,18 @@ public partial class Spotifree : Window
         _mainViewModel = mainViewModel;
         this.DataContext = _mainViewModel; // Gán DataContext
 
+        // Cấu hình đường dẫn thư mục Library cho LocalMusicService
+        string libraryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Library");
+        if (Directory.Exists(libraryPath))
+        {
+            _localMusicService.SetLibraryDirectory(libraryPath);
+            Debug.WriteLine($"[C#] Đã cấu hình LocalMusicService sử dụng thư mục: {libraryPath}");
+        }
+        else
+        {
+            Debug.WriteLine($"[C#] WARN: Thư mục Library không tồn tại: {libraryPath}");
+        }
+
         InitializeComponent();
         InitializeAsync();
     }
@@ -112,7 +124,7 @@ public partial class Spotifree : Window
             _spotifyService.StartPollingIfNeeded();
 
             // navigate to the local html file via the virtual host
-            webView.CoreWebView2.Navigate("https://spotifree.local/index.html");
+            webView.CoreWebView2.Navigate("http://spotifree.local/index.html");
 
             // Inject hardcoded token into JS for testing
             if (_auth != null && !string.IsNullOrEmpty(_auth.AccessToken))
@@ -318,37 +330,65 @@ public partial class Spotifree : Window
                     {
                         await HandleAddLocalMusicAsync();
                     }
-
                     else if (action == "getLocalLibrary")
                     {
                         try
                         {
-                            Debug.WriteLine($"[C#] Đang lấy local music library...");
+                            Debug.WriteLine($"[C#] Đang lấy local music library từ LocalMusicService...");
+
+                            // 1. LẤY NHẠC TỪ LOCAL MUSIC SERVICE
                             var localTracks = await _localMusicService.GetLocalLibraryAsync();
 
-                            Debug.WriteLine($"[C#] Found {localTracks.Count} local tracks. sending to JS...");
+                            Debug.WriteLine($"[C#] Found {localTracks.Count} local tracks from service. sending to JS...");
 
-                            // Convert LocalMusicTrack to format JS expects
-                            var libraryData = localTracks.Select(track => new
-                            {
-                                id = track.Id,
-                                name = track.Title,
-                                artist = track.Artist,
-                                album = track.Album,
-                                type = "Local Music",
-                                filePath = track.FilePath,
-                                duration = track.Duration,
-                                dateAdded = track.DateAdded.ToString("yyyy-MM-dd")
-                            }).ToList();
+                            // 2. BIẾN ĐỔI (TRANSFORM) sang format mà library.js mong đợi
+                            var libraryData = localTracks
+                                                            .Where(t => !string.IsNullOrEmpty(t.FilePath))
+                                                            .Select(track => new
+                                                            {
+                                                                // Dùng cho JS 'populateLibrary' (phải là 'id' và 'name' viết thường)
+                                                                id = track.Id ?? track.FilePath,
+                                                                name = track.Title,
 
-                            string script = $"window.populateLocalLibrary({JsonSerializer.Serialize(libraryData)});";
-                            await webView.CoreWebView2.ExecuteScriptAsync(script);
+                                                                // Dùng cho C# và music_detail.js (PascalCase)
+                                                                Title = track.Title,
+                                                                Artist = track.Artist,
+                                                                FilePath = track.FilePath,
+
+                                                                // Dùng cho JS 'renderPlaylistCard'
+                                                                type = "Local Music",
+                                                                CoverArtUrl = "Unknow"
+                                                            }).ToList();
+
+                            await JsNotifyAsync("populateLibrary", libraryData);
                         }
                         catch (Exception ex)
                         {
                             Debug.WriteLine($"[C#] ERROR LOCAL LIBRARY: {ex.Message}");
-                            string errorScript = $"window.showNotification('ERROR load local library: {ex.Message.Replace("'", "\\'")}', 'error');";
-                            await webView.CoreWebView2.ExecuteScriptAsync(errorScript);
+                            await JsNotifyAsync("error", new { message = $"ERROR load local library: {ex.Message}" });
+                        }
+                    }
+                    else if (action == "playSongFromJsLibrary")
+                    {
+                        // Lấy nguyên object "song" mà JS (library.js) gửi về
+                        if (root.TryGetProperty("song", out var songElement))
+                        {
+                            // Lấy JSON của object đó (đã bao gồm FilePath, Title, Artist...)
+                            string songJson = songElement.GetRawText();
+
+                            Debug.WriteLine($"[C#] Nhận lệnh phát từ library.js, đẩy qua music_detail.js: {songJson}");
+
+                            // Gửi data bài hát này cho trang music_detail.js
+                            // để nó gọi hàm "window.playSingleSong" mà ông đã code
+                            string script = $@"
+                                if (typeof window.playSingleSong === 'function') {{
+                                    window.playSingleSong({songJson});
+                                }} else {{
+                                    console.error('Hàm playSingleSong không tồn tại trên music_detail.js');
+                                }}";
+
+                            // Dùng ExecuteScriptAsync vì đây là lệnh trực tiếp cho player
+                            await webView.CoreWebView2.ExecuteScriptAsync(script);
                         }
                     }
                     else if (action == "scanLocalLibrary")
@@ -368,19 +408,25 @@ public partial class Spotifree : Window
                             var localTracks = await _localMusicService.ScanDirectoryAsync(directory);
                             Debug.WriteLine($"[C#] Scan thành công {localTracks.Count} tracks.");
 
-                            var libraryData = localTracks.Select(track => new
-                            {
-                                id = track.Id,
-                                name = track.Title,
-                                artist = track.Artist,
-                                album = track.Album,
-                                type = "Local Music",
-                                filePath = track.FilePath,
-                                duration = track.Duration,
-                                dateAdded = track.DateAdded.ToString("yyyy-MM-dd")
-                            }).ToList();
+                            var libraryData = localTracks
+                                                            .Where(t => !string.IsNullOrEmpty(t.FilePath))
+                                                            .Select(track => new
+                                                            {
+                                                                // Dùng cho JS 'populateLibrary' (phải là 'id' và 'name' viết thường)
+                                                                id = track.Id ?? track.FilePath,
+                                                                name = track.Title,
 
-                            string script = $"window.populateLocalLibrary({JsonSerializer.Serialize(libraryData)});";
+                                                                // Dùng cho C# và music_detail.js (PascalCase)
+                                                                Title = track.Title,
+                                                                Artist = track.Artist,
+                                                                FilePath = track.FilePath,
+
+                                                                // Dùng cho JS 'renderPlaylistCard'
+                                                                type = "Local Music",
+                                                                CoverArtUrl = "Unknow"
+                                                            }).ToList();
+
+                            string script = $"window.populateLibrary({JsonSerializer.Serialize(libraryData)});";
                             await webView.CoreWebView2.ExecuteScriptAsync(script);
 
                             string successScript = $"window.showNotification('Đã tìm thấy {localTracks.Count} bài hát local.', 'success');";
@@ -391,6 +437,53 @@ public partial class Spotifree : Window
                             Debug.WriteLine($"[C#] ERROR SCAN LOCAL: {ex.Message}");
                             string errorScript = $"window.showNotification('Lỗi scan: {ex.Message.Replace("'", "\\'")}', 'error');";
                             await webView.CoreWebView2.ExecuteScriptAsync(errorScript);
+                        }
+                    }
+                    else if (action == "local.addAndSaveTracks")
+                    {
+                        if (!root.TryGetProperty("filePaths", out var pathsElement) || pathsElement.ValueKind != JsonValueKind.Array)
+                        {
+                            Debug.WriteLine("[C#] local.addAndSaveTracks: Invalid filePaths array.");
+                            return;
+                        }
+
+                        var filePaths = pathsElement.EnumerateArray().Select(e => e.GetString()).Where(p => !string.IsNullOrEmpty(p)).ToList();
+                        Debug.WriteLine($"[C#] Received {filePaths.Count} new tracks to add and save.");
+
+                        var newTracks = new List<LocalMusicTrack>();
+                        foreach (var path in filePaths)
+                        {
+                            // Dùng service để thêm vào cache (JSON file)
+                            var newTrack = await _localMusicService.AddToLibraryAsync(path!);
+                            if (newTrack != null)
+                            {
+                                newTracks.Add(newTrack);
+                            }
+                        }
+
+                        if (newTracks.Any())
+                        {
+                            Debug.WriteLine($"[C#] Successfully added {newTracks.Count} tracks. Sending back to JS to append.");
+
+                            var libraryData = newTracks
+                                .Where(t => !string.IsNullOrEmpty(t.FilePath))
+                                .Select(track => new
+                                {
+                                    // Dùng cho JS 'populateLibrary' (phải là 'id' và 'name' viết thường)
+                                    id = track.Id ?? track.FilePath,
+                                    name = track.Title,
+
+                                    // Dùng cho C# và music_detail.js (PascalCase)
+                                    Title = track.Title,
+                                    Artist = track.Artist,
+                                    FilePath = track.FilePath,
+
+                                    // Dùng cho JS 'renderPlaylistCard'
+                                    type = "Local Music",
+                                    CoverArtUrl = "Unknow"
+                                }).ToList();
+
+                            await JsNotifyAsync("appendLibrary", libraryData);
                         }
                     }
                 }
@@ -508,6 +601,19 @@ public partial class Spotifree : Window
                 else if (root.TryGetProperty("type", out var typeProperty))
                 {
                     string type = typeProperty.GetString();
+                    if (type == "requestSongData")
+                    {
+                        int index = root.GetProperty("index").GetInt32();
+                        string playlistId = root.GetProperty("playlistId").GetString();
+
+                        // (Check if playlistId == "wpf_library"...)
+                        if (index >= 0 && index < _mainViewModel.Songs.Count)
+                        {
+                            Song songToPlay = _mainViewModel.Songs[index];
+                            // Gửi NGƯỢC LẠI data của CHỈ 1 BÀI HÁT cho JS
+                            await JsNotifyAsync("songData", songToPlay);
+                        }
+                    }
                     switch (type)
                     {
                         case "openMini":

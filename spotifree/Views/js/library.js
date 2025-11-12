@@ -1,12 +1,48 @@
 let contextMenu = null;
 let currentPlaylistId = null;
 
+window.appendLibrary = function (newTracks) {
+    if (!newTracks || !Array.isArray(newTracks)) return;
+
+    console.log(`[JS] Appending ${newTracks.length} new tracks to library.`);
+
+    // Nếu thư viện đang trống, xóa thông báo "empty"
+    const grid = document.querySelector('.playlists-grid');
+    if (grid && grid.innerHTML.includes("empty")) {
+        grid.innerHTML = '';
+    }
+
+    newTracks.forEach(track => {
+        // renderPlaylistCard đã tồn tại và biết cách vẽ card
+        renderPlaylistCard(track);
+    });
+};
+
 function initLibrary() {
     console.log("initLibrary() is running!");
     const createBtn = document.getElementById('create-playlist-btn');
-    const scanLocalBtn = document.getElementById('scan-local-btn');
     const grid = document.querySelector('.playlists-grid');
     const homeBtn = document.getElementById('library-home-button');
+
+    const scanLocalBtn = document.getElementById('scan-local-btn');
+    if (scanLocalBtn) {
+        scanLocalBtn.addEventListener('click', () => {
+            console.log('Scan local library button clicked!');
+            if (window.chrome && window.chrome.webview) {
+
+                // Thông báo cho người dùng biết là đang quét
+                const grid = document.querySelector('.playlists-grid');
+                if (grid) {
+                    grid.innerHTML = '<p style="color: #ccc; grid-column: 1 / -1; text-align: center;">Scanning folder, please wait...</p>';
+                }
+
+                // Gửi lệnh quét về C# (lệnh này đã tồn tại)
+                window.chrome.webview.postMessage({
+                    action: 'scanLocalLibrary'
+                });
+            }
+        });
+    }
 
     const addLocalBtn = document.getElementById('add-local-music-btn');
     if (addLocalBtn) {
@@ -246,27 +282,46 @@ window.populateLibrary = function (playlistsData) {
     console.log("[JS] Đã hoàn thành vòng lặp render.");
 }
 
-function renderPlaylistCard(playlist) {
+function renderPlaylistCard(playlist) { 
     const grid = document.querySelector('.playlists-grid');
     if (!grid) return;
 
     const card = document.createElement('div');
     card.className = 'playlist-card';
-    card.dataset.playlistId = playlist.id;
+    card.dataset.playlistId = playlist.id; 
+
+    let cardName = "";
+    let cardType = "";
+
+    if (playlist.type === 'Local Music') {
+        cardName = playlist.name;
+        cardType = playlist.Artist || 'Unknown Artist'; 
+    }
+    // Nếu là playlist (Spotify)
+    else {
+        cardName = playlist.name;
+        cardType = playlist.type || 'Playlist';
+    }
 
     card.innerHTML = `
         <div class="playlist-image">
           <svg viewBox="0 0 100 100"> 
-            <circle cx="25" cy="25" r="8" />
-            <path d="M 20 80 L 50 40 L 80 70" />
+            <circle cx="50" cy="40" r="15" />
+            <path d="M 65 40 V 80 H 75" />
+            <path d="M 35 40 V 80 H 25" />
             <rect x="10" y="10" width="80" height="80" rx="8" />
           </svg>
         </div>
         <div class="playlist-info">
-          <div class="playlist-name">${playlist.name}</div>
-          <div class="playlist-type">${playlist.type || 'Playlist'}</div> 
+          <div class="playlist-name">${cardName}</div>
+          <div class="playlist-type">${cardType}</div> 
         </div>
     `;
+
+    card.addEventListener('click', () => {
+        // Gửi 'playlist' (là object bài hát/playlist)
+        handleLibraryPlay(playlist); 
+    });
 
     grid.appendChild(card);
 }
@@ -277,23 +332,37 @@ window.addNewPlaylistCard = function (playlist) {
     console.log("[JS] card already in UI!");
 }
 
-window.handleLocalMusicAdded = (data) => {
-    if (data && data.length > 0) {
-        console.log("[JS] Files added from C#:", data);
-        // TODO: Thêm logic để hiển thị các file này trong thư viện
-        alert(`Added ${data.length} local files! Check console for paths.`);
+function handleLibraryPlay(songData) {
+    console.log(`[JS] Yêu cầu phát: ${songData.name}`);
 
-        // Ví dụ: Render chúng ra
-        data.forEach(filePath => {
-            // Tách tên file từ đường dẫn
-            const fileName = filePath.split('\\').pop().split('/').pop();
-            renderPlaylistCard({
-                id: filePath, // Dùng path làm ID tạm
-                name: fileName,
-                type: "Local File"
-            });
+    // 1. Gửi yêu cầu về C# để nó "push" bài hát này vào player
+    if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage({
+            action: 'playSongFromJsLibrary',
+            // Gửi toàn bộ object bài hát mà C# đã gửi cho chúng ta
+            song: songData
         });
 
+        // 2. Tự động chuyển sang trang player
+        if (typeof window.loadPage === 'function') {
+            window.loadPage('music_detail');
+        }
+    } else {
+        console.error("Cannot communicate with C# backend to play song");
+    }
+}
+
+window.handleLocalMusicAdded = (data) => {
+    if (data && data.length > 0) {
+        console.log("[JS] Files added from C#. Sending to C# to save persistence...", data);
+        alert(`Added ${data.length} local files! Check console for paths.`);
+
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.postMessage({
+                action: 'local.addAndSaveTracks',
+                filePaths: data // Gửi cả mảng file paths
+            });
+        }
     } else {
         console.log("[JS] User cancelled adding local files.");
     }

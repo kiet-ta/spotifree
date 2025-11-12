@@ -105,11 +105,15 @@ function loadSong(index) {
     const song = playlist[index];
     if (!song) return;
 
-    songTitle.textContent = song.Title || "Unknown Title";
-    songArtist.textContent = song.Artist || "Unknown Artist";
+    songTitle.textContent = song.Title || song.name || "Unknown Title";
+    songArtist.textContent = song.Artist || song.artist || "Unknown Artist";
     coverArt.src = song.CoverArtUrl || "https://placehold.co/300x300/1e1e1e/b3b3b3?text=Music";
 
-    let filePath = song.FilePath;
+    let filePath = song.filePath || song.FilePath;
+    if (!filePath) {
+        console.error("loadSong failed: Không tìm thấy FilePath hoặc filePath trong object:", song);
+        return;
+    }
     const driveLetter = filePath.substring(0, 1).toLowerCase();
     const hostName = `${driveLetter}.drive.local`;
     const webUrl = `https://${hostName}${filePath.substring(2).replace(/\\/g, '/')}`;
@@ -304,3 +308,35 @@ function initMusicDetailPage() {
     showPlaylist(true);
     audioPlayer.volume = volumeSlider.value / 100;
 }
+function playFromLibrary(playlistId, index) {
+    this.currentPlaylistId = playlistId;
+    this.currentIndex = index;
+    // Gửi message yêu cầu data bài hát
+    window.chrome.webview.postMessage({
+        type: 'requestSongData',
+        playlistId: this.currentPlaylistId,
+        index: this.currentIndex
+    });
+
+}
+
+window.playSingleSong = (song) => {
+    if (!song) {
+        console.error("Data bài hát không hợp lệ", song);
+        return;
+    }
+    
+    console.log("[Player] Nhận lệnh playSingleSong:", song);
+
+    // Map lại Title/Artist nếu C# gửi format gốc
+    song.Title = song.Title || song.name || "Unknown Title";
+    song.Artist = song.Artist || song.artist || "Unknown Artist";
+    song.CoverArtUrl = song.CoverArtUrl || "https://placehold.co/300x300/1e1e1e/b3b3b3?text=Music";
+
+    playlist = [song]; // Xóa list cũ, thêm bài này vào
+    currentPlaylistIndex = 0;
+
+    loadSong(currentPlaylistIndex); // Tải data bài hát
+    audioPlayer.play().catch(e => console.error("Lỗi phát nhạc:", e)); // Phát nhạc
+    renderPlaylist(); // Cập nhật UI danh sách phát
+};
