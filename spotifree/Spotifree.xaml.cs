@@ -26,7 +26,7 @@ public partial class Spotifree : Window
     private PlayerBridge? _bridge;
     private string? _lastPlayerStateRawJson; // cache để mini mở lên có state ngay
     private string _viewsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Views");
-    private ChatbotBridge? _chatbotBridge;
+    // private ChatbotBridge? _chatbotBridge;
 
     // [LOGIC TỪ MUSICDETAIL]
     private readonly MainViewModel _mainViewModel;
@@ -145,7 +145,7 @@ public partial class Spotifree : Window
             // check if in debug mode
             webView.CoreWebView2.OpenDevToolsWindow();
 
-            _chatbotBridge = new ChatbotBridge(webView.CoreWebView2);
+            // _chatbotBridge = new ChatbotBridge(webView.CoreWebView2);
 
         }
         catch (Exception ex)
