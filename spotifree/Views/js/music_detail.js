@@ -1,6 +1,7 @@
 let audioPlayer, coverArt, songTitle, songArtist;
 let seekSlider, volumeSlider;
 let playPauseButton, playPauseIcon, prevButton, nextButton, repeatButton, shuffleButton;
+let rewindButton, forwardButton, replayButton;
 let timeDisplay;
 let currentTimeDisplay, totalTimeDisplay;
 
@@ -9,10 +10,12 @@ let toggleLibraryBtn, togglePlaylistBtn, playlistContainer, playlistToggleIcon;
 let playlist = [];
 let currentPlaylistIndex = -1;
 let isRepeatPlaylist = false;
+let isRepeatOne = false;
 let isShuffle = false;
 let isPlaylistVisible = true;
 let _isPlaying = false;
 let _seekDragging = false;
+let _currentPosition = 0;
 
 const WPFPlayer = window.chrome?.webview?.hostObjects?.player;
 
@@ -117,6 +120,11 @@ function togglePlayPause() {
 function playNext() {
     if (playlist.length === 0) return;
 
+    if (isRepeatOne) {
+        playSongFromPlaylist(currentPlaylistIndex);
+        return;
+    }
+
     let nextIndex;
     if (isShuffle) {
         nextIndex = Math.floor(Math.random() * playlist.length);
@@ -147,6 +155,17 @@ function playPrevious() {
     playSongFromPlaylist(prevIndex);
 }
 
+function seekRelative(seconds) {
+    if (!WPFPlayer) return;
+    const newTime = Math.max(0, _currentPosition + seconds);
+    WPFPlayer.seek(newTime);
+
+    if (!_seekDragging) {
+        seekSlider.value = newTime;
+        currentTimeDisplay.textContent = formatTime(newTime);
+    }
+}
+
 function updatePlayPauseIcon(isPlaying) {
     _isPlaying = isPlaying;
     if (playPauseIcon) {
@@ -167,6 +186,8 @@ function formatTime(seconds) {
 }
 
 function updateSeekUI(position, duration) {
+    _currentPosition = position;
+
     if (isNaN(position) || isNaN(duration) || duration === 0) {
         position = 0;
         duration = 100;
@@ -210,6 +231,9 @@ function initMusicDetailPage() {
     prevButton = document.getElementById('prevButton');
     nextButton = document.getElementById('nextButton');
     repeatButton = document.getElementById('repeatButton');
+    replayButton = document.getElementById('replayButton');
+    rewindButton = document.getElementById('rewindButton');
+    forwardButton = document.getElementById('forwardButton');
 
     if (toggleLibraryBtn) {
         toggleLibraryBtn.addEventListener('click', () => {
@@ -227,10 +251,30 @@ function initMusicDetailPage() {
     if (nextButton) nextButton.addEventListener('click', playNext);
     if (prevButton) prevButton.addEventListener('click', playPrevious);
 
+    if (rewindButton) rewindButton.addEventListener('click', () => seekRelative(-5));
+    if (forwardButton) forwardButton.addEventListener('click', () => seekRelative(5));
+
     if (repeatButton) {
         repeatButton.addEventListener('click', () => {
             isRepeatPlaylist = !isRepeatPlaylist;
             repeatButton.classList.toggle('active', isRepeatPlaylist);
+
+            if (isRepeatPlaylist && isRepeatOne) {
+                isRepeatOne = false;
+                if (replayButton) replayButton.classList.remove('active');
+            }
+        });
+    }
+
+    if (replayButton) {
+        replayButton.addEventListener('click', () => {
+            isRepeatOne = !isRepeatOne;
+            replayButton.classList.toggle('active', isRepeatOne);
+
+            if (isRepeatOne && isRepeatPlaylist) {
+                isRepeatPlaylist = false;
+                if (repeatButton) repeatButton.classList.remove('active');
+            }
         });
     }
 
