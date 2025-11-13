@@ -2,106 +2,251 @@
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://spotifree.local; img-src * data: blob:; media-src * blob: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';" />
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self' https://spotifree.local;
+                   img-src * data: blob:;
+                   media-src * blob: data:;
+                   style-src 'self' 'unsafe-inline';
+                   script-src 'self' 'unsafe-inline';" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Mini Player</title>
     <style>
-        /* Layout tổng thể mini card */
-        .wrap {
-            position: relative;
-            display: grid;
-            grid-template-columns: 112px 1fr auto;
-            gap: 12px;
-            align-items: center;
-            padding: 12px 12px 8px 12px;
+        :root {
+            --ring: rgba(255,255,255,.15);
+            --panel: #111111;
+            --panel2: #181818;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
         }
 
-        /* Thông tin bài hát */
-        .info h3 {
+        html, body {
             margin: 0;
-            font-size: 14px;
-            color: #fff;
+            padding: 0;
+            background: #000;
+            color: var(--text);
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, "CircularSp", "Spotify Mix";
+        }
+
+        .root {
+            width: 100%;
+            height: 100%;
+            background: var(--panel);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .player {
+            height: 100%;
+            display: grid;
+            grid-template-columns: 1.2fr 1.6fr auto;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--panel2);
+        }
+
+        /* Now playing (giống album footer) */
+        .now {
+            display: grid;
+            grid-template-columns: 56px 1fr;
+            gap: 10px;
+            align-items: center;
+            min-width: 0;
+        }
+
+            .now .cover {
+                width: 56px;
+                height: 56px;
+                border-radius: 10px;
+                object-fit: cover;
+                background: #0f0f0f;
+            }
+
+        .now-title {
+            font-weight: 700;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .info small {
-            color: #bbb;
+        .now-artist {
+            color: var(--muted);
             font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        /* Vùng hover overlay (ẩn mặc định) */
-        .hover {
-            position: absolute;
-            inset: 0;
-            display: grid;
-            grid-template-rows: 28px 1fr;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity .15s ease;
+        /* Center controls */
+        .center {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
-        .wrap:hover .hover {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        /* Thanh bar nổi trên cùng khi hover */
-        .hover .bar {
-            display: grid;
-            grid-template-columns: 1fr auto;
+        .ctr-btns {
+            display: flex;
             align-items: center;
-            padding: 4px 8px;
-            background: linear-gradient(#00000066, #0000);
+            justify-content: center;
+            gap: 6px;
         }
 
-        /* Slider seek giống vibe Spotify (mảnh, tròn) */
-        .slider {
-            align-self: end;
-            padding: 0 10px 10px 10px;
+        .btn {
+            height: 30px;
+            min-width: 30px;
+            padding: 0 10px;
+            border-radius: 10px;
+            border: 1px solid var(--ring);
+            background: rgba(255,255,255,.06);
+            color: var(--text);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
         }
 
-            .slider input[type=range] {
-                width: 100%;
-                height: 4px;
-                outline: none;
-                -webkit-appearance: none;
-                background: #2b2b2b;
-                border-radius: 999px;
+            .btn:hover {
+                background: rgba(255,255,255,.10);
             }
 
-                .slider input[type=range]::-webkit-slider-thumb {
-                    -webkit-appearance: none;
-                    width: 12px;
-                    height: 12px;
-                    border-radius: 50%;
-                    background: #fff;
-                    box-shadow: 0 0 0 4px #1db95455; /* focus ring cảm giác Spotify */
-                }
+            .btn.active {
+                background: rgba(34,197,94,.18);
+                border-color: rgba(34,197,94,.6);
+            }
 
-                .slider input[type=range]:hover {
-                    height: 6px;
+        .ico {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .seek-wrap {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .time-label {
+            font-size: 11px;
+            color: var(--muted);
+            min-width: 38px;
+            text-align: center;
+        }
+
+        .range {
+            appearance: none;
+            height: 4px;
+            border-radius: 999px;
+            background: #2a2a2a;
+            outline: none;
+        }
+
+            .range::-webkit-slider-thumb {
+                appearance: none;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: #fff;
+                border: none;
+                margin-top: -3px;
+            }
+
+        /* Right utility (back + close) */
+        .right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 6px;
+        }
+
+            .right .small-btn {
+                height: 26px;
+                min-width: 26px;
+                padding: 0 8px;
+                border-radius: 999px;
+                border: 1px solid var(--ring);
+                background: rgba(0,0,0,.45);
+                color: var(--text);
+                font-size: 12px;
+                cursor: pointer;
+            }
+
+                .right .small-btn:hover {
+                    background: rgba(255,255,255,.08);
                 }
     </style>
 </head>
 <body>
-    <div class="root">
-        <div class="wrap">
-            <div class="cover"><img id="img" alt=""></div>
-            <div class="info">
-                <div class="title" id="title">Chưa phát</div>
-                <div class="artist" id="artist"></div>
-            </div>
-        </div>
+    <!-- Sprite icons -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+        <symbol id="i-play" viewBox="0 0 24 24">
+            <polygon points="8,5 19,12 8,19" />
+        </symbol>
+        <symbol id="i-pause" viewBox="0 0 24 24">
+            <rect x="6" y="4" width="4" height="16" />
+            <rect x="14" y="4" width="4" height="16" />
+        </symbol>
+        <symbol id="i-skip-back" viewBox="0 0 24 24">
+            <polygon points="19,6 19,18 8,12" />
+            <rect x="5" y="6" width="2" height="12" />
+        </symbol>
+        <symbol id="i-skip-forward" viewBox="0 0 24 24">
+            <polygon points="5,6 5,18 16,12" />
+            <rect x="17" y="6" width="2" height="12" />
+        </symbol>
+        <symbol id="i-repeat" viewBox="0 0 24 24">
+            <path d="M17 2l4 4-4 4" />
+            <path d="M3 11V7a4 4 0 0 1 4-4h10" />
+            <path d="M7 22l-4-4 4-4" />
+            <path d="M21 13v4a4 4 0 0 1-4 4H7" />
+        </symbol>
+    </svg>
 
-        <div class="hover">
-            <div class="bar">
-                <div style="pointer-events:auto; opacity:.8" id="dragArea">Mini Player</div>
-                <button class="btn" id="btnClose">✕</button>
+    <div class="root" id="dragArea">
+        <div class="player">
+            <!-- Now playing -->
+            <div class="now">
+                <img id="m-now-cover" class="cover" src="/assets/playlist-demo.jpg" alt="">
+                <div style="min-width:0">
+                    <div id="m-now-title" class="now-title">Not playing</div>
+                    <div id="m-now-artist" class="now-artist">—</div>
+                </div>
             </div>
-            <div class="slider">
-                <input id="seek" type="range" min="0" value="0" step="0.01">
+
+            <!-- Center controls -->
+            <div class="center">
+                <div class="ctr-btns">
+                    <button class="btn" id="m-prev-btn" title="Previous">
+                        <svg class="ico"><use href="#i-skip-back" /></svg>
+                    </button>
+                    <button class="btn" id="m-play-btn" title="Play/Pause">
+                        <svg class="ico"><use href="#i-play" /></svg>
+                    </button>
+                    <button class="btn" id="m-next-btn" title="Next">
+                        <svg class="ico"><use href="#i-skip-forward" /></svg>
+                    </button>
+                    <button class="btn" id="m-repeat-btn" title="Repeat">
+                        <svg class="ico"><use href="#i-repeat" /></svg>
+                    </button>
+                </div>
+                <div class="seek-wrap">
+                    <div id="m-cur" class="time-label">0:00</div>
+                    <input id="m-seek" type="range" min="0" max="100" value="0" step="0.01" class="range">
+                    <div id="m-dur" class="time-label">0:00</div>
+                </div>
+            </div>
+
+            <!-- Right buttons: back to full & close -->
+            <div class="right">
+                <button class="small-btn" id="m-back-btn" title="Back to main">⛶</button>
+                <button class="small-btn" id="m-close-btn" title="Close">✕</button>
             </div>
         </div>
     </div>

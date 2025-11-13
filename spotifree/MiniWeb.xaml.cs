@@ -25,6 +25,10 @@ namespace spotifree
         public event Action? CloseRequested;
         public event Action<double>? OnSeek;
         public event Action? OnBackToMain;
+        public event Action? OnPlayPause;
+        public event Action? OnPrev;
+        public event Action? OnNext;
+        public event Action? OnToggleRepeat;
         public MiniWeb() => InitializeComponent();
 
         public async Task InitAsync(string viewsPath)
@@ -51,17 +55,41 @@ namespace spotifree
                             Dispatcher.Invoke(() => { try { DragMove(); } catch { } });
                             break;
                         case "close":
-                            Dispatcher.Invoke(Close);
+                            Dispatcher.Invoke(() =>
+                            {
+                                CloseRequested?.Invoke();
+                                Close();
+                            });
                             break;
                         case "seek":
-                            if (root.TryGetProperty("seconds", out var secEl) && secEl.TryGetDouble(out var sec))
+                            if (root.TryGetProperty("seconds", out var secEl) &&
+                                secEl.TryGetDouble(out var sec))
                             {
                                 // chuyển tiếp về spotifree → trang chính
                                 OnSeek?.Invoke(sec);
+                                SeekRequested?.Invoke(sec);
                             }
                             break;
                         case "backToMain":
                             OnBackToMain?.Invoke();
+                            break;
+
+                        // ===== mới thêm =====
+                        case "playPause":
+                            OnPlayPause?.Invoke();
+                            break;
+                        case "prev":
+                            OnPrev?.Invoke();
+                            break;
+                        case "next":
+                            OnNext?.Invoke();
+                            break;
+                        case "toggleRepeat":
+                            OnToggleRepeat?.Invoke();
+                            break;
+                        case "miniReady":
+                            // MainWindow có thể lắng nghe event này để push state/queue hiện tại
+                            // ví dụ: MiniReady?.Invoke();
                             break;
                     }
                 }

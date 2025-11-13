@@ -400,6 +400,10 @@
         <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.35-4.35" /></symbol>
 
         <symbol id="i-play" viewBox="0 0 24 24"><polygon points="8,5 19,12 8,19" /></symbol>
+        <symbol id="i-pause" viewBox="0 0 24 24">
+            <rect x="6" y="4" width="4" height="16" />
+            <rect x="14" y="4" width="4" height="16" />
+        </symbol>
         <symbol id="i-skip-back" viewBox="0 0 24 24"><polygon points="19,6 19,18 8,12" /><rect x="5" y="6" width="2" height="12" /></symbol>
         <symbol id="i-skip-forward" viewBox="0 0 24 24"><polygon points="5,6 5,18 16,12" /><rect x="17" y="6" width="2" height="12" /></symbol>
         <symbol id="i-shuffle" viewBox="0 0 24 24">
@@ -415,6 +419,12 @@
             <path d="M7 22l-4-4 4-4" />
             <path d="M21 13v4a4 4 0 0 1-4 4H7" />
         </symbol>
+        <symbol id="i-folder-plus" viewBox="0 0 24 24">
+            <path d="M3 7h6l2 2h10v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <path d="M12 11v6" />
+            <path d="M9 14h6" />
+        </symbol>
+
     </svg>
 
     <div class="alb-root">
@@ -428,7 +438,13 @@
                 <input placeholder="Bạn muốn nghe gì?" />
                 <button class="btn"><svg class="ico"><use href="#i-search" /></svg><span>Tìm</span></button>
             </div>
-            <div></div>
+            <div>
+                <button class="btn" id="alb-addlocal-btn">
+                    <svg class="ico"><use href="#i-folder-plus" /></svg>
+                    <span>Add Local</span>
+                </button>
+                <input id="alb-filepicker" type="file" accept="audio/*" multiple style="display:none" />
+            </div>
         </div>
 
         <div class="alb-main">
