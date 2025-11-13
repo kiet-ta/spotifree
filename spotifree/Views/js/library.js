@@ -1,3 +1,8 @@
+// js/library.js
+
+// ==== GLOBAL LOCAL QUEUE DÙNG CHUNG GIỮA LIBRARY & ALBUM ====
+window.__localQueue = window.__localQueue || [];
+
 let contextMenu = null;
 let currentPlaylistId = null;
 
@@ -6,14 +11,12 @@ window.appendLibrary = function (newTracks) {
 
     console.log(`[JS] Appending ${newTracks.length} new tracks to library.`);
 
-    // Nếu thư viện đang trống, xóa thông báo "empty"
     const grid = document.querySelector('.playlists-grid');
     if (grid && grid.innerHTML.includes("empty")) {
         grid.innerHTML = '';
     }
 
     newTracks.forEach(track => {
-        // renderPlaylistCard đã tồn tại và biết cách vẽ card
         renderPlaylistCard(track);
     });
 };
@@ -30,13 +33,11 @@ function initLibrary() {
             console.log('Scan local library button clicked!');
             if (window.chrome && window.chrome.webview) {
 
-                // Thông báo cho người dùng biết là đang quét
                 const grid = document.querySelector('.playlists-grid');
                 if (grid) {
                     grid.innerHTML = '<p style="color: #ccc; grid-column: 1 / -1; text-align: center;">Scanning folder, please wait...</p>';
                 }
 
-                // Gửi lệnh quét về C# (lệnh này đã tồn tại)
                 window.chrome.webview.postMessage({
                     action: 'scanLocalLibrary'
                 });
@@ -49,7 +50,6 @@ function initLibrary() {
         addLocalBtn.addEventListener('click', () => {
             console.log('Add local music button clicked!');
             if (window.chrome && window.chrome.webview) {
-                // Gửi yêu cầu mở File Dialog đến C#
                 window.chrome.webview.postMessage({
                     action: 'local.addMusic'
                 });
@@ -63,7 +63,7 @@ function initLibrary() {
     if (homeBtn) {
         homeBtn.addEventListener('click', () => {
             if (typeof window.loadPage === 'function') {
-                window.loadPage('home'); // Gọi lại hàm navigation
+                window.loadPage('home');
             } else {
                 console.error('loadPage function is not defined!');
             }
@@ -123,7 +123,6 @@ function initLibrary() {
 
                 const playlistName = nameElement.textContent.toLowerCase();
 
-                // playlist contain the keyword, it will show
                 if (playlistName.includes(searchTerm)) {
                     card.style.display = '';
                 } else {
@@ -137,7 +136,6 @@ function initLibrary() {
         if (grid) {
             grid.innerHTML = '';
         }
-        // request backend to get playlists and local library
         console.log("[JS] requesting backend get playlists and local library!");
         window.chrome.webview.postMessage({
             action: 'getLibraryPlaylists'
@@ -250,7 +248,9 @@ window.populateLibrary = function (playlistsData) {
     if (!grid) {
         return;
     }
+
     grid.innerHTML = '';
+    window.__localQueue = [];
 
     if (!Array.isArray(playlists)) {
         console.error("[JS] ERROR: After processing, 'playlist' is still not an Array!", playlists);
@@ -271,33 +271,45 @@ window.populateLibrary = function (playlistsData) {
                 return;
             }
             renderPlaylistCard(playlist);
-
         } catch (renderError) {
-
             console.error(`[JS] LỖI KHI RENDER playlist #${index}:`, renderError, playlist);
-
         }
     });
 
     console.log("[JS] Đã hoàn thành vòng lặp render.");
 }
 
-function renderPlaylistCard(playlist) { 
+function renderPlaylistCard(playlist) {
     const grid = document.querySelector('.playlists-grid');
     if (!grid) return;
 
     const card = document.createElement('div');
     card.className = 'playlist-card';
-    card.dataset.playlistId = playlist.id; 
+    card.dataset.playlistId = playlist.id;
 
     let cardName = "";
     let cardType = "";
 
     if (playlist.type === 'Local Music') {
-        cardName = playlist.name;
-        cardType = playlist.Artist || 'Unknown Artist'; 
+        cardName = playlist.name || playlist.Title || 'Unknown Title';
+        cardType = playlist.Artist || playlist.artist || 'Unknown Artist';
+
+        const normalized = {
+            Id: playlist.id ?? playlist.Id ?? null,
+            Title: playlist.Title || playlist.name || 'Unknown Title',
+            Artist: playlist.Artist || playlist.artist || 'Unknown Artist',
+            FilePath: playlist.FilePath || playlist.filePath || '',
+            Duration: playlist.Duration || playlist.duration || 0,
+            CoverArtUrl: playlist.CoverArtUrl || playlist.coverArtUrl || null,
+            Album: playlist.Album || playlist.album || 'Local File',
+            type: 'Local Music'
+        };
+
+        if (normalized.FilePath) {
+            const exists = window.__localQueue.some(s => s.FilePath === normalized.FilePath);
+            if (!exists) window.__localQueue.push(normalized);
+        }
     }
-    // Nếu là playlist (Spotify)
     else {
         cardName = playlist.name;
         cardType = playlist.type || 'Playlist';
@@ -319,8 +331,7 @@ function renderPlaylistCard(playlist) {
     `;
 
     card.addEventListener('click', () => {
-        // Gửi 'playlist' (là object bài hát/playlist)
-        handleLibraryPlay(playlist); 
+        handleLibraryPlay(playlist);
     });
 
     grid.appendChild(card);
@@ -335,15 +346,12 @@ window.addNewPlaylistCard = function (playlist) {
 function handleLibraryPlay(songData) {
     console.log(`[JS] Yêu cầu phát: ${songData.name}`);
 
-    // 1. Gửi yêu cầu về C# để nó "push" bài hát này vào player
     if (window.chrome && window.chrome.webview) {
         window.chrome.webview.postMessage({
             action: 'playSongFromJsLibrary',
-            // Gửi toàn bộ object bài hát mà C# đã gửi cho chúng ta
             song: songData
         });
 
-        // 2. Tự động chuyển sang trang player
         if (typeof window.loadPage === 'function') {
             window.loadPage('music_detail');
         }
@@ -360,10 +368,12 @@ window.handleLocalMusicAdded = (data) => {
         if (window.chrome && window.chrome.webview) {
             window.chrome.webview.postMessage({
                 action: 'local.addAndSaveTracks',
-                filePaths: data // Gửi cả mảng file paths
+                filePaths: data
             });
         }
     } else {
         console.log("[JS] User cancelled adding local files.");
     }
 };
+
+window.initLibrary = initLibrary;

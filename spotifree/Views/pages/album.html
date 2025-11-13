@@ -1,3 +1,4 @@
+<!-- pages/album.html -->
 <section id="album-page" aria-label="Album Page">
     <style>
         #album-page,
@@ -8,6 +9,7 @@
         footer.player:not(.alb-player) {
             display: none !important;
         }
+
         #album-page {
             --ring: rgba(255,255,255,.10);
             --panel: #151515;
@@ -106,7 +108,8 @@
                 gap: 8px;
             }
 
-                #album-page .btn:hover, #album-page .ico-btn:hover {
+                #album-page .btn:hover,
+                #album-page .ico-btn:hover {
                     background: rgba(255,255,255,.10);
                 }
 
@@ -125,6 +128,7 @@
                 min-height: 0;
                 overflow: hidden;
             }
+
             #album-page .sidebar {
                 display: flex;
                 flex-direction: column;
@@ -300,8 +304,7 @@
                     gap: 8px;
                 }
 
-                #album-page .player .btn,
-                #album-page .player .navbtn {
+                #album-page .player .btn {
                     height: 34px;
                     min-width: 34px;
                     padding: 0 10px;
@@ -315,8 +318,7 @@
                     gap: 8px;
                 }
 
-                    #album-page .player .btn:hover,
-                    #album-page .player .navbtn:hover {
+                    #album-page .player .btn:hover {
                         background: rgba(255,255,255,.10);
                     }
 
@@ -350,7 +352,8 @@
                 grid-template-columns: 44px 1fr 200px 0px 80px;
             }
 
-                #album-page .thead div:nth-child(4), #album-page .trow div:nth-child(4) {
+                #album-page .thead div:nth-child(4),
+                #album-page .trow div:nth-child(4) {
                     display: none;
                 }
         }
@@ -412,31 +415,6 @@
             <path d="M7 22l-4-4 4-4" />
             <path d="M21 13v4a4 4 0 0 1-4 4H7" />
         </symbol>
-        <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.5 6.5a5 5 0 0 0-7.1 0L12 7.9l-1.4-1.4a5 5 0 0 0-7.1 7.1L12 21l8.5-7.4a5 5 0 0 0 0-7.1z" /></symbol>
-        <symbol id="i-more-horizontal" viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="18" cy="12" r="1.5" /></symbol>
-
-        <symbol id="i-list-music" viewBox="0 0 24 24">
-            <path d="M3 6h12" />
-            <path d="M3 10h12" />
-            <path d="M3 14h7" />
-            <circle cx="18" cy="16" r="3" />
-            <path d="M21 12v7" />
-        </symbol>
-        <symbol id="i-mic-2" viewBox="0 0 24 24">
-            <rect x="9" y="2" width="6" height="11" rx="3" />
-            <path d="M5 10v2a7 7 0 0 0 14 0v-2" />
-            <path d="M12 19v3" />
-        </symbol>
-        <symbol id="i-image" viewBox="0 0 24 24">
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <circle cx="8.5" cy="8.5" r="2" />
-            <path d="M21 15l-5-5L5 21" />
-        </symbol>
-        <symbol id="i-volume-2" viewBox="0 0 24 24">
-            <path d="M11 5L6 9H3v6h3l5 4z" />
-            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-        </symbol>
     </svg>
 
     <div class="alb-root">
@@ -453,153 +431,69 @@
             <div></div>
         </div>
 
-        <!-- Main -->
         <div class="alb-main">
+            <!-- Sidebar = Queue -->
             <aside class="panel sidebar">
-                <h3>Your Library</h3>
-                <div class="playlist-list">
-                    <div class="pl-item">
-                        <img class="pl-cover" src="/assets/playlist-demo.jpg" alt="">
-                        <div><div style="font-weight:700">Pastel Focus</div><div class="tmeta">25 tracks</div></div>
-                    </div>
-                    <div class="pl-item">
-                        <img class="pl-cover" src="/assets/playlist-demo.jpg" alt="">
-                        <div><div style="font-weight:700">Deep Work</div><div class="tmeta">42 tracks</div></div>
-                    </div>
-                    <div class="pl-item">
-                        <img class="pl-cover" src="/assets/playlist-demo.jpg" alt="">
-                        <div><div style="font-weight:700">Chill Hits</div><div class="tmeta">64 tracks</div></div>
-                    </div>
-                    <div class="pl-item">
-                        <img class="pl-cover" src="/assets/playlist-demo.jpg" alt="">
-                        <div><div style="font-weight:700">Daily Mix 1</div><div class="tmeta">50 tracks</div></div>
-                    </div>
+                <h3>Queue</h3>
+                <div class="playlist-list" id="queue-sidebar">
+                    <!-- JS render queue -->
                 </div>
             </aside>
+
+            <!-- Center = Queue detail -->
             <section class="panel center">
                 <div class="hero">
-                    <img class="art" src="/assets/playlist-demo.jpg" alt="">
+                    <img class="art" id="queue-cover" src="/assets/playlist-demo.jpg" alt="">
                     <div>
-                        <div class="title">Pastel Focus</div>
-                        <div class="sub">Sleptify • 2025 • 25 songs, 1 hr 35 min</div>
+                        <div class="title" id="queue-title">Local Queue</div>
+                        <div class="sub" id="queue-sub">0 songs</div>
                         <div style="margin-top:12px;display:flex;gap:8px;">
-                            <button class="chip"><svg class="ico"><use href="#i-play" /></svg><span>Play</span></button>
-                            <button class="chip"><svg class="ico"><use href="#i-heart" /></svg><span>Like</span></button>
-                            <button class="chip"><svg class="ico"><use href="#i-more-horizontal" /></svg><span>More</span></button>
+                            <button class="chip" id="alb-hero-play">
+                                <svg class="ico"><use href="#i-play" /></svg><span>Play</span>
+                            </button>
                         </div>
                     </div>
                     <div></div>
                 </div>
 
                 <div class="content-scroll">
-                    <div class="thead"><div>#</div><div>Title</div><div>Album</div><div>Added</div><div>Time</div></div>
-                    <div class="trow">
-                        <div>1</div>
-                        <div class="tcell-title">
-                            <img class="tcover" src="/assets/playlist-demo.jpg" alt="">
-                            <div>
-                                <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Into the Blue</div>
-                                <div class="tmeta">Sleptify Artist</div>
-                            </div>
-                        </div>
-                        <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Pastel Focus</div>
-                        <div>Oct 10, 2025</div>
-                        <div>3:42</div>
+                    <div class="thead">
+                        <div>#</div><div>Title</div><div>Album</div><div>Added</div><div>Time</div>
                     </div>
-
-                    <div class="trow">
-                        <div>2</div>
-                        <div class="tcell-title">
-                            <img class="tcover" src="/assets/playlist-demo.jpg" alt="">
-                            <div>
-                                <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Midnight Glow</div>
-                                <div class="tmeta">Sleptify Artist</div>
-                            </div>
-                        </div>
-                        <div>Pastel Focus</div>
-                        <div>Oct 10, 2025</div>
-                        <div>4:15</div>
-                    </div>
-
-                    <div class="trow">
-                        <div>3</div>
-                        <div class="tcell-title">
-                            <img class="tcover" src="/assets/playlist-demo.jpg" alt="">
-                            <div>
-                                <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Soft Pulse</div>
-                                <div class="tmeta">Sleptify Artist</div>
-                            </div>
-                        </div>
-                        <div>Pastel Focus</div>
-                        <div>Oct 10, 2025</div>
-                        <div>3:08</div>
-                    </div>
-
-                    <div class="trow">
-                        <div>4</div>
-                        <div class="tcell-title">
-                            <img class="tcover" src="/assets/playlist-demo.jpg" alt="">
-                            <div>
-                                <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Drifted Lights</div>
-                                <div class="tmeta">Sleptify Artist</div>
-                            </div>
-                        </div>
-                        <div>Pastel Focus</div>
-                        <div>Oct 10, 2025</div>
-                        <div>4:24</div>
-                    </div>
-
-                    <div class="trow">
-                        <div>5</div>
-                        <div class="tcell-title">
-                            <img class="tcover" src="/assets/playlist-demo.jpg" alt="">
-                            <div>
-                                <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Daydream Horizon</div>
-                                <div class="tmeta">Sleptify Artist</div>
-                            </div>
-                        </div>
-                        <div>Pastel Focus</div>
-                        <div>Oct 10, 2025</div>
-                        <div>3:56</div>
-                    </div>
-
+                    <div id="queue-rows"></div>
                 </div>
             </section>
         </div>
+
+        <!-- Footer Player dùng LocalAudioService -->
         <footer class="player alb-player" aria-label="Player">
-            <footer class="player" aria-label="Player">
-                <div class="now">
-                    <img class="cover" src="/assets/playlist-demo.jpg" alt="">
-                    <div style="min-width:0">
-                        <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Not playing</div>
-                        <div style="color:#cbd5e1;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
-                    </div>
+            <div class="now">
+                <img class="cover" id="alb-now-cover" src="/assets/playlist-demo.jpg" alt="">
+                <div style="min-width:0">
+                    <div id="alb-now-title" style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Not playing</div>
+                    <div id="alb-now-artist" style="color:#cbd5e1;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
                 </div>
+            </div>
 
-                <div>
-                    <div class="ctr-btns">
-                        <button class="btn" title="Shuffle"><svg class="ico"><use href="#i-shuffle" /></svg></button>
-                        <button class="btn" title="Previous"><svg class="ico"><use href="#i-skip-back" /></svg></button>
-                        <button class="btn" title="Play"><svg class="ico"><use href="#i-play" /></svg></button>
-                        <button class="btn" title="Next"><svg class="ico"><use href="#i-skip-forward" /></svg></button>
-                        <button class="btn" title="Repeat"><svg class="ico"><use href="#i-repeat" /></svg></button>
-                    </div>
-                    <div class="seek-wrap" style="margin-top:8px;">
-                        <div>0:00</div>
-                        <input type="range" min="0" max="100" value="0" class="range" />
-                        <div>0:00</div>
-                    </div>
+            <div>
+                <div class="ctr-btns">
+                    <button class="btn" title="Previous" id="alb-prev-btn"><svg class="ico"><use href="#i-skip-back" /></svg></button>
+                    <button class="btn" title="Play/Pause" id="alb-play-btn"><svg class="ico"><use href="#i-play" /></svg></button>
+                    <button class="btn" title="Next" id="alb-next-btn"><svg class="ico"><use href="#i-skip-forward" /></svg></button>
+                    <button class="btn" title="Repeat" id="alb-repeat-btn"><svg class="ico"><use href="#i-repeat" /></svg></button>
                 </div>
+                <div class="seek-wrap" style="margin-top:8px;">
+                    <div id="alb-cur">0:00</div>
+                    <input id="alb-seek" type="range" min="0" max="100" value="0" class="range" />
+                    <div id="alb-dur">0:00</div>
+                </div>
+            </div>
 
-                <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;">
-                    <button class="navbtn" title="Queue"><svg class="ico"><use href="#i-list-music" /></svg></button>
-                    <button class="navbtn" title="Lyrics"><svg class="ico"><use href="#i-mic-2" /></svg></button>
-                    <button class="navbtn" title="Fullscreen Artwork"><svg class="ico"><use href="#i-image" /></svg></button>
-                    <div style="display:grid;grid-template-columns:20px 1fr;gap:8px;align-items:center;width:180px;">
-                        <svg class="ico"><use href="#i-volume-2" /></svg>
-                        <input type="range" min="0" max="100" value="85" class="range" aria-label="Volume" />
-                    </div>
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;">
+                <div style="display:grid;grid-template-columns:1fr;gap:8px;align-items:center;width:180px;">
+                    <input id="alb-volume" type="range" min="0" max="1" step="0.01" value="1" class="range" aria-label="Volume" />
                 </div>
-            </footer>
+            </div>
+        </footer>
     </div>
 </section>
