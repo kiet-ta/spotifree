@@ -95,9 +95,15 @@ Distributed under the MIT License. See `LICENSE` file for more information.
 ## Author
 
 [kiet-ta](https://github.com/kiet-ta)
+
 [Phan Vy](https://github.com/phanvy05032005)
+
 [Mai Nhat Minh](https://github.com/kemphomaithomphuc)
+
 [TuCore](https://github.com/TuCore)
+
 [Hoàng Quốc Bảo](https://github.com/qbao0111)
+
 [Đỗ Nhất Huy](https://github.com/ivorlee22)
+
 [Nguyễn Bảo Nguyên](https://github.com/nbn1784)
