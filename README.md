@@ -77,7 +77,7 @@ To get a local copy up and running, follow these simple steps.
 
 1.  **Clone the repository:**
     ```sh
-    git clone https://github.com/your-username/spotifree.git
+    git clone https://github.com/kiet-ta/spotifree.git
     ```
 2.  **Build and Run the Project:**
       * Open the `spotifree.sln` file in Visual Studio 2022.
@@ -94,4 +94,10 @@ Distributed under the MIT License. See `LICENSE` file for more information.
 
 ## Author
 
-*(Update Later.)*
+[kiet-ta](https://github.com/kiet-ta)
+[Phan Vy](https://github.com/phanvy05032005)
+[Mai Nhat Minh](https://github.com/kemphomaithomphuc)
+[TuCore](https://github.com/TuCore)
+[Hoàng Quốc Bảo](https://github.com/qbao0111)
+[Đỗ Nhất Huy](https://github.com/ivorlee22)
+[Nguyễn Bảo Nguyên](https://github.com/nbn1784)
