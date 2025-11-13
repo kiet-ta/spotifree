@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="app.ico" />
     <None Remove="Views\js\mini.js" />
     <None Remove="Views\mini.html" />
   </ItemGroup>
@@ -24,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.10" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3595.46" />
@@ -41,6 +43,12 @@
 
   <ItemGroup>
     <Folder Include="Library\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="app.ico">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>

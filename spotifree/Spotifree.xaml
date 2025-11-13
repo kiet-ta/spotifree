@@ -6,7 +6,9 @@
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         xmlns:local="clr-namespace:spotifree"
         mc:Ignorable="d"
-        Title="Spotifree" Height="450" Width="800">
+        Icon="app.ico"
+        Title="Spotifree" Height="500" Width="800" WindowStartupLocation="CenterScreen"
+        >
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition x:Name="LibraryColumn" Width="0"/>
