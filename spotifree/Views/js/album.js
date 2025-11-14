@@ -57,38 +57,28 @@
         }
     }
 
-    function sendPlayerState(force = false) {
-        const now = Date.now();
-        if (!force && now - lastStateSentAt < 200) return; // throttle ~200ms
-        lastStateSentAt = now;
+    function sendPlayerState() {
+        if (!window.chrome || !window.chrome.webview) return;
+        if (currentIndex < 0 || currentIndex >= queue.length) return;
 
-        const song =
-            currentIndex >= 0 && currentIndex < queue.length
-                ? queue[currentIndex]
-                : null;
+        const song = queue[currentIndex];
 
-        postToHost({
+        let cover = song && (song.CoverArtUrl || song.coverArtUrl) || null;
+
+        // Nếu là blob: => mini không dùng được, đổi sang ảnh default
+        if (cover && cover.startsWith("blob:")) {
+            cover = "/assets/playlist-demo.jpg";
+        }
+
+        window.chrome.webview.postMessage({
             type: "playerState",
-            payload: {
-                page: "album",
-                isPlaying: !!isPlaying,
-                isRepeat: !!isRepeat,
-                position: currentPosition || 0,
-                duration: currentDuration || 0,
-                currentIndex,
-                queueLength: queue.length,
-                song: song
-                    ? {
-                        Id: song.Id,
-                        Title: song.Title || song.name || "Unknown Title",
-                        Artist: song.Artist || song.artist || "Unknown Artist",
-                        Album: song.Album || song.album || "Local File",
-                        CoverArtUrl: song.CoverArtUrl || song.coverArtUrl || "/assets/playlist-demo.jpg",
-                        FilePath: song.FilePath || null,
-                        FileUrl: song.FileUrl || null
-                    }
-                    : null
-            }
+            title: song?.Title || song?.name || "Unknown Title",
+            artist: song?.Artist || song?.artist || "Unknown Artist",
+            cover,                          // <<------ đã xử lý safe cho mini
+            currentTime: currentPosition,
+            duration: currentDuration,
+            isPlaying,
+            isRepeat
         });
     }
     function fmtTime(sec) {
@@ -795,48 +785,80 @@
 
         // LocalAudioService -> chỉ dùng khi đang chơi bằng WPF
         if (window.chrome && window.chrome.webview) {
-            window.chrome.webview.addEventListener('message', (event) => {
-                // Nếu đang dùng HTML audio (Add Local) thì bỏ qua message từ WPF
-                if (usingHtmlAudio) return;
+            window.chrome.webview.addEventListener("message", (event) => {
+                let msg = event.data;
 
-                let data;
-                try {
-                    data = JSON.parse(event.data);
-                } catch {
-                    return;
+                // Có thể là string JSON hoặc object
+                if (typeof msg === "string") {
+                    try { msg = JSON.parse(msg); } catch { return; }
+                }
+                if (!msg) return;
+
+                // === 1) Command từ Mini / Spotifree ===
+                if (!msg.source) { // không có source => mình dùng cho mini
+                    switch (msg.type) {
+                        case "seek": {
+                            const sec = msg.seconds || 0;
+                            if (usingHtmlAudio) {
+                                const audio = ensureHtmlAudio();
+                                audio.currentTime = sec;
+                            } else if (WPFPlayer) {
+                                try { WPFPlayer.seek(sec); } catch (e) { console.error(e); }
+                            }
+                            break;
+                        }
+                        case "playPause":
+                            togglePlayPause();
+                            break;
+                        case "prev":
+                            playPrev();
+                            break;
+                        case "next":
+                            playNext();
+                            break;
+                        case "toggleRepeat":
+                            isRepeat = !isRepeat;
+                            if (repeatBtn) repeatBtn.classList.toggle("active", isRepeat);
+                            break;
+                    }
+                    return; // đã xử lý xong command mini
                 }
 
-                if (!data || data.source !== 'LocalAudioService') return;
+                // === 2) Message từ LocalAudioService ===
+                if (msg.source === "LocalAudioService") {
+                    // Nếu đang dùng HTML audio (Add Local) thì bỏ qua message từ WPF
+                    if (usingHtmlAudio) return;
 
-                switch (data.type) {
-                    case 'position':
-                        updateSeekUI(data.payload.position, data.payload.duration);
-                        break;
-                    case 'loaded':
-                        updateSeekUI(0, data.payload.duration);
-                        break;
-                    case 'playing':
-                        isPlaying = true;
-                        updatePlayButton();
-                        break;
-                    case 'paused':
-                        isPlaying = false;
-                        updatePlayButton();
-                        break;
-                    case 'stopped':
-                        isPlaying = false;
-                        updateSeekUI(0, currentDuration);
-                        updatePlayButton();
-                        break;
-                    case 'ended':
-                        isPlaying = false;
-                        updatePlayButton();
-                        handleEnded();
-                        break;
-                    case 'error':
-                        console.error("Lỗi từ LocalAudioService:", data.payload.message);
-                        alert("Lỗi phát nhạc: " + data.payload.message);
-                        break;
+                    switch (msg.type) {
+                        case "position":
+                            updateSeekUI(msg.payload.position, msg.payload.duration);
+                            break;
+                        case "loaded":
+                            updateSeekUI(0, msg.payload.duration);
+                            break;
+                        case "playing":
+                            isPlaying = true;
+                            updatePlayButton();
+                            break;
+                        case "paused":
+                            isPlaying = false;
+                            updatePlayButton();
+                            break;
+                        case "stopped":
+                            isPlaying = false;
+                            updateSeekUI(0, currentDuration);
+                            updatePlayButton();
+                            break;
+                        case "ended":
+                            isPlaying = false;
+                            updatePlayButton();
+                            handleEnded();
+                            break;
+                        case "error":
+                            console.error("Lỗi từ LocalAudioService:", msg.payload.message);
+                            alert("Lỗi phát nhạc: " + msg.payload.message);
+                            break;
+                    }
                 }
             });
         }
