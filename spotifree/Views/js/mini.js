@@ -36,12 +36,14 @@
     function send(msg) {
         try {
             if (window.chrome && window.chrome.webview) {
-                window.chrome.webview.postMessage(JSON.stringify(msg));
+                // GỬI OBJECT
+                window.chrome.webview.postMessage(msg);
             }
         } catch (e) {
             console.error("postMessage error", e);
         }
     }
+
 
     function updatePlayButton() {
         const use = playBtn?.querySelector("use");
@@ -127,47 +129,75 @@
         });
     }
 
-    // Drag window bằng cách nhấn giữ vùng root
+    // Drag toàn bộ card để di chuyển window
     if (dragArea) {
         dragArea.addEventListener("mousedown", (e) => {
-            // tránh khi click vào slider/nút
             const tag = (e.target && e.target.tagName || "").toLowerCase();
             if (tag === "button" || tag === "input") return;
             send({ type: "dragWindow" });
         });
     }
 
-    // ===== Nhận state từ WPF (forward từ app chính) =====
+    // ===== Nhận state từ Spotifree (forward từ album.js) =====
     if (window.chrome && window.chrome.webview) {
         window.chrome.webview.addEventListener("message", (event) => {
-            let data;
-            try {
-                data = JSON.parse(event.data);
-            } catch {
-                return;
+            let data = event.data;
+
+            // Nếu C# sau này dùng PostWebMessageAsString thì vẫn chơi được
+            if (typeof data === "string") {
+                try {
+                    data = JSON.parse(data);
+                } catch (err) {
+                    console.error("[Mini] JSON.parse failed:", err, "raw:", event.data);
+                    return;
+                }
             }
 
-            if (!data) return;
+            console.log("[Mini] got message:", data);
+
+            if (!data || !data.type) return;
 
             switch (data.type) {
-                case "state": {
-                    const p = data.payload || {};
-                    if (p.title && nowTitle) nowTitle.textContent = p.title;
-                    if (p.artist && nowArtist) nowArtist.textContent = p.artist;
-                    if (p.coverUrl && nowCover) nowCover.src = p.coverUrl;
+                case "playerState": {
+                    const hasPayload = data.payload && typeof data.payload === "object";
+                    const p = hasPayload ? data.payload : {};
+                    const song = hasPayload ? p.song : null;
 
-                    isPlaying = !!p.isPlaying;
-                    isRepeat = !!p.isRepeat;
+                    const title =
+                        (song && (song.Title || song.name)) ||
+                        data.title ||
+                        "Unknown Title";
+
+                    const artist =
+                        (song && (song.Artist || song.artist)) ||
+                        data.artist ||
+                        "Unknown Artist";
+
+                    const coverUrl =
+                        (song && (song.CoverArtUrl || song.coverArtUrl)) ||
+                        data.cover ||
+                        "/assets/playlist-demo.jpg";
+
+                    const position = hasPayload ? (p.position || 0) : (data.currentTime || 0);
+                    const duration = hasPayload ? (p.duration || 0) : (data.duration || 0);
+
+                    if (nowTitle) nowTitle.textContent = title;
+                    if (nowArtist) nowArtist.textContent = artist;
+                    if (nowCover) nowCover.src = coverUrl;
+
+                    isPlaying = hasPayload ? !!p.isPlaying : !!data.isPlaying;
+                    isRepeat = hasPayload ? !!p.isRepeat : !!data.isRepeat;
 
                     updatePlayButton();
                     updateRepeatButton();
-                    updateSeekUI(p.position || 0, p.duration || 0);
+                    updateSeekUI(position, duration);
                     break;
                 }
             }
         });
     }
 
-    // Báo cho WPF biết mini đã ready để WPF push state & queue
+    // Báo C# biết mini đã sẵn sàng
     send({ type: "miniReady" });
+
 })();

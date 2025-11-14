@@ -604,34 +604,32 @@ public partial class Spotifree : Window
                 else if (root.TryGetProperty("type", out var typeProperty))
                 {
                     string type = typeProperty.GetString();
-                    if (type == "requestSongData")
-                    {
-                        int index = root.GetProperty("index").GetInt32();
-                        string playlistId = root.GetProperty("playlistId").GetString();
 
-                        // (Check if playlistId == "wpf_library"...)
-                        if (index >= 0 && index < _mainViewModel.Songs.Count)
-                        {
-                            Song songToPlay = _mainViewModel.Songs[index];
-                            // Gửi NGƯỢC LẠI data của CHỈ 1 BÀI HÁT cho JS
-                            await JsNotifyAsync("songData", songToPlay);
-                        }
-                    }
                     switch (type)
                     {
                         case "openMini":
                             {
-                                OpenMiniAsync();
-                                if (!string.IsNullOrEmpty(_lastPlayerStateRawJson))
-                                    _mini?.SendToMiniRaw(_lastPlayerStateRawJson);
+                                Dispatcher.Invoke(() => OpenMiniAsync());
                                 break;
                             }
+
                         case "playerState":
                             {
+                                // Lưu cache + forward sang mini nếu đang mở
                                 _lastPlayerStateRawJson = jsonMessage;
-                                _mini?.SendToMiniRaw(jsonMessage);     // forward sang mini
+                                Dispatcher.Invoke(() =>
+                                {
+                                    _mini?.SendToMiniRaw(jsonMessage);
+                                });
                                 break;
                             }
+
+                        case "seek":
+                            {
+                                // nếu cần xử lý ngược lại
+                                break;
+                            }
+
                         case "toggleLibrary":
                             {
                                 Application.Current.Dispatcher.Invoke(() =>
@@ -641,10 +639,6 @@ public partial class Spotifree : Window
                                     if (this.FindName("LibraryColumn") is ColumnDefinition col)
                                     {
                                         col.Width = isLibraryVisible ? new GridLength(250) : new GridLength(0);
-                                    }
-                                    else
-                                    {
-                                        Debug.WriteLine("[C#] WARN: 'LibraryColumn' not found in Spotifree.xaml. 'toggleLibrary' action had no effect.");
                                     }
                                 });
                                 break;
@@ -697,9 +691,10 @@ public partial class Spotifree : Window
         }
 
         _mini = new MiniWeb();
+
+        // các event cũ
         _mini.SeekRequested += sec =>
         {
-            // gửi lệnh seek về web chính
             SendToMainPage(new { type = "seek", seconds = sec });
         };
         _mini.CloseRequested += () =>
@@ -708,7 +703,8 @@ public partial class Spotifree : Window
             this.WindowState = WindowState.Normal;
             this.Show();
         };
-        _mini.OnSeek += (sec) =>
+
+        _mini.OnSeek += sec =>
         {
             SendToMainPage(new { type = "seek", seconds = sec });
         };
@@ -720,17 +716,51 @@ public partial class Spotifree : Window
             this.Activate();
         };
 
+        // ====== mới: map nút control ở Mini sang album.js ======
+        _mini.OnPlayPause += () =>
+        {
+            SendToMainPage(new { type = "playPause" });
+        };
+        _mini.OnPrev += () =>
+        {
+            SendToMainPage(new { type = "prev" });
+        };
+        _mini.OnNext += () =>
+        {
+            SendToMainPage(new { type = "next" });
+        };
+        _mini.OnToggleRepeat += () =>
+        {
+            SendToMainPage(new { type = "toggleRepeat" });
+        };
+
+        // khi mini báo đã ready, đẩy state cache sang
+        _mini.OnMiniReady += () =>
+        {
+            if (!string.IsNullOrEmpty(_lastPlayerStateRawJson))
+            {
+                _mini.SendToMiniRaw(_lastPlayerStateRawJson);
+            }
+        };
+
         await _mini.InitAsync(_viewsDir);
         _mini.Show();
         _mini.Activate();
         this.WindowState = WindowState.Minimized;
     }
+
     private void SendToMainPage(object payload)
     {
-        if (webView?.CoreWebView2 == null) return;
-        var json = JsonSerializer.Serialize(payload);
-        webView.CoreWebView2.PostWebMessageAsJson(json);
+        if (webView == null) return;
+
+        Dispatcher.Invoke(() =>
+        {
+            if (webView.CoreWebView2 == null) return;
+            var json = JsonSerializer.Serialize(payload);
+            webView.CoreWebView2.PostWebMessageAsJson(json);
+        });
     }
+
     private async Task HandleAddLocalMusicAsync()
     {
         Debug.WriteLine("[C#] Received local.addMusic request.");

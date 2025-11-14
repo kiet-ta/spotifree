@@ -1,34 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using Microsoft.Web.WebView2.Core;
 
 namespace spotifree
 {
-    /// <summary>
-    /// Interaction logic for MiniWeb.xaml
-    /// </summary>
     public partial class MiniWeb : Window
     {
         public event Action<double>? SeekRequested;
         public event Action? CloseRequested;
+
+        // callback ngược về Spotifree
         public event Action<double>? OnSeek;
         public event Action? OnBackToMain;
         public event Action? OnPlayPause;
         public event Action? OnPrev;
         public event Action? OnNext;
         public event Action? OnToggleRepeat;
+        public event Action? OnMiniReady; // <- cái này đang báo lỗi, giờ khai báo luôn
+
         public MiniWeb() => InitializeComponent();
 
         public async Task InitAsync(string viewsPath)
@@ -40,20 +31,28 @@ namespace spotifree
                 "spotifree.local", viewsPath, CoreWebView2HostResourceAccessKind.Allow);
 
             core.Settings.IsWebMessageEnabled = true;
-            core.WebMessageReceived += Core_WebMessageReceived;
+
+            // NHẬN MESSAGE TỪ mini.html
             miniWeb.CoreWebView2.WebMessageReceived += (s, e) =>
             {
                 try
                 {
-                    var raw = e.TryGetWebMessageAsString();
-                    using var doc = JsonDocument.Parse(raw ?? "{}");
+                    // JS đang postMessage(object) nên đọc bằng WebMessageAsJson
+                    var raw = e.WebMessageAsJson;
+                    using var doc = JsonDocument.Parse(raw);
                     var root = doc.RootElement;
-                    var type = root.TryGetProperty("type", out var t) ? t.GetString() : null;
+                    if (root.ValueKind != JsonValueKind.Object) return;
+
+                    var type = root.TryGetProperty("type", out var tEl) ? tEl.GetString() : null;
                     switch (type)
                     {
                         case "dragWindow":
-                            Dispatcher.Invoke(() => { try { DragMove(); } catch { } });
+                            Dispatcher.Invoke(() =>
+                            {
+                                try { DragMove(); } catch { }
+                            });
                             break;
+
                         case "close":
                             Dispatcher.Invoke(() =>
                             {
@@ -61,65 +60,51 @@ namespace spotifree
                                 Close();
                             });
                             break;
+
                         case "seek":
                             if (root.TryGetProperty("seconds", out var secEl) &&
                                 secEl.TryGetDouble(out var sec))
                             {
-                                // chuyển tiếp về spotifree → trang chính
-                                OnSeek?.Invoke(sec);
-                                SeekRequested?.Invoke(sec);
+                                Dispatcher.Invoke(() =>
+                                {
+                                    OnSeek?.Invoke(sec);
+                                    SeekRequested?.Invoke(sec);
+                                });
                             }
                             break;
+
                         case "backToMain":
-                            OnBackToMain?.Invoke();
+                            Dispatcher.Invoke(() => OnBackToMain?.Invoke());
                             break;
 
-                        // ===== mới thêm =====
                         case "playPause":
-                            OnPlayPause?.Invoke();
+                            Dispatcher.Invoke(() => OnPlayPause?.Invoke());
                             break;
+
                         case "prev":
-                            OnPrev?.Invoke();
+                            Dispatcher.Invoke(() => OnPrev?.Invoke());
                             break;
+
                         case "next":
-                            OnNext?.Invoke();
+                            Dispatcher.Invoke(() => OnNext?.Invoke());
                             break;
+
                         case "toggleRepeat":
-                            OnToggleRepeat?.Invoke();
+                            Dispatcher.Invoke(() => OnToggleRepeat?.Invoke());
                             break;
+
                         case "miniReady":
-                            // MainWindow có thể lắng nghe event này để push state/queue hiện tại
-                            // ví dụ: MiniReady?.Invoke();
+                            Dispatcher.Invoke(() => OnMiniReady?.Invoke());
                             break;
                     }
                 }
-                catch { /* ignore */ }
+                catch
+                {
+                    // ignore
+                }
             };
 
             core.Navigate("https://spotifree.local/mini.html");
-
-        }
-
-        private void Core_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
-        {
-            using var doc = JsonDocument.Parse(e.WebMessageAsJson);
-            var root = doc.RootElement;
-            var type = root.GetProperty("type").GetString();
-
-            switch (type)
-            {
-                case "seek":
-                    if (root.TryGetProperty("seconds", out var s) && s.TryGetDouble(out var sec))
-                        SeekRequested?.Invoke(sec);
-                    break;
-                case "close":
-                    CloseRequested?.Invoke();
-                    this.Close();
-                    break;
-                case "dragWindow":
-                    try { DragMove(); } catch { /* ignore */ }
-                    break;
-            }
         }
 
         public void SendToMini(object payload)
@@ -132,6 +117,7 @@ namespace spotifree
         public void SendToMiniRaw(string json)
         {
             if (miniWeb.CoreWebView2 == null) return;
+            System.Diagnostics.Debug.WriteLine("[MiniWeb] SendToMiniRaw: " + json);
             miniWeb.CoreWebView2.PostWebMessageAsJson(json);
         }
 
@@ -139,6 +125,7 @@ namespace spotifree
         {
             try { DragMove(); } catch { /* ignore */ }
         }
+
         private void Close_Click(object sender, RoutedEventArgs e) => Close();
     }
 }

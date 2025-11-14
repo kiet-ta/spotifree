@@ -32,9 +32,28 @@
     function postToHost(msg) {
         if (!window.chrome || !window.chrome.webview) return;
         try {
-            window.chrome.webview.postMessage(JSON.stringify(msg));
+            // GỬI THẲNG OBJECT – KHÔNG stringify
+            window.chrome.webview.postMessage(msg);
         } catch (e) {
             console.warn("postToHost error", e);
+        }
+    }
+
+    function seekTo(sec) {
+        const s = Number(sec);
+        if (!Number.isFinite(s)) return;
+
+        if (seekSlider) seekSlider.value = s;
+
+        if (usingHtmlAudio) {
+            const audio = ensureHtmlAudio();
+            audio.currentTime = s;
+        } else if (WPFPlayer) {
+            try {
+                WPFPlayer.seek(s);
+            } catch (e) {
+                console.error("Error seek", e);
+            }
         }
     }
 
@@ -236,6 +255,7 @@
             } else {
                 isPlaying = false;
                 updatePlayButton();
+                sendPlayerState(true);
             }
         }
     }
@@ -578,6 +598,7 @@
         if (currentIndex === -1 && queue.length > 0) {
             setNowUI(queue[0]);
         }
+        sendPlayerState(true);
     }
 
     // ===== UI render =====
@@ -703,8 +724,10 @@
             repeatBtn.addEventListener("click", () => {
                 isRepeat = !isRepeat;
                 repeatBtn.classList.toggle("active", isRepeat);
+                sendPlayerState(true);
             });
         }
+
 
         if (seekSlider) {
             seekSlider.addEventListener("input", () => {
@@ -714,6 +737,8 @@
                 seekDragging = false;
                 const sec = parseFloat(seekSlider.value);
                 if (isNaN(sec)) return;
+
+                seekTo(sec);
 
                 if (usingHtmlAudio) {
                     const audio = ensureHtmlAudio();
@@ -845,6 +870,51 @@
         renderSidebarQueue(queue);
         updateSeekUI(0, 0);
         updatePlayButton();
+        sendPlayerState(true);
+        updatePlayButton();
         wireEvents();
+        // Nhận lệnh điều khiển từ WPF (Spotifree) – gửi từ Mini
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.addEventListener("message", (event) => {
+                let data;
+                try {
+                    data = JSON.parse(event.data);
+                } catch {
+                    return;
+                }
+                if (!data || !data.type) return;
+
+                switch (data.type) {
+                    case "seek":
+                        if (typeof data.seconds === "number") {
+                            window.albumSeekTo(data.seconds);
+                        }
+                        break;
+                    case "playPause":
+                        window.albumTogglePlayPause && window.albumTogglePlayPause();
+                        break;
+                    case "prev":
+                        window.albumPlayPrev && window.albumPlayPrev();
+                        break;
+                    case "next":
+                        window.albumPlayNext && window.albumPlayNext();
+                        break;
+                    case "toggleRepeat":
+                        window.albumToggleRepeat && window.albumToggleRepeat();
+                        break;
+                }
+            });
+        }
+
     };
+    window.albumTogglePlayPause = togglePlayPause;
+    window.albumPlayPrev = playPrev;
+    window.albumPlayNext = playNext;
+    window.albumToggleRepeat = function () {
+        isRepeat = !isRepeat;
+        if (repeatBtn) repeatBtn.classList.toggle("active", isRepeat);
+        sendPlayerState(true);
+    };
+    window.albumSeekTo = seekTo;
+
 })();
