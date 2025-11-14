@@ -360,20 +360,4 @@ function handleLibraryPlay(songData) {
     }
 }
 
-window.handleLocalMusicAdded = (data) => {
-    if (data && data.length > 0) {
-        console.log("[JS] Files added from C#. Sending to C# to save persistence...", data);
-        alert(`Added ${data.length} local files! Check console for paths.`);
-
-        if (window.chrome && window.chrome.webview) {
-            window.chrome.webview.postMessage({
-                action: 'local.addAndSaveTracks',
-                filePaths: data
-            });
-        }
-    } else {
-        console.log("[JS] User cancelled adding local files.");
-    }
-};
-
 window.initLibrary = initLibrary;

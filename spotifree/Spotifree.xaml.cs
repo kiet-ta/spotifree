@@ -769,27 +769,77 @@ public partial class Spotifree : Window
         {
             Title = "Select Music Files",
             Multiselect = true, // Cho phép chọn nhiều file
-            Filter = "Music Files|*.mp3;*.wav;*.flac;*.m4a|All Files|*.*"
+            Filter = "Music Files|*.mp3;*.wav;*.flac;*.m4a;*.wma;*.aac;*.ogg|All Files|*.*"
         };
 
-        // ShowDialog() cần chạy trên UI thread, nhưng HandleWebMessage
-        // có thể đang ở background. Dùng Dispatcher để đảm bảo an toàn.
+        // 1. Mở File Dialog trên UI Thread
         bool? result = await Application.Current.Dispatcher.InvokeAsync(() => dlg.ShowDialog());
 
         if (result == true)
         {
-            // Lấy danh sách các đường dẫn file đã chọn
-            string[] filePaths = dlg.FileNames;
-            Debug.WriteLine($"[C#] User selected {filePaths.Length} files.");
+            // 2. Lấy danh sách đường dẫn file GỐC
+            string[] originalFilePaths = dlg.FileNames;
+            Debug.WriteLine($"[C#] User selected {originalFilePaths.Length} files.");
 
-            // Gửi mảng đường dẫn file về lại cho JS
-            // (JS sẽ nhận được một object: { action: "local.musicAdded", data: ["C:\\path1.mp3", ...] })
-            await JsNotifyAsync("local.musicAdded", filePaths);
+            // Lấy thư mục Library của ứng dụng
+            var libraryDir = _localMusicService.GetLibraryDirectory();
+            if (string.IsNullOrEmpty(libraryDir) || !Directory.Exists(libraryDir))
+            {
+                Debug.WriteLine($"[C#] LỖI: Thư mục Library không tồn tại: {libraryDir}");
+                await JsNotifyAsync("error", new { message = "Lỗi: Thư mục Library không được cấu hình hoặc không tồn tại." });
+                return;
+            }
+
+            var newTracksForUI = new List<object>();
+
+            foreach (var originalPath in originalFilePaths)
+            {
+                try
+                {
+                    // 3. TẠO ĐƯỜNG DẪN ĐÍCH (Destination Path)
+                    string fileName = Path.GetFileName(originalPath);
+                    string destinationPath = Path.Combine(libraryDir, fileName);
+
+                    // 4. SAO CHÉP FILE vào thư mục Library
+                    File.Copy(originalPath, destinationPath, true); // true = ghi đè nếu file đã tồn tại
+
+                    Debug.WriteLine($"[C#] Đã copy file tới: {destinationPath}");
+
+                    // 5. Thêm file MỚI (đã copy) vào cache của service
+                    var newTrack = await _localMusicService.AddToLibraryAsync(destinationPath);
+
+                    if (newTrack != null)
+                    {
+                        // Chuẩn bị dữ liệu để gửi về JS (theo format của library.js)
+                        newTracksForUI.Add(new
+                        {
+                            id = newTrack.Id ?? newTrack.FilePath,
+                            name = newTrack.Title, // 'name' viết thường
+                            Title = newTrack.Title,
+                            Artist = newTrack.Artist,
+                            FilePath = newTrack.FilePath,
+                            type = "Local Music",
+                            CoverArtUrl = "Unknow" // Chưa hỗ trợ metadata ảnh bìa ở bước này
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[C#] Lỗi khi copy file {originalPath}: {ex.Message}");
+                    // Báo lỗi cho file này nhưng vẫn tiếp tục xử lý các file khác
+                    await JsNotifyAsync("error", new { message = $"Lỗi copy file {Path.GetFileName(originalPath)}: {ex.Message.Replace("'", "\\'")}" });
+                }
+            }
+
+            if (newTracksForUI.Any())
+            {
+                Debug.WriteLine($"[C#] Gửi {newTracksForUI.Count} track mới về JS để append vào UI.");
+                await JsNotifyAsync("appendLibrary", newTracksForUI);
+            }
         }
         else
         {
             Debug.WriteLine("[C#] User cancelled file dialog.");
-            await JsNotifyAsync("local.musicAdded", Array.Empty<string>()); // Gửi mảng rỗng
         }
     }
     private async Task HandleSpotifyLoginAsync()
