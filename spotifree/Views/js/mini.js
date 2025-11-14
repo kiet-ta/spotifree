@@ -174,6 +174,7 @@
                         "Unknown Artist";
 
                     const coverUrl =
+                        p.miniCover ||
                         (song && (song.CoverArtUrl || song.coverArtUrl)) ||
                         data.cover ||
                         "/assets/playlist-demo.jpg";
