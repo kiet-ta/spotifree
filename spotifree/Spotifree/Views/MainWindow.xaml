@@ -1,0 +1,115 @@
+﻿<Window x:Class="Spotifree.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:tb="http://www.hardcodet.net/taskbar"
+        xmlns:vm="clr-namespace:Spotifree.ViewModels"
+        xmlns:views="clr-namespace:Spotifree.Views"
+        mc:Ignorable="d"
+        Title="Spotifree" Height="700" Width="1100" WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:LibraryViewModel}">
+            <views:LibraryView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+            <views:SettingsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AlbumDetailViewModel}">
+            <views:AlbumDetailView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PlayerViewModel}">
+            <views:PlayerBarView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ChatViewModel}">
+            <views:ChatView />
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid Background="{DynamicResource MaterialDesignPaper}">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+ 
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <tb:TaskbarIcon
+            x:Name="SpotifreeIcon"
+            IconSource="/app.ico" ToolTipText="Spotifree - A Local Player"
+            TrayMouseDoubleClick="MyNotifyIcon_TrayMouseDoubleClick">
+
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Show Spotifree" Click="ShowApp_Click" />
+                    <MenuItem Header="Exit" Click="ExitApp_Click" />
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
+
+        <materialDesign:ColorZone Mode="PrimaryMid" Grid.Row="0" Padding="10">
+            <StackPanel Orientation="Horizontal">
+                <RadioButton Content="Library"
+                             Style="{StaticResource MaterialDesignTabRadioButton}"
+                             Margin="5"
+                             Command="{Binding NavigateLibraryCommand}"
+                             IsChecked="{Binding CurrentPageViewModel, Converter={StaticResource IsViewModelConverter}, ConverterParameter={x:Type vm:LibraryViewModel}, Mode=OneWay}" />
+
+                <RadioButton Content="Settings"
+                             Style="{StaticResource MaterialDesignTabRadioButton}"
+                             Margin="5"
+                             Command="{Binding NavigateSettingsCommand}"
+                             IsChecked="{Binding CurrentPageViewModel, Converter={StaticResource IsViewModelConverter}, ConverterParameter={x:Type vm:SettingsViewModel}, Mode=OneWay}" />
+            </StackPanel>
+        </materialDesign:ColorZone>
+
+
+        <ContentControl Grid.Row="1" Content="{Binding CurrentPageViewModel}" />
+
+        <ContentControl Grid.Row="2" Content="{Binding PlayerViewModel}" />
+
+        <Border Grid.Row="1"
+                Width="350"
+                Height="500"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Margin="0,0,20,10"
+                BorderBrush="Black"
+                BorderThickness="1"
+                Effect="{StaticResource MaterialDesignShadowDepth4}">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ChatViewModel.IsVisible}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <ContentControl Content="{Binding ChatViewModel}" />
+        </Border>
+
+        <Button Grid.Row="1"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Margin="0,0,25,20"
+                Panel.ZIndex="100"
+                Command="{Binding ChatViewModel.ToggleVisibilityCommand}">
+            <materialDesign:PackIcon Kind="Chat" Height="24" Width="24" />
+
+            <Button.Style>
+                <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignFloatingActionDarkButton}">
+                    <Setter Property="Visibility" Value="Visible" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ChatViewModel.IsVisible}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+        </Button>
+    </Grid>
+</Window>

@@ -1,0 +1,25 @@
+﻿<Application x:Class="Spotifree.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:Spotifree.Converters"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+
+                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="DeepPurple" SecondaryColor="Lime" />
+
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
+
+
+                <ResourceDictionary>
+                    <converters:InvertBooleanConverter x:Key="InvertBooleanConverter" />
+                    <converters:PlayPauseIconKindConverter x:Key="PlayPauseIconKindConverter" />
+                    <converters:IsViewModelConverter x:Key="IsViewModelConverter" />
+                </ResourceDictionary>
+
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

@@ -1,0 +1,52 @@
+﻿<UserControl x:Class="Spotifree.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             Background="{DynamicResource MaterialDesignPaper}">
+    <StackPanel Margin="20">
+
+        <TextBlock Text="Settings" Margin="0,0,0,20"
+                   Style="{DynamicResource MaterialDesignHeadline5TextBlock}"
+                   Foreground="{DynamicResource MaterialDesignBody}"/>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+            <TextBlock Text="Dark Mode" VerticalAlignment="Center" Margin="0,0,15,0"
+                       Style="{DynamicResource MaterialDesignBody1TextBlock}"
+                       Foreground="{DynamicResource MaterialDesignBody}"/>
+            <ToggleButton Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                          IsChecked="{Binding IsDarkTheme}"/>
+        </StackPanel>
+        <TextBlock Text="Music Folder Path:" Style="{DynamicResource MaterialDesignBody1TextBlock}"
+                   Foreground="{DynamicResource MaterialDesignBody}"/>
+
+        <TextBox Text="{Binding MusicFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                 Margin="0,5,0,0"
+                 materialDesign:HintAssist.Hint="C:\Path\To\Music"
+                 Style="{StaticResource MaterialDesignOutlinedTextBox}" 
+                 Foreground="{DynamicResource MaterialDesignBody}"/>
+
+        <Button Content="Select Folder..." 
+                Command="{Binding SelectFolderCommand}" 
+                Margin="0,5,0,20"
+                Style="{StaticResource MaterialDesignRaisedButton}"/>
+
+        <Button Content="Rescan Library" 
+                Command="{Binding RescanLibraryCommand}" 
+        IsEnabled="{Binding IsScanning, Converter={StaticResource InvertBooleanConverter}}"
+                Style="{StaticResource MaterialDesignRaisedButton}"/>
+        <TextBlock Text="Scanning..." Margin="0,5,0,0" Foreground="{DynamicResource PrimaryHueMidBrush}">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsScanning}" Value="True">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+    </StackPanel>
+</UserControl>
