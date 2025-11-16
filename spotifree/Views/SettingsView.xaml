@@ -11,12 +11,12 @@
 
     <StackPanel Margin="20">
 
-        <TextBlock Text="Settings" Margin="0,0,0,20"
+        <TextBlock Text="Cài đặt" Margin="0,0,0,20"
                    Foreground="OrangeRed"
                    Style="{DynamicResource MaterialDesignHeadline6TextBlock}"/>
 
         <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-            <TextBlock Text="Dark Mode" VerticalAlignment="Center" Margin="0,0,15,0"
+            <TextBlock Text="Đổi nền" VerticalAlignment="Center" Margin="0,0,15,0"
                        Foreground="OrangeRed"
                        Style="{DynamicResource MaterialDesignHeadline6TextBlock}"/>
 
@@ -25,7 +25,7 @@
         </StackPanel>
 
 
-        <TextBlock Text="Music Folders" 
+        <TextBlock Text="Các thư mục nhạc" 
                    Foreground="OrangeRed"
                    Style="{StaticResource MaterialDesignHeadline6TextBlock}" 
                    Margin="0,20,0,5"/>
@@ -46,35 +46,34 @@
         </ListView>
 
         <StackPanel Orientation="Horizontal">
-            <Button Content="Add Folder..." 
+            <Button Content="Thêm thư mục..." 
                     Command="{Binding SelectFolderCommand}" 
                     Style="{DynamicResource MaterialDesignPaperButton}"/>
 
-            <Button Content="Remove Selected" 
+            <Button Content="Xóa thư mục" 
                     Command="{Binding RemoveFolderCommand}"
                     Style="{DynamicResource MaterialDesignPaperButton}"
                     Margin="10,0,0,0"/>
         </StackPanel>
 
 
-        <Button Content="Rescan Library" 
+        <Button Content="Quét lại thư viện" 
                 Command="{Binding RescanLibraryCommand}" 
                 Margin="0,20,0,0"
                 Style="{DynamicResource MaterialDesignOutlinedButton}"/>
-        
+
         <TextBlock Text="Scanning..." Margin="0,5,0,0" 
                    Foreground="{DynamicResource MaterialDesignPrimary}">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignBody1TextBlock}">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsScanning}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
+            <TextBlock.Style>
+                <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MaterialDesignBody1TextBlock}">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsScanning}" Value="True">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
         </TextBlock>
-
     </StackPanel>
 </UserControl>

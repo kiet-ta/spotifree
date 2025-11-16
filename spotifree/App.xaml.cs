@@ -38,6 +38,7 @@ namespace Spotifree
             services.AddTransient<SettingsViewModel>();
             services.AddTransient<AlbumDetailViewModel>();
             services.AddTransient<ChatViewModel>();
+            services.AddSingleton<TourViewModel>();
 
             // IGeminiService (Singleton)
             services.AddSingleton<IGeminiService>(sp =>
