@@ -10,7 +10,6 @@
     <Grid Background="{DynamicResource MaterialDesignPaper}">
 
         <TabControl Margin="10">
-            <!-- TAB ALBUMS -->
             <TabItem Header="Albums">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -52,7 +51,7 @@
                                     <GridViewColumn Header="Bài hát" DisplayMemberBinding="{Binding Title}" Width="300" />
                                     <GridViewColumn Header="Nghệ sĩ" DisplayMemberBinding="{Binding Artist}" Width="250" />
                                     <GridViewColumn Header="Album" DisplayMemberBinding="{Binding Album}" Width="250" />
-                                    <GridViewColumn Header="Thời lượng" DisplayMemberBinding="{Binding Duration, StringFormat={}{0}}" Width="100" />
+                                    <GridViewColumn Header="Thời lượng" DisplayMemberBinding="{Binding DurationFormatted}" Width="100" />
                                 </GridView>
                             </ListView.View>
                         </ListView>
@@ -102,7 +101,6 @@
                 </Grid>
             </TabItem>
 
-            <!-- TAB PLAYLISTS -->
             <TabItem Header="Playlists">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -145,7 +143,7 @@
                                             </materialDesign:Card.ContextMenu>
 
                                             <StackPanel>
-                                                <Image Source="{Binding CoverArt}"
+                                                <Image Source="{Binding CoverArt, TargetNullValue=/Assets/defaultImage.png}"
                                                        Height="160"
                                                        Stretch="UniformToFill" />
 

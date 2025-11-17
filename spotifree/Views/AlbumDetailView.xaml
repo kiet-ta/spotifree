@@ -11,13 +11,34 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#eee" Margin="10">
-            <Button Content="← Back" Command="{Binding GoBackCommand}" Margin="5" />
-            <Image Source="{Binding Album.CoverArt, FallbackValue='default_cover.png'}" Width="150" Height="150" />
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal"
+                    Background="#eee"
+                    Margin="10">
+            <Button Content="← Back"
+                    Command="{Binding GoBackCommand}"
+                    Margin="5" />
+
+            <Image Width="150" Height="150">
+                <Image.Source>
+                    <Binding Path="Album.CoverArt">
+                        <Binding.TargetNullValue>
+                            <BitmapImage UriSource="pack://application:,,,/Assets/defaultImage.png" />
+                        </Binding.TargetNullValue>
+                    </Binding>
+                </Image.Source>
+            </Image>
+
             <StackPanel VerticalAlignment="Center" Margin="10">
-                <TextBlock Text="{Binding Album.Name}" FontSize="24" FontWeight="Bold" />
-                <TextBlock Text="{Binding Album.Artist}" FontSize="18" Foreground="Gray" />
-                <Button Content="Play All" Command="{Binding PlayAlbumCommand}" Margin="0,10,0,0" />
+                <TextBlock Text="{Binding Album.Name}"
+                           FontSize="24"
+                           FontWeight="Bold" />
+                <TextBlock Text="{Binding Album.Artist}"
+                           FontSize="18"
+                           Foreground="Gray" />
+                <Button Content="Play All"
+                        Command="{Binding PlayAlbumCommand}"
+                        Margin="0,10,0,0" />
             </StackPanel>
         </StackPanel>
 
@@ -25,7 +46,6 @@
                   Grid.Row="1"
                   ItemsSource="{Binding Album.Tracks}"
                   SelectedItem="{Binding SelectedTrack, Mode=OneWayToSource}">
-
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <EventSetter Event="PreviewMouseRightButtonUp"
@@ -35,13 +55,18 @@
 
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Title" DisplayMemberBinding="{Binding Title}" Width="300" />
-                    <GridViewColumn Header="Artist" DisplayMemberBinding="{Binding Artist}" Width="200" />
-                    <GridViewColumn Header="Duration" Width="80">
+                    <GridViewColumn Header="Title"
+                                    DisplayMemberBinding="{Binding Title}"
+                                    Width="300" />
+                    <GridViewColumn Header="Artist"
+                                    DisplayMemberBinding="{Binding Artist}"
+                                    Width="200" />
+                    <GridViewColumn Header="Duration"
+                                    Width="80">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Duration, Converter={StaticResource SecondsToTimeConverter}}"
-                       HorizontalAlignment="Right" />
+                                           HorizontalAlignment="Right" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>

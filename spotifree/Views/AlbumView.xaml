@@ -7,12 +7,13 @@
              mc:Ignorable="d"
              Width="180" Height="240">
     <Grid>
-
-        <materialDesign:Card UniformCornerRadius="5" materialDesign:ElevationAssist.Elevation="Dp4" Background="{DynamicResource MaterialDesignCardBackground}">
+        <materialDesign:Card UniformCornerRadius="5"
+                             materialDesign:ElevationAssist.Elevation="Dp4"
+                             Background="{DynamicResource MaterialDesignCardBackground}">
             <materialDesign:Card.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Rename Album" 
-                              Command="{Binding RenameCommand}" 
+                    <MenuItem Header="Rename Album"
+                              Command="{Binding RenameCommand}"
                               CommandParameter="{Binding}">
                         <MenuItem.Icon>
                             <materialDesign:PackIcon Kind="RenameBox" />
@@ -20,29 +21,37 @@
                     </MenuItem>
                 </ContextMenu>
             </materialDesign:Card.ContextMenu>
-            <StackPanel>
-                <Image Source="{Binding CoverArt, FallbackValue='default_cover.png'}" Height="160" Stretch="UniformToFill" />
 
-                <TextBlock Text="{Binding Name}" 
-                           FontWeight="Bold" 
-                           Margin="5,5,5,0" 
-                           TextTrimming="CharacterEllipsis" 
+            <StackPanel>
+                <Image Height="160" Stretch="UniformToFill">
+                    <Image.Source>
+                        <Binding Path="CoverArt">
+                            <Binding.TargetNullValue>
+                                <BitmapImage UriSource="pack://application:,,,/Assets/defaultImage.png" />
+                            </Binding.TargetNullValue>
+                        </Binding>
+                    </Image.Source>
+                </Image>
+
+                <TextBlock Text="{Binding Name}"
+                           FontWeight="Bold"
+                           Margin="5,5,5,0"
+                           TextTrimming="CharacterEllipsis"
                            Foreground="{DynamicResource MaterialDesignBody}"
                            Style="{StaticResource MaterialDesignSubtitle1TextBlock}"/>
 
-                <TextBlock Text="{Binding Artist}" 
-                           Margin="5,0,5,5" 
-                           TextTrimming="CharacterEllipsis" 
+                <TextBlock Text="{Binding Artist}"
+                           Margin="5,0,5,5"
+                           TextTrimming="CharacterEllipsis"
                            Foreground="{DynamicResource MaterialDesignBody}"
                            Style="{StaticResource MaterialDesignBody2TextBlock}"/>
 
                 <Button Content="View Album"
-                        Command="{Binding DataContext.SelectAlbumCommand, 
-                       RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                        CommandParameter="{Binding}" 
+                        Command="{Binding DataContext.SelectAlbumCommand,
+                                          RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                        CommandParameter="{Binding}"
                         Style="{StaticResource MaterialDesignRaisedButton}"/>
             </StackPanel>
-
         </materialDesign:Card>
     </Grid>
 </UserControl>
