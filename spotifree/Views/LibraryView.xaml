@@ -13,7 +13,6 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- SỬA LỖI: Dùng 'TextFieldAssist.LeadingIconKind' thay vì lồng PackIcon -->
         <TextBox
             Grid.Row="0"
             Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
@@ -37,7 +36,6 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <!-- ListView cho kết quả tìm kiếm -->
         <Grid Grid.Row="1"
               Background="{DynamicResource MaterialDesignPaper}"
               Visibility="{Binding IsSearching, Converter={StaticResource BoolToVisConverter}}">
@@ -55,13 +53,11 @@
             </ListView>
         </Grid>
 
-        <!-- StackPanel "Chưa có nhạc" -->
         <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
             <StackPanel.Style>
                 <Style TargetType="StackPanel">
                     <Setter Property="Visibility" Value="Collapsed"/>
                     <Style.Triggers>
-                        <!-- Chỉ hiện khi KHÔNG có album VÀ KHÔNG đang tìm kiếm -->
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding HasAlbums}" Value="False" />

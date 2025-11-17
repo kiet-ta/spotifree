@@ -89,11 +89,6 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
         FrequencyDataAvailable?.Invoke(frequencyData);
     }
 
-    //private void OnStreamVolume(float level)
-    //{
-    //    AudioLevelChanged?.Invoke(level);
-    //}
-
     public void Play()
     {
         if (_waveOut == null || CurrentTrack == null) return;

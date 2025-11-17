@@ -19,12 +19,8 @@ namespace Spotifree.ViewModels
         public event Action RequestNavigateToSettings;
         public ObservableCollection<AlbumViewModel> Albums { get; }
 
-        // --- BẮT ĐẦU CODE MỚI CHO TÌM KIẾM ---
-
-        // 1. Lưu trữ danh sách tracks gốc để tìm kiếm
         private List<LocalTrack> _allTracks = new();
 
-        // 2. Danh sách kết quả tìm kiếm
         public ObservableCollection<LocalTrack> SearchResults { get; }
 
         private string _searchQuery = string.Empty;
@@ -39,7 +35,6 @@ namespace Spotifree.ViewModels
         }
 
         private bool _isSearching;
-        // 3. Cờ để biết đang tìm kiếm hay đang xem album
         public bool IsSearching
         {
             get => _isSearching;
@@ -52,17 +47,13 @@ namespace Spotifree.ViewModels
             get => _selectedSearchTrack;
             set
             {
-                // Khi người dùng chọn 1 track từ kết quả tìm kiếm
                 if (SetProperty(ref _selectedSearchTrack, value) && value != null)
                 {
                     PlayTrackFromSearch(value);
-                    // Đặt lại thành null để có thể chọn lại cùng một mục
                     SetProperty(ref _selectedSearchTrack, null);
                 }
             }
         }
-
-        // --- KẾT THÚC CODE MỚI CHO TÌM KIẾM ---
 
 
         public bool HasAlbums
@@ -82,7 +73,7 @@ namespace Spotifree.ViewModels
             _player = player;
             _mainViewModel = mainViewModel;
             Albums = new ObservableCollection<AlbumViewModel>();
-            SearchResults = new ObservableCollection<LocalTrack>(); // Khởi tạo
+            SearchResults = new ObservableCollection<LocalTrack>();
 
             _libraryService.LibraryChanged += OnLibraryChanged;
             LoadAlbums();
@@ -102,7 +93,6 @@ namespace Spotifree.ViewModels
         {
             if (param is AlbumViewModel album)
             {
-                // Hiện hộp thoại nhập tên từ thư viện VisualBasic
                 string newName = Interaction.InputBox(
                     $"Nhập tên mới cho album '{album.Name}':",
                     "Đổi tên Album",
@@ -112,7 +102,6 @@ namespace Spotifree.ViewModels
                 // Nếu người dùng nhập gì đó và khác tên cũ
                 if (!string.IsNullOrWhiteSpace(newName) && newName != album.Name)
                 {
-                    // Gọi Service đổi tên file
                     await _libraryService.UpdateAlbumNameAsync(album.Name, album.Artist, newName);
                 }
             }
@@ -123,18 +112,15 @@ namespace Spotifree.ViewModels
             Albums.Clear();
             var tracks = await _libraryService.GetLibraryAsync();
 
-            // --- BẮT ĐẦU CODE MỚI ---
-            // 4. Lưu lại danh sách tracks gốc
             _allTracks.Clear();
             if (tracks != null)
             {
                 _allTracks.AddRange(tracks);
             }
-            // --- KẾT THÚC CODE MỚI ---
 
             if (tracks == null || !tracks.Any())
             {
-                HasAlbums = false; // Cập nhật HasAlbums ở đây
+                HasAlbums = false;
                 return;
             }
 
@@ -159,7 +145,6 @@ namespace Spotifree.ViewModels
 
         private void OnLibraryChanged()
         {
-            // Dùng Dispatcher để đảm bảo việc cập nhật UI xảy ra trên đúng luồng
             System.Windows.Application.Current.Dispatcher.Invoke(LoadAlbums);
         }
 
@@ -183,9 +168,6 @@ namespace Spotifree.ViewModels
             return image;
         }
 
-        // --- BẮT ĐẦU CODE MỚI ---
-
-        // 5. Lọc danh sách tracks dựa trên query
         private void FilterTracks(string query)
         {
             SearchResults.Clear();
@@ -206,18 +188,14 @@ namespace Spotifree.ViewModels
             }
         }
 
-        // 6. Phát nhạc từ kết quả tìm kiếm
         private async void PlayTrackFromSearch(LocalTrack track)
         {
-            // Tìm index của track trong danh sách kết quả
             int trackIndex = SearchResults.IndexOf(track);
             if (trackIndex >= 0)
             {
-                // Load toàn bộ danh sách kết quả vào playlist và chơi từ track đã chọn
                 await _player.LoadPlaylist(SearchResults, trackIndex);
                 _player.Play();
             }
         }
-        // --- KẾT THÚC CODE MỚI ---
     }
 }

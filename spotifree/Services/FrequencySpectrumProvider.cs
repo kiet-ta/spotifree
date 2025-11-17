@@ -34,7 +34,7 @@ namespace Spotifree.Services
             for (int i = 0; i < FftSize; i++)
             {
                 _fftComplexBuffer[i].X = _fftInputBuffer[i] * (float)FastFourierTransform.HammingWindow(i, FftSize);
-                _fftComplexBuffer[i].Y = 0; // Phần ảo = 0
+                _fftComplexBuffer[i].Y = 0;
             }
 
             FastFourierTransform.FFT(true, (int)Math.Log(FftSize, 2.0), _fftComplexBuffer);
@@ -45,7 +45,6 @@ namespace Spotifree.Services
 
                 double db = 20 * Math.Log10(magnitude + 0.000001);
 
-                // Chuẩn hóa giá trị từ 0.0 đến 1.0
                 double minDb = -60;
                 double maxDb = 0;
                 double normalizedValue = (db - minDb) / (maxDb - minDb);
