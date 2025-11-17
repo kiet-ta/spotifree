@@ -37,7 +37,14 @@
                 <GridView>
                     <GridViewColumn Header="Title" DisplayMemberBinding="{Binding Title}" Width="300" />
                     <GridViewColumn Header="Artist" DisplayMemberBinding="{Binding Artist}" Width="200" />
-                    <GridViewColumn Header="Duration (s)" DisplayMemberBinding="{Binding Duration}" Width="100" />
+                    <GridViewColumn Header="Duration" Width="80">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Duration, Converter={StaticResource SecondsToTimeConverter}}"
+                       HorizontalAlignment="Right" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
                 </GridView>
             </ListView.View>
         </ListView>
