@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using Forms = System.Windows.Forms;
 
 namespace Spotifree.Views
 {
@@ -23,8 +24,27 @@ namespace Spotifree.Views
                 _playlistService = App.ServiceProvider.GetService<IPlaylistService>();
                 if (_playlistService != null)
                 {
+                    _playlistService.PlaylistsChanged += PlaylistService_PlaylistsChanged;
                     PlaylistsItemsControl.ItemsSource = _playlistService.Playlists;
                 }
+            }
+        }
+
+        private void PlaylistService_PlaylistsChanged()
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(PlaylistService_PlaylistsChanged);
+                return;
+            }
+
+            if (PlaylistsItemsControl.ItemsSource == null && _playlistService != null)
+            {
+                PlaylistsItemsControl.ItemsSource = _playlistService.Playlists;
+            }
+            else
+            {
+                PlaylistsItemsControl.Items.Refresh();
             }
         }
 
@@ -64,42 +84,35 @@ namespace Spotifree.Views
 
             try
             {
-                var mainVm = App.ServiceProvider.GetRequiredService<MainViewModel>();
-
                 _playlistService.LoadTracksForPlaylist(playlist);
 
                 var tracks = new ObservableCollection<LocalTrack>(playlist.Tracks);
                 var albumVm = new AlbumViewModel(
                     playlist.Name,
                     string.Empty,
-                    null,
+                    playlist.CoverArt,
                     tracks,
                     null);
 
+                var mainVm = App.ServiceProvider.GetRequiredService<MainViewModel>();
+
                 var detailType = typeof(AlbumDetailViewModel);
-                var detailCtor = detailType.GetConstructors().First();
-                var parameters = detailCtor.GetParameters();
-                var ctorArgs = new object?[parameters.Length];
+                var ctor = detailType.GetConstructors().First();
+                var parameters = ctor.GetParameters();
+                var args = new object?[parameters.Length];
 
                 for (int i = 0; i < parameters.Length; i++)
                 {
                     var pType = parameters[i].ParameterType;
-
                     if (pType == typeof(AlbumViewModel))
-                    {
-                        ctorArgs[i] = albumVm;
-                    }
+                        args[i] = albumVm;
                     else if (!pType.IsValueType)
-                    {
-                        ctorArgs[i] = App.ServiceProvider.GetService(pType);
-                    }
+                        args[i] = App.ServiceProvider.GetService(pType);
                     else
-                    {
-                        ctorArgs[i] = Activator.CreateInstance(pType);
-                    }
+                        args[i] = Activator.CreateInstance(pType);
                 }
 
-                var detailVm = (AlbumDetailViewModel)detailCtor.Invoke(ctorArgs);
+                var detailVm = (AlbumDetailViewModel)ctor.Invoke(args);
                 mainVm.CurrentPageViewModel = detailVm;
             }
             catch (Exception ex)
@@ -114,25 +127,78 @@ namespace Spotifree.Views
             if (_playlistService == null)
                 return;
 
-            if (sender is not MenuItem mi || mi.DataContext is not Playlist playlist)
+            if (sender is not MenuItem mi || mi.CommandParameter is not Playlist playlist)
                 return;
 
             var dialog = new SimpleTextDialog("Đổi tên playlist", playlist.Name);
             if (dialog.ShowDialog() != true)
                 return;
 
-            var newName = dialog.Value?.Trim();
-            if (string.IsNullOrWhiteSpace(newName) || string.Equals(newName, playlist.Name, StringComparison.Ordinal))
+            var name = dialog.Value?.Trim();
+            if (string.IsNullOrWhiteSpace(name))
                 return;
 
             try
             {
-                _playlistService.RenamePlaylist(playlist, newName);
+                _playlistService.RenamePlaylist(playlist, name);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Không đổi tên được playlist: " + ex.Message,
-                    "Playlist", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Không thể đổi tên: " + ex.Message);
+            }
+        }
+
+        private void ChangePlaylistCover_Click(object sender, RoutedEventArgs e)
+        {
+            if (_playlistService == null)
+                return;
+
+            if (sender is not MenuItem mi || mi.CommandParameter is not Playlist playlist)
+                return;
+
+            var ofd = new Forms.OpenFileDialog
+            {
+                Title = "Chọn ảnh playlist",
+                Filter = "Ảnh|*.png;*.jpg;*.jpeg;*.bmp"
+            };
+
+            if (ofd.ShowDialog() != Forms.DialogResult.OK)
+                return;
+
+            try
+            {
+                _playlistService.ChangeCover(playlist, ofd.FileName);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Không thể đổi ảnh: " + ex.Message);
+            }
+        }
+
+        private void DeletePlaylist_Click(object sender, RoutedEventArgs e)
+        {
+            if (_playlistService == null)
+                return;
+
+            if (sender is not MenuItem mi || mi.CommandParameter is not Playlist playlist)
+                return;
+
+            var result = MessageBox.Show(
+                $"Xóa playlist \"{playlist.Name}\"?",
+                "Xóa playlist",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            try
+            {
+                _playlistService.DeletePlaylist(playlist);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Không thể xóa playlist: " + ex.Message);
             }
         }
     }

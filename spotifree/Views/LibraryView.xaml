@@ -13,13 +13,11 @@
             <!-- TAB ALBUMS -->
             <TabItem Header="Albums">
                 <Grid>
-
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <!-- SEARCH -->
                     <TextBox
                         Grid.Row="0"
                         Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
@@ -28,7 +26,6 @@
                         Margin="0,0,0,5"
                         Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
 
-                    <!-- ALBUM CARDS -->
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding Albums}">
                             <ItemsControl.ItemsPanel>
@@ -44,7 +41,6 @@
                         </ItemsControl>
                     </ScrollViewer>
 
-                    <!-- SEARCH RESULTS -->
                     <Grid Grid.Row="1"
                           Background="{DynamicResource MaterialDesignPaper}"
                           Visibility="{Binding IsSearching, Converter={StaticResource BoolToVisConverter}}">
@@ -56,20 +52,12 @@
                                     <GridViewColumn Header="Bài hát" DisplayMemberBinding="{Binding Title}" Width="300" />
                                     <GridViewColumn Header="Nghệ sĩ" DisplayMemberBinding="{Binding Artist}" Width="250" />
                                     <GridViewColumn Header="Album" DisplayMemberBinding="{Binding Album}" Width="250" />
-                                    <GridViewColumn Header="Duration" Width="80">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding Duration, Converter={StaticResource SecondsToTimeConverter}}"
-                       HorizontalAlignment="Right" />
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
+                                    <GridViewColumn Header="Thời lượng" DisplayMemberBinding="{Binding Duration, StringFormat={}{0}}" Width="100" />
                                 </GridView>
                             </ListView.View>
                         </ListView>
                     </Grid>
 
-                    <!-- EMPTY STATE -->
                     <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
                         <StackPanel.Style>
                             <Style TargetType="StackPanel">
@@ -111,14 +99,12 @@
                                 HorizontalAlignment="Center"
                                 Padding="20,10"/>
                     </StackPanel>
-
                 </Grid>
             </TabItem>
 
             <!-- TAB PLAYLISTS -->
             <TabItem Header="Playlists">
                 <Grid>
-
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -141,29 +127,39 @@
                                 <DataTemplate>
                                     <Grid Width="180" Height="240">
                                         <materialDesign:Card UniformCornerRadius="5"
-                                     materialDesign:ElevationAssist.Elevation="Dp4"
-                                     Background="{DynamicResource MaterialDesignCardBackground}">
+                                                             materialDesign:ElevationAssist.Elevation="Dp4"
+                                                             Background="{DynamicResource MaterialDesignCardBackground}">
                                             <materialDesign:Card.ContextMenu>
                                                 <ContextMenu>
-                                                    <MenuItem Header="Đổi tên" Click="RenamePlaylist_Click" />
+                                                    <MenuItem Header="Rename playlist"
+                                                              CommandParameter="{Binding}"
+                                                              Click="RenamePlaylist_Click"/>
+                                                    <MenuItem Header="Change image"
+                                                              CommandParameter="{Binding}"
+                                                              Click="ChangePlaylistCover_Click"/>
+                                                    <Separator/>
+                                                    <MenuItem Header="Delete playlist"
+                                                              CommandParameter="{Binding}"
+                                                              Click="DeletePlaylist_Click"/>
                                                 </ContextMenu>
                                             </materialDesign:Card.ContextMenu>
+
                                             <StackPanel>
-                                                <Image Source="{Binding CoverArt, FallbackValue='default_cover.png'}"
-                               Height="160"
-                               Stretch="UniformToFill" />
+                                                <Image Source="{Binding CoverArt}"
+                                                       Height="160"
+                                                       Stretch="UniformToFill" />
 
                                                 <TextBlock Text="{Binding Name}"
-                                   FontWeight="Bold"
-                                   Margin="5,5,5,0"
-                                   TextTrimming="CharacterEllipsis"
-                                   Foreground="{DynamicResource MaterialDesignBody}"
-                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}" />
+                                                           FontWeight="Bold"
+                                                           Margin="5,5,5,0"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           Foreground="{DynamicResource MaterialDesignBody}"
+                                                           Style="{StaticResource MaterialDesignSubtitle1TextBlock}"/>
 
                                                 <Button Content="View Playlist"
-                                Margin="5,5,5,5"
-                                Click="ViewPlaylist_Click"
-                                Style="{StaticResource MaterialDesignRaisedButton}" />
+                                                        Margin="5,5,5,5"
+                                                        Click="ViewPlaylist_Click"
+                                                        Style="{StaticResource MaterialDesignRaisedButton}"/>
                                             </StackPanel>
                                         </materialDesign:Card>
                                     </Grid>
@@ -171,10 +167,8 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
-
                 </Grid>
             </TabItem>
         </TabControl>
-
     </Grid>
 </UserControl>
