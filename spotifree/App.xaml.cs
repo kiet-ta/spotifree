@@ -5,33 +5,32 @@ using Spotifree.Services;
 using Spotifree.ViewModels;
 using Spotifree.Views;
 using System;
-using System.Configuration;
-using System.Data;
 using System.IO;
 using System.Windows;
+
 namespace Spotifree
 {
-    // Interaction logic for App.xaml
     public partial class App : Application
     {
         public static IServiceProvider? ServiceProvider { get; private set; }
         public static IConfiguration? Configuration { get; private set; }
+
         public App()
         {
         }
 
-        // Configures the dependency injection container.
         private void ConfigureServices(IServiceCollection services)
         {
-            //Service
+            // Services
             services.AddSingleton<ISettingsService, SettingsService>();
             services.AddSingleton<IAudioPlayerService, AudioPlayerService>();
             services.AddSingleton<IMusicLibraryService, MusicLibraryService>();
             services.AddSingleton<IThemeService, ThemeService>();
             services.AddSingleton<IViewModeService, ViewModeService>();
             services.AddSingleton<IConnectivityService, ConnectivityService>();
+            services.AddSingleton<IPlaylistService, PlaylistService>();
 
-            //ViewModel
+            // ViewModels
             services.AddSingleton<PlayerViewModel>();
             services.AddSingleton<MainViewModel>();
             services.AddTransient<LibraryViewModel>();
@@ -39,7 +38,7 @@ namespace Spotifree
             services.AddTransient<AlbumDetailViewModel>();
             services.AddTransient<ChatViewModel>();
 
-            // IGeminiService (Singleton)
+            // Gemini
             services.AddSingleton<IGeminiService>(sp =>
             {
                 var config = sp.GetRequiredService<IConfiguration>();
@@ -47,14 +46,12 @@ namespace Spotifree
                 return new GeminiService(apiKey);
             });
 
-            //Window
+            // Windows
             services.AddSingleton<MainWindow>();
             services.AddSingleton<MiniPlayerWindow>(sp =>
-        new MiniPlayerWindow(sp.GetRequiredService<PlayerViewModel>()));
-
+                new MiniPlayerWindow(sp.GetRequiredService<PlayerViewModel>()));
         }
 
-        // Application startup event handler.
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -80,10 +77,9 @@ namespace Spotifree
             }
 
             var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
-
             mainWindow.DataContext = ServiceProvider.GetRequiredService<MainViewModel>();
-
             mainWindow.Show();
         }
     }
 }
+    

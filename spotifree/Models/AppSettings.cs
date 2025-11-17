@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Spotifree.Models
 {
@@ -10,5 +6,8 @@ namespace Spotifree.Models
     {
         public List<string> MusicFolderPaths { get; set; } = new();
         public bool IsDarkTheme { get; set; }
+
+        // Thư mục lưu playlist (.json)
+        public string PlaylistsFolderPath { get; set; } = string.Empty;
     }
 }

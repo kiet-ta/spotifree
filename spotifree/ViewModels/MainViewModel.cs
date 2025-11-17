@@ -1,9 +1,4 @@
 ﻿using Spotifree.IServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace Spotifree.ViewModels
@@ -19,6 +14,7 @@ namespace Spotifree.ViewModels
         private readonly SettingsViewModel _settingsViewModel;
         private readonly IAudioPlayerService _audioPlayer;
         private readonly IViewModeService _viewModeService;
+
         public BaseViewModel CurrentPageViewModel
         {
             get => _currentPageViewModel;
@@ -29,16 +25,23 @@ namespace Spotifree.ViewModels
 
         public ICommand NavigateLibraryCommand { get; }
         public ICommand NavigateSettingsCommand { get; }
-        public MainViewModel(IAudioPlayerService audioPlayer, IMusicLibraryService libraryService, ISettingsService settingsService, IThemeService themeService, IViewModeService viewModeService, ChatViewModel chatViewModel,
+
+        public MainViewModel(
+            IAudioPlayerService audioPlayer,
+            IMusicLibraryService libraryService,
+            ISettingsService settingsService,
+            IThemeService themeService,
+            IViewModeService viewModeService,
+            IPlaylistService playlistService,
+            ChatViewModel chatViewModel,
             PlayerViewModel playerViewModel)
         {
-            //Integration
             _audioPlayer = audioPlayer;
             _viewModeService = viewModeService;
 
-            //ViewModel
             _playerViewModel = playerViewModel;
-            _libraryViewModel = new LibraryViewModel(libraryService, audioPlayer, this);
+
+            _libraryViewModel = new LibraryViewModel(libraryService, audioPlayer, playlistService, this);
             _libraryViewModel.RequestNavigateToSettings += () => NavigateTo(_settingsViewModel);
 
             _settingsViewModel = new SettingsViewModel(settingsService, libraryService, themeService, this);
@@ -48,28 +51,23 @@ namespace Spotifree.ViewModels
             ChatViewModel = chatViewModel;
             ChatViewModel.RequestNavigateToSettings += () => NavigateTo(_settingsViewModel);
 
-            //Command
             NavigateLibraryCommand = new RelayCommand(_ => NavigateTo(_libraryViewModel));
             NavigateSettingsCommand = new RelayCommand(_ => NavigateTo(_settingsViewModel));
-
-
         }
 
-        // Navigates to a specific child ViewModel.
         public void NavigateTo(BaseViewModel viewModel)
         {
             CurrentPageViewModel = viewModel;
         }
 
-        // Navigates back to the main library view.
         public void NavigateToLibrary()
         {
             NavigateTo(_libraryViewModel);
         }
+
         public void NavigateToAlbumDetail(AlbumViewModel album)
         {
             var detailViewModel = new AlbumDetailViewModel(album, _audioPlayer, this);
-
             CurrentPageViewModel = detailViewModel;
         }
     }

@@ -1,13 +1,12 @@
 ﻿<UserControl x:Class="Spotifree.Views.SettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="800"
-             
-    Background="{DynamicResource MaterialDesignPaper}">
+             Background="{DynamicResource MaterialDesignPaper}">
 
     <StackPanel Margin="20">
 
@@ -15,6 +14,7 @@
                    Foreground="OrangeRed"
                    Style="{DynamicResource MaterialDesignHeadline6TextBlock}"/>
 
+        <!-- Dark theme -->
         <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
             <TextBlock Text="Dark Mode" VerticalAlignment="Center" Margin="0,0,15,0"
                        Foreground="OrangeRed"
@@ -24,10 +24,10 @@
                           IsChecked="{Binding IsDarkTheme}"/>
         </StackPanel>
 
-
-        <TextBlock Text="Music Folders" 
+        <!-- Music folders -->
+        <TextBlock Text="Music Folders"
                    Foreground="OrangeRed"
-                   Style="{StaticResource MaterialDesignHeadline6TextBlock}" 
+                   Style="{StaticResource MaterialDesignHeadline6TextBlock}"
                    Margin="0,20,0,5"/>
 
         <ListView ItemsSource="{Binding MusicFolderPaths}"
@@ -38,42 +38,60 @@
 
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding}" 
-                               Style="{DynamicResource MaterialDesignBody2TextBlock}" 
+                    <TextBlock Text="{Binding}"
+                               Style="{StaticResource MaterialDesignBody2TextBlock}"
                                Margin="5"/>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
 
         <StackPanel Orientation="Horizontal">
-            <Button Content="Add Folder..." 
-                    Command="{Binding SelectFolderCommand}" 
+            <Button Content="Add Folder..."
+                    Command="{Binding SelectFolderCommand}"
                     Style="{DynamicResource MaterialDesignPaperButton}"/>
 
-            <Button Content="Remove Selected" 
+            <Button Content="Remove Selected"
                     Command="{Binding RemoveFolderCommand}"
                     Style="{DynamicResource MaterialDesignPaperButton}"
                     Margin="10,0,0,0"/>
         </StackPanel>
 
+        <!-- Playlists folder -->
+        <TextBlock Text="Playlists Folder"
+                   Foreground="OrangeRed"
+                   Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                   Margin="0,20,0,5"/>
 
-        <Button Content="Rescan Library" 
-                Command="{Binding RescanLibraryCommand}" 
+        <StackPanel Orientation="Horizontal">
+            <TextBox Text="{Binding PlaylistsFolderPath}"
+                     IsReadOnly="True"
+                     Width="400"
+                     Margin="0,0,10,0"
+                     Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+
+            <Button Content="Browse..."
+                    Command="{Binding SelectPlaylistsFolderCommand}"
+                    Style="{DynamicResource MaterialDesignPaperButton}"/>
+        </StackPanel>
+
+        <!-- Rescan -->
+        <Button Content="Rescan Library"
+                Command="{Binding RescanLibraryCommand}"
                 Margin="0,20,0,0"
                 Style="{DynamicResource MaterialDesignOutlinedButton}"/>
-        
-        <TextBlock Text="Scanning..." Margin="0,5,0,0" 
+
+        <TextBlock Text="Scanning..." Margin="0,5,0,0"
                    Foreground="{DynamicResource MaterialDesignPrimary}">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignBody1TextBlock}">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsScanning}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
+            <TextBlock.Style>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignBody1TextBlock}">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsScanning}" Value="True">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
         </TextBlock>
 
     </StackPanel>

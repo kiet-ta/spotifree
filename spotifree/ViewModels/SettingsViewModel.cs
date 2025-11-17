@@ -1,7 +1,8 @@
-﻿using Microsoft.Win32;
-using Spotifree.IServices;
+﻿using Spotifree.IServices;
 using Spotifree.Models;
+using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
 
@@ -14,7 +15,7 @@ namespace Spotifree.ViewModels
         private readonly IThemeService _themeService;
         private readonly MainViewModel _mainViewModel;
 
-        private AppSettings _settings = new AppSettings();
+        private AppSettings _settings = new();
         private string _selectedFolderPath = string.Empty;
         private bool _isScanning;
 
@@ -30,10 +31,8 @@ namespace Spotifree.ViewModels
             }
         }
 
-        // Gets the collection of music folder paths to display in the ListView.
         public ObservableCollection<string> MusicFolderPaths { get; }
 
-        // Gets or sets the currently selected folder path from the ListView.
         public string SelectedFolderPath
         {
             get => _selectedFolderPath;
@@ -41,14 +40,11 @@ namespace Spotifree.ViewModels
             {
                 if (SetProperty(ref _selectedFolderPath, value))
                 {
-                    // Tell the "Remove" command to re-evaluate.
                     ((RelayCommand)RemoveFolderCommand).RaiseCanExecuteChanged();
                 }
             }
         }
 
-        /// A "proxy" property for the Dark Mode toggle.
-        /// It reads from and writes to the loaded _settings object.
         public bool IsDarkTheme
         {
             get => _settings?.IsDarkTheme ?? false;
@@ -63,9 +59,23 @@ namespace Spotifree.ViewModels
             }
         }
 
+        // Đường dẫn thư mục lưu playlist
+        public string PlaylistsFolderPath
+        {
+            get => _settings?.PlaylistsFolderPath ?? string.Empty;
+            set
+            {
+                if (_settings == null || _settings.PlaylistsFolderPath == value) return;
+                _settings.PlaylistsFolderPath = value;
+                OnPropertyChanged(nameof(PlaylistsFolderPath));
+                _settingsService.SaveAsync(_settings);
+            }
+        }
+
         public ICommand SelectFolderCommand { get; }
         public ICommand RemoveFolderCommand { get; }
         public ICommand RescanLibraryCommand { get; }
+        public ICommand SelectPlaylistsFolderCommand { get; }
 
         public SettingsViewModel(
             ISettingsService settingsService,
@@ -73,24 +83,21 @@ namespace Spotifree.ViewModels
             IThemeService themeService,
             MainViewModel mainViewModel)
         {
-            // Inject dependencies
             _settingsService = settingsService;
             _libraryService = libraryService;
             _themeService = themeService;
             _mainViewModel = mainViewModel;
 
-            // Initialize UI state
             MusicFolderPaths = new ObservableCollection<string>();
 
-            SelectFolderCommand = new RelayCommand(async (_) => await ExecuteSelectFolderAsync());
-            RemoveFolderCommand = new RelayCommand(async (_) => await ExecuteRemoveFolderAsync(), (_) => CanExecuteRemoveFolder(_));
-            RescanLibraryCommand = new RelayCommand(async (_) => await ExecuteRescanLibraryAsync(), (_) => CanExecuteRescan(_));
+            SelectFolderCommand = new RelayCommand(async _ => await ExecuteSelectFolderAsync());
+            RemoveFolderCommand = new RelayCommand(async _ => await ExecuteRemoveFolderAsync(), _ => CanExecuteRemoveFolder());
+            RescanLibraryCommand = new RelayCommand(async _ => await ExecuteRescanLibraryAsync(), _ => CanExecuteRescan());
+            SelectPlaylistsFolderCommand = new RelayCommand(async _ => await ExecuteSelectPlaylistsFolderAsync());
 
             LoadSettingsAsync();
         }
 
-
-        /// Asynchronously loads settings from the service on startup.
         private async void LoadSettingsAsync()
         {
             try
@@ -101,7 +108,9 @@ namespace Spotifree.ViewModels
                 {
                     MusicFolderPaths.Add(path);
                 }
+
                 OnPropertyChanged(nameof(IsDarkTheme));
+                OnPropertyChanged(nameof(PlaylistsFolderPath));
             }
             catch (Exception)
             {
@@ -109,10 +118,9 @@ namespace Spotifree.ViewModels
             }
         }
 
-        /// Shows a folder dialog and adds the selected path.
         private async Task ExecuteSelectFolderAsync()
         {
-            var dialog = new FolderBrowserDialog
+            using var dialog = new FolderBrowserDialog
             {
                 Description = "Select a music folder to add",
                 UseDescriptionForTitle = true,
@@ -120,47 +128,38 @@ namespace Spotifree.ViewModels
             };
 
             if (dialog.ShowDialog() != DialogResult.OK)
-            {
                 return;
-            }
 
-            string newPath = dialog.SelectedPath;
+            var newPath = dialog.SelectedPath;
 
             if (string.IsNullOrEmpty(newPath) || MusicFolderPaths.Contains(newPath))
-            {
                 return;
-            }
 
             await _settingsService.AddMusicFolderAsync(newPath);
             MusicFolderPaths.Add(newPath);
         }
 
-        // Removes the 'SelectedFolderPath' from the list and settings.
         private async Task ExecuteRemoveFolderAsync()
         {
             var pathToRemove = SelectedFolderPath;
             if (string.IsNullOrEmpty(pathToRemove)) return;
+
             await _settingsService.RemoveMusicFolderAsync(pathToRemove);
             MusicFolderPaths.Remove(pathToRemove);
         }
 
-        private bool CanExecuteRemoveFolder(object? _)
-        {
-            return !string.IsNullOrEmpty(SelectedFolderPath);
-        }
+        private bool CanExecuteRemoveFolder() => !string.IsNullOrEmpty(SelectedFolderPath);
 
-        // Triggers a full library rescan via the service.
         private async Task ExecuteRescanLibraryAsync()
         {
             IsScanning = true;
             try
             {
                 await _libraryService.ScanLibraryAsync();
-                //show scan fail
             }
             catch (Exception)
             {
-                //show scan fail
+                // TODO: thông báo lỗi nếu muốn
             }
             finally
             {
@@ -168,10 +167,21 @@ namespace Spotifree.ViewModels
             }
         }
 
-        /// Checks if the "Rescan Library" button should be enabled.
-        private bool CanExecuteRescan(object? _)
+        private bool CanExecuteRescan() => !IsScanning;
+
+        private async Task ExecuteSelectPlaylistsFolderAsync()
         {
-            return !IsScanning;
+            using var dialog = new FolderBrowserDialog
+            {
+                Description = "Select folder to store playlists",
+                UseDescriptionForTitle = true,
+                ShowNewFolderButton = true
+            };
+
+            if (dialog.ShowDialog() != DialogResult.OK)
+                return;
+
+            PlaylistsFolderPath = dialog.SelectedPath;
         }
     }
 }

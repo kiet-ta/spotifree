@@ -1,125 +1,208 @@
-﻿using Microsoft.VisualBasic;
-using Spotifree.IServices;
+﻿using Spotifree.IServices;
 using Spotifree.Models;
+using System;
 using System.Collections.ObjectModel;
-using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media.Imaging;
 
 namespace Spotifree.ViewModels
 {
+    public enum LibrarySection
+    {
+        ScannedMusic,
+        Playlists
+    }
+
     public class LibraryViewModel : BaseViewModel
     {
         private readonly IMusicLibraryService _libraryService;
         private readonly IAudioPlayerService _player;
+        private readonly IPlaylistService _playlistService;
         private readonly MainViewModel _mainViewModel;
-        private bool _hasAlbums;
-        public event Action RequestNavigateToSettings;
-        public ObservableCollection<AlbumViewModel> Albums { get; }
-        public bool HasAlbums
+
+        private bool _hasTracks;
+        private LibrarySection _currentSection = LibrarySection.ScannedMusic;
+        private PlaylistViewModel? _selectedPlaylist;
+
+        public event Action? RequestNavigateToSettings;
+
+        public ObservableCollection<LocalTrack> ScannedTracks { get; } = new();
+        public ObservableCollection<PlaylistViewModel> Playlists { get; } = new();
+
+        public bool HasTracks
         {
-            get => _hasAlbums;
-            set => SetProperty(ref _hasAlbums, value);
+            get => _hasTracks;
+            set => SetProperty(ref _hasTracks, value);
         }
 
-        public ICommand SelectAlbumCommand { get; }
-        public ICommand GoToSettingsCommand { get; }
-        public LibraryViewModel(
-            IMusicLibraryService library,
-            IAudioPlayerService player,
-            MainViewModel mainViewModel)
+        public LibrarySection CurrentSection
         {
-            _libraryService = library;
-            _player = player;
-            _mainViewModel = mainViewModel;
-            Albums = new ObservableCollection<AlbumViewModel>();
-
-            _libraryService.LibraryChanged += OnLibraryChanged;
-            LoadAlbums();
-            SelectAlbumCommand = new RelayCommand(ExecuteSelectAlbum);
-            GoToSettingsCommand = new RelayCommand(_ => RequestNavigateToSettings?.Invoke());
-
-        }
-        private void ExecuteSelectAlbum(object? param)
-        {
-            if (param is AlbumViewModel album)
+            get => _currentSection;
+            set
             {
-                _mainViewModel.NavigateToAlbumDetail(album);
-            }
-        }
-
-        private async void ExecuteRenameAlbum(object? param)
-        {
-            if (param is AlbumViewModel album)
-            {
-                // Hiện hộp thoại nhập tên từ thư viện VisualBasic
-                string newName = Interaction.InputBox(
-                    $"Nhập tên mới cho album '{album.Name}':",
-                    "Đổi tên Album",
-                    album.Name
-                );
-
-                // Nếu người dùng nhập gì đó và khác tên cũ
-                if (!string.IsNullOrWhiteSpace(newName) && newName != album.Name)
+                if (SetProperty(ref _currentSection, value))
                 {
-                    // Gọi Service đổi tên file
-                    await _libraryService.UpdateAlbumNameAsync(album.Name, album.Artist, newName);
+                    OnPropertyChanged(nameof(IsScannedMusicSelected));
+                    OnPropertyChanged(nameof(IsPlaylistsSelected));
                 }
             }
         }
 
-        private async void LoadAlbums()
+        public bool IsScannedMusicSelected
         {
-            Albums.Clear();
+            get => CurrentSection == LibrarySection.ScannedMusic;
+            set
+            {
+                if (value)
+                    CurrentSection = LibrarySection.ScannedMusic;
+            }
+        }
+
+        public bool IsPlaylistsSelected
+        {
+            get => CurrentSection == LibrarySection.Playlists;
+            set
+            {
+                if (value)
+                    CurrentSection = LibrarySection.Playlists;
+            }
+        }
+
+        public PlaylistViewModel? SelectedPlaylist
+        {
+            get => _selectedPlaylist;
+            set
+            {
+                if (SetProperty(ref _selectedPlaylist, value))
+                {
+                    ((RelayCommand)PlayPlaylistCommand).RaiseCanExecuteChanged();
+                }
+            }
+        }
+
+        public ICommand GoToSettingsCommand { get; }
+        public ICommand PlayTrackCommand { get; }
+        public ICommand CreatePlaylistCommand { get; }
+        public ICommand PlayPlaylistCommand { get; }
+        public ICommand AddTrackToPlaylistCommand { get; }
+
+        public LibraryViewModel(
+            IMusicLibraryService library,
+            IAudioPlayerService player,
+            IPlaylistService playlistService,
+            MainViewModel mainViewModel)
+        {
+            _libraryService = library;
+            _player = player;
+            _playlistService = playlistService;
+            _mainViewModel = mainViewModel;
+
+            _libraryService.LibraryChanged += OnLibraryChanged;
+
+            GoToSettingsCommand = new RelayCommand(_ => RequestNavigateToSettings?.Invoke());
+
+            PlayTrackCommand = new RelayCommand(async param =>
+            {
+                if (param is LocalTrack track)
+                    await ExecutePlayTrackAsync(track);
+            });
+
+            CreatePlaylistCommand = new RelayCommand(async _ => await ExecuteCreatePlaylistAsync());
+
+            PlayPlaylistCommand = new RelayCommand(
+                async _ => await ExecutePlayPlaylistAsync(),
+                _ => SelectedPlaylist != null && SelectedPlaylist.Tracks.Any());
+
+            AddTrackToPlaylistCommand = new RelayCommand(
+                async param =>
+                {
+                    if (param is LocalTrack track)
+                        await ExecuteAddTrackToPlaylistAsync(track);
+                },
+                param => SelectedPlaylist != null && param is LocalTrack);
+
+            LoadDataAsync();
+        }
+
+        private async void LoadDataAsync()
+        {
+            await LoadScannedTracksAsync();
+            await LoadPlaylistsAsync();
+        }
+
+        private async Task LoadScannedTracksAsync()
+        {
+            ScannedTracks.Clear();
+
             var tracks = await _libraryService.GetLibraryAsync();
-
-            if (tracks == null || !tracks.Any())
+            foreach (var t in tracks.OrderBy(t => t.Title))
             {
-                return;
+                ScannedTracks.Add(t);
             }
 
-            var renameCommand = new RelayCommand(ExecuteRenameAlbum);
+            HasTracks = ScannedTracks.Any();
+        }
 
-            var groupedByAlbum = tracks
-                .GroupBy(t => new { AlbumName = t.Album ?? "Unknown Album", ArtistName = t.Artist ?? "Unknown Artist" })
-                .Select(g => new AlbumViewModel(
-                    g.Key.AlbumName,
-                    g.Key.ArtistName,
-                    LoadImageFromBytes(g.First().CoverArt),
-                    new ObservableCollection<LocalTrack>(g.ToList()),
-                    renameCommand
-                ));
+        private async Task LoadPlaylistsAsync()
+        {
+            Playlists.Clear();
 
-            foreach (var album in groupedByAlbum)
+            var playlists = await _playlistService.GetPlaylistsAsync();
+            foreach (var pl in playlists)
             {
-                Albums.Add(album);
+                Playlists.Add(new PlaylistViewModel(pl));
             }
-            HasAlbums = Albums.Any();
+
+            if (Playlists.Any() && SelectedPlaylist == null)
+            {
+                SelectedPlaylist = Playlists.First();
+            }
         }
 
         private void OnLibraryChanged()
         {
-            System.Windows.Application.Current.Dispatcher.Invoke(LoadAlbums);
+            Application.Current.Dispatcher.Invoke(async () => await LoadScannedTracksAsync());
         }
 
-        private BitmapImage? LoadImageFromBytes(byte[]? imageData)
+        private async Task ExecutePlayTrackAsync(LocalTrack track)
         {
-            if (imageData == null || imageData.Length == 0)
-                return null;
+            await _player.LoadPlaylist(new[] { track }, 0);
+            _player.Play();
+        }
 
-            var image = new BitmapImage();
-            using (var mem = new MemoryStream(imageData))
+        private async Task ExecuteCreatePlaylistAsync()
+        {
+            var name = $"New Playlist {Playlists.Count + 1}";
+            var playlist = await _playlistService.CreatePlaylistAsync(name, Enumerable.Empty<LocalTrack>());
+
+            var vm = new PlaylistViewModel(playlist);
+            Playlists.Add(vm);
+            SelectedPlaylist = vm;
+        }
+
+        private async Task ExecutePlayPlaylistAsync()
+        {
+            if (SelectedPlaylist == null || !SelectedPlaylist.Tracks.Any())
+                return;
+
+            await _player.LoadPlaylist(SelectedPlaylist.Tracks, 0);
+            _player.Play();
+        }
+
+        private async Task ExecuteAddTrackToPlaylistAsync(LocalTrack track)
+        {
+            if (SelectedPlaylist == null)
+                return;
+
+            await _playlistService.AddTracksAsync(SelectedPlaylist.Id, new[] { track });
+
+            if (!SelectedPlaylist.Tracks.Any(t =>
+                    string.Equals(t.FilePath, track.FilePath, StringComparison.OrdinalIgnoreCase)))
             {
-                mem.Position = 0;
-                image.BeginInit();
-                image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
-                image.CacheOption = BitmapCacheOption.OnLoad;
-                image.UriSource = null;
-                image.StreamSource = mem;
-                image.EndInit();
+                SelectedPlaylist.Tracks.Add(track);
             }
-            image.Freeze();
-            return image;
         }
     }
 }
