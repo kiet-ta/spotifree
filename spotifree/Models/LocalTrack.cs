@@ -1,4 +1,6 @@
-﻿namespace Spotifree.Models;
+﻿using Spotifree.Helpers;
+
+namespace Spotifree.Models;
 
 public class LocalTrack
 {
@@ -7,7 +9,7 @@ public class LocalTrack
     public string Artist { get; set; } = string.Empty;
     public string Album { get; set; } = string.Empty;
     public double Duration { get; set; }
-
+    public string DurationText => TimeFormatHelper.ToHhMmSs(Duration);
     public uint TrackNumber { get; set; }
     public uint Year { get; set; }
 

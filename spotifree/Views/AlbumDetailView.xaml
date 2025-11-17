@@ -27,7 +27,7 @@
                 <GridView>
                     <GridViewColumn Header="Title" DisplayMemberBinding="{Binding Title}" Width="300" />
                     <GridViewColumn Header="Artist" DisplayMemberBinding="{Binding Artist}" Width="200" />
-                    <GridViewColumn Header="Duration (s)" DisplayMemberBinding="{Binding Duration}" Width="100" />
+                    <GridViewColumn Header="Duration (s)" DisplayMemberBinding="{Binding DurationText}" Width="100" />
                 </GridView>
             </ListView.View>
         </ListView>
