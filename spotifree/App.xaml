@@ -10,7 +10,12 @@
 
                 <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="DeepPurple" SecondaryColor="Lime" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
+
+                <!-- THÊM CÁC STYLE CHO CONTROL TẠI ĐÂY -->
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Button.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.TextBox.xaml" />
+                <!-- ^^^ ĐẢM BẢO DÒNG NÀY ĐÃ ĐƯỢC THÊM VÀO ^^^ -->
+
                 <ResourceDictionary>
                     <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
                     <converters:InvertBooleanConverter x:Key="InvertBooleanConverter" />

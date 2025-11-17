@@ -21,7 +21,7 @@ namespace Spotifree.IServices
 
         event Action TrackEnded;
 
-        event Action<float> AudioLevelChanged;
+        event Action<float[]> FrequencyDataAvailable;
 
 
 

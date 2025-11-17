@@ -7,8 +7,22 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d">
     <Grid Background="{DynamicResource MaterialDesignPaper}">
-        
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- SỬA LỖI: Dùng 'TextFieldAssist.LeadingIconKind' thay vì lồng PackIcon -->
+        <TextBox
+            Grid.Row="0"
+            Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
+            materialDesign:HintAssist.Hint="Tìm theo tên bài hát, nghệ sĩ, album..."
+            materialDesign:TextFieldAssist.HasClearButton="True"
+            Margin="10,10,10,5"
+            Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" >
             <ItemsControl ItemsSource="{Binding Albums}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -23,14 +37,38 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+        <!-- ListView cho kết quả tìm kiếm -->
+        <Grid Grid.Row="1"
+              Background="{DynamicResource MaterialDesignPaper}"
+              Visibility="{Binding IsSearching, Converter={StaticResource BoolToVisConverter}}">
+
+            <ListView ItemsSource="{Binding SearchResults}"
+                      SelectedItem="{Binding SelectedSearchTrack, Mode=OneWayToSource}">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Bài hát" DisplayMemberBinding="{Binding Title}" Width="300" />
+                        <GridViewColumn Header="Nghệ sĩ" DisplayMemberBinding="{Binding Artist}" Width="250" />
+                        <GridViewColumn Header="Album" DisplayMemberBinding="{Binding Album}" Width="250" />
+                        <GridViewColumn Header="Thời lượng" DisplayMemberBinding="{Binding Duration, StringFormat={}{0:F0}s}" Width="100" />
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Grid>
+
+        <!-- StackPanel "Chưa có nhạc" -->
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
             <StackPanel.Style>
                 <Style TargetType="StackPanel">
                     <Setter Property="Visibility" Value="Collapsed"/>
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding HasAlbums}" Value="False">
+                        <!-- Chỉ hiện khi KHÔNG có album VÀ KHÔNG đang tìm kiếm -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding HasAlbums}" Value="False" />
+                                <Condition Binding="{Binding IsSearching}" Value="False" />
+                            </MultiDataTrigger.Conditions>
                             <Setter Property="Visibility" Value="Visible"/>
-                        </DataTrigger>
+                        </MultiDataTrigger>
                     </Style.Triggers>
                 </Style>
             </StackPanel.Style>
