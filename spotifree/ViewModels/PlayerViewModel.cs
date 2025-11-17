@@ -2,9 +2,12 @@
 using Spotifree.IServices;
 using Spotifree.Models;
 using System.Windows.Input;
+using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace Spotifree.ViewModels
 {
+
     public class PlayerViewModel : BaseViewModel
     {
         private readonly IAudioPlayerService _player;
@@ -13,15 +16,13 @@ namespace Spotifree.ViewModels
         private double _currentPosition;
         private double _duration;
         private double _volume;
-        private double _audioLevel;
         private RepeatMode _repeatMode;
         private readonly IViewModeService _viewModeService;
 
-        public double AudioLevel
-        {
-            get => _audioLevel;
-            set => SetProperty(ref _audioLevel, value);
-        }
+        private const int NumberOfBands = 32;
+        public ObservableCollection<FrequencyBandViewModel> FrequencyBands { get; }
+
+        
 
         public LocalTrack? CurrentTrack
         {
@@ -88,6 +89,12 @@ namespace Spotifree.ViewModels
             _player = player;
             _viewModeService = viewModeService;
 
+            FrequencyBands = new ObservableCollection<FrequencyBandViewModel>();
+            for (int i = 0; i < NumberOfBands; i++)
+            {
+                FrequencyBands.Add(new FrequencyBandViewModel { Level = 0 });
+            }
+
             _player.PlaybackStateChanged += OnPlaybackStateChanged;
             _player.PositionChanged += OnPositionChanged;
 
@@ -103,19 +110,27 @@ namespace Spotifree.ViewModels
             Volume = _player.GetVolume();
             RepeatMode = _player.RepeatMode;
 
-            _player.AudioLevelChanged += (level) =>
+            _player.FrequencyDataAvailable += OnFrequencyDataAvailable;
+        }
+
+        private void OnFrequencyDataAvailable(float[] frequencyData)
+        {
+            Application.Current?.Dispatcher.Invoke(() =>
             {
-                // Chỉ cập nhật khi đang chơi nhạc
-                if (IsPlaying)
+                if (!IsPlaying)
                 {
-                    // Cập nhật UI (SetProperty đã xử lý NotifyPropertyChanged)
-                    AudioLevel = level;
+                    for (int i = 0; i < FrequencyBands.Count; i++)
+                    {
+                        FrequencyBands[i].Level = 0;
+                    }
+                    return;
                 }
-                else
+
+                for (int i = 0; i < frequencyData.Length && i < FrequencyBands.Count; i++)
                 {
-                    AudioLevel = 0;
+                    FrequencyBands[i].Level = frequencyData[i];
                 }
-            };
+            });
         }
 
         private void ExecuteToggleRepeat(object? obj)

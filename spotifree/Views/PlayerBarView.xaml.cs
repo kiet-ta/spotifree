@@ -9,5 +9,6 @@ namespace Spotifree.Views
         {
             InitializeComponent();
         }
+
     }
 }

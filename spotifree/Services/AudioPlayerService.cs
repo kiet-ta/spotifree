@@ -19,19 +19,19 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
     private double _currentVolume = 1.0;
     private List<LocalTrack> _playlist = new();
     private int _currentIndex = -1;
+    private FrequencySpectrumProvider? _frequencyProvider;
 
     public PlayerState CurrentState { get; private set; } = PlayerState.Stopped;
     public LocalTrack? CurrentTrack { get; private set; }
     public double CurrentPosition => _audioFile?.CurrentTime.TotalSeconds ?? 0;
     public double Duration => _audioFile?.TotalTime.TotalSeconds ?? 0;
 
-    // Default mode is RepeatAll (User friendly)
     public RepeatMode RepeatMode { get; set; } = RepeatMode.RepeatAll;
 
     public event Action<PlayerState>? PlaybackStateChanged;
     public event Action<double, double>? PositionChanged;
     public event Action? TrackEnded;
-    public event Action<float>? AudioLevelChanged;
+    public event Action<float[]>? FrequencyDataAvailable;
 
     public AudioPlayerService()
     {
@@ -66,10 +66,13 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
         try
         {
             _audioFile = new AudioFileReader(track.FilePath);
-            var meteringProvider = new MeteringSampleProvider(_audioFile);
-            meteringProvider.StreamVolume += OnStreamVolume;
+            _frequencyProvider = new FrequencySpectrumProvider(_audioFile);
+            _frequencyProvider.FrequencyDataAvailable += OnFrequencyDataAvailable;
+
             _waveOut = _waveOut ?? new WaveOutEvent();
-            _waveOut.Init(_audioFile);
+            _waveOut.Init(_frequencyProvider);
+            //_waveOut = _waveOut ?? new WaveOutEvent();
+            //_waveOut.Init(_audioFile);
             _waveOut.PlaybackStopped += OnPlaybackStopped;
             _waveOut.Volume = (float)_currentVolume;
         }
@@ -81,10 +84,15 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
         return Task.CompletedTask;
     }
 
-    private void OnStreamVolume(float level)
+    private void OnFrequencyDataAvailable(float[] frequencyData)
     {
-        AudioLevelChanged?.Invoke(level);
+        FrequencyDataAvailable?.Invoke(frequencyData);
     }
+
+    //private void OnStreamVolume(float level)
+    //{
+    //    AudioLevelChanged?.Invoke(level);
+    //}
 
     public void Play()
     {
@@ -239,6 +247,13 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
         {
             _audioFile.Dispose();
             _audioFile = null;
+        }
+
+        if (_frequencyProvider != null)
+        {
+            _frequencyProvider.FrequencyDataAvailable -= OnFrequencyDataAvailable;
+            _frequencyProvider.Dispose();
+            _frequencyProvider = null;
         }
     }
 

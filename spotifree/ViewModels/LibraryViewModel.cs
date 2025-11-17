@@ -5,6 +5,8 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Collections.Generic; // Thêm
+using System.Linq; // Thêm
 
 namespace Spotifree.ViewModels
 {
@@ -16,6 +18,53 @@ namespace Spotifree.ViewModels
         private bool _hasAlbums;
         public event Action RequestNavigateToSettings;
         public ObservableCollection<AlbumViewModel> Albums { get; }
+
+        // --- BẮT ĐẦU CODE MỚI CHO TÌM KIẾM ---
+
+        // 1. Lưu trữ danh sách tracks gốc để tìm kiếm
+        private List<LocalTrack> _allTracks = new();
+
+        // 2. Danh sách kết quả tìm kiếm
+        public ObservableCollection<LocalTrack> SearchResults { get; }
+
+        private string _searchQuery = string.Empty;
+        public string SearchQuery
+        {
+            get => _searchQuery;
+            set
+            {
+                SetProperty(ref _searchQuery, value);
+                FilterTracks(value);
+            }
+        }
+
+        private bool _isSearching;
+        // 3. Cờ để biết đang tìm kiếm hay đang xem album
+        public bool IsSearching
+        {
+            get => _isSearching;
+            set => SetProperty(ref _isSearching, value);
+        }
+
+        private LocalTrack? _selectedSearchTrack;
+        public LocalTrack? SelectedSearchTrack
+        {
+            get => _selectedSearchTrack;
+            set
+            {
+                // Khi người dùng chọn 1 track từ kết quả tìm kiếm
+                if (SetProperty(ref _selectedSearchTrack, value) && value != null)
+                {
+                    PlayTrackFromSearch(value);
+                    // Đặt lại thành null để có thể chọn lại cùng một mục
+                    SetProperty(ref _selectedSearchTrack, null);
+                }
+            }
+        }
+
+        // --- KẾT THÚC CODE MỚI CHO TÌM KIẾM ---
+
+
         public bool HasAlbums
         {
             get => _hasAlbums;
@@ -33,6 +82,7 @@ namespace Spotifree.ViewModels
             _player = player;
             _mainViewModel = mainViewModel;
             Albums = new ObservableCollection<AlbumViewModel>();
+            SearchResults = new ObservableCollection<LocalTrack>(); // Khởi tạo
 
             _libraryService.LibraryChanged += OnLibraryChanged;
             LoadAlbums();
@@ -73,8 +123,18 @@ namespace Spotifree.ViewModels
             Albums.Clear();
             var tracks = await _libraryService.GetLibraryAsync();
 
+            // --- BẮT ĐẦU CODE MỚI ---
+            // 4. Lưu lại danh sách tracks gốc
+            _allTracks.Clear();
+            if (tracks != null)
+            {
+                _allTracks.AddRange(tracks);
+            }
+            // --- KẾT THÚC CODE MỚI ---
+
             if (tracks == null || !tracks.Any())
             {
+                HasAlbums = false; // Cập nhật HasAlbums ở đây
                 return;
             }
 
@@ -99,6 +159,7 @@ namespace Spotifree.ViewModels
 
         private void OnLibraryChanged()
         {
+            // Dùng Dispatcher để đảm bảo việc cập nhật UI xảy ra trên đúng luồng
             System.Windows.Application.Current.Dispatcher.Invoke(LoadAlbums);
         }
 
@@ -121,5 +182,42 @@ namespace Spotifree.ViewModels
             image.Freeze();
             return image;
         }
+
+        // --- BẮT ĐẦU CODE MỚI ---
+
+        // 5. Lọc danh sách tracks dựa trên query
+        private void FilterTracks(string query)
+        {
+            SearchResults.Clear();
+            IsSearching = !string.IsNullOrWhiteSpace(query);
+
+            if (IsSearching)
+            {
+                var results = _allTracks.Where(t =>
+                    t.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    t.Artist.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    t.Album.Contains(query, StringComparison.OrdinalIgnoreCase)
+                );
+
+                foreach (var track in results)
+                {
+                    SearchResults.Add(track);
+                }
+            }
+        }
+
+        // 6. Phát nhạc từ kết quả tìm kiếm
+        private async void PlayTrackFromSearch(LocalTrack track)
+        {
+            // Tìm index của track trong danh sách kết quả
+            int trackIndex = SearchResults.IndexOf(track);
+            if (trackIndex >= 0)
+            {
+                // Load toàn bộ danh sách kết quả vào playlist và chơi từ track đã chọn
+                await _player.LoadPlaylist(SearchResults, trackIndex);
+                _player.Play();
+            }
+        }
+        // --- KẾT THÚC CODE MỚI ---
     }
 }
