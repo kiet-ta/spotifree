@@ -1,5 +1,5 @@
 ﻿using NAudio.Wave;
-using NAudio.Dsp; // Cần thiết cho Complex và FastFourierTransform
+using NAudio.Dsp;
 using System;
 using System.Diagnostics;
 

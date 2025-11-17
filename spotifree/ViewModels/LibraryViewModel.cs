@@ -5,8 +5,8 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using System.Collections.Generic; // Thêm
-using System.Linq; // Thêm
+using System.Collections.Generic; 
+using System.Linq; 
 
 namespace Spotifree.ViewModels
 {
@@ -99,7 +99,6 @@ namespace Spotifree.ViewModels
                     album.Name
                 );
 
-                // Nếu người dùng nhập gì đó và khác tên cũ
                 if (!string.IsNullOrWhiteSpace(newName) && newName != album.Name)
                 {
                     await _libraryService.UpdateAlbumNameAsync(album.Name, album.Artist, newName);
