@@ -126,5 +126,21 @@ namespace Spotifree.Services
             // 3. Thông báo giao diện load lại
             LibraryChanged?.Invoke();
         }
+
+        public Task<IEnumerable<LocalTrack>> SearchTracksAsync(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return Task.FromResult(Enumerable.Empty<LocalTrack>());
+            }
+
+            var results = _trackCache.Where(t =>
+                t.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                t.Artist.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                t.Album.Contains(query, StringComparison.OrdinalIgnoreCase)
+            );
+
+            return Task.FromResult(results);
+        }
     }
 }

@@ -18,8 +18,8 @@ public class GeminiService : IGeminiService
     {
         _apiKey = apiKey;
 
-        if (string.IsNullOrEmpty(_apiKey))
-            throw new ArgumentNullException(nameof(_apiKey), "Gemini API key is not configured in appsettings.json");
+        //if (string.IsNullOrEmpty(_apiKey))
+        //    throw new ArgumentNullException(nameof(_apiKey), "Gemini API key is not configured in appsettings.json");
 
         _apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
     }

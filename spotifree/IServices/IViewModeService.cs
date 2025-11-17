@@ -6,4 +6,5 @@ public interface IViewModeService
 {
     void SwitchToMiniPlayer();
     void SwitchToMainPlayer();
+    void ShowMainWindow();
 }
