@@ -21,8 +21,18 @@
             </StackPanel>
         </StackPanel>
 
-        <ListView Grid.Row="1" ItemsSource="{Binding Album.Tracks}"
+        <ListView x:Name="TracksListView"
+                  Grid.Row="1"
+                  ItemsSource="{Binding Album.Tracks}"
                   SelectedItem="{Binding SelectedTrack, Mode=OneWayToSource}">
+
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <EventSetter Event="PreviewMouseRightButtonUp"
+                                 Handler="TrackItem_RightClick"/>
+                </Style>
+            </ListView.ItemContainerStyle>
+
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Title" DisplayMemberBinding="{Binding Title}" Width="300" />
