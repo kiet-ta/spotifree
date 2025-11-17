@@ -11,5 +11,6 @@ namespace Spotifree.Models
         public List<string> MusicFolderPaths { get; set; } = new();
         public bool IsDarkTheme { get; set; }
         public bool HasCompletedFirstRunTour { get; set; } = false;
+        public string? PlaylistRootPath { get; set; }
     }
 }

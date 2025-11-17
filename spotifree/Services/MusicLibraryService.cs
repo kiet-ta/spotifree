@@ -1,9 +1,11 @@
 ﻿using Spotifree.IServices;
 using Spotifree.Models;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Windows.Media.Imaging;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Spotifree.Services
 {
@@ -12,12 +14,14 @@ namespace Spotifree.Services
         private List<LocalTrack> _trackCache = new();
 
         private readonly ISettingsService _settingsService;
+        private readonly IPlaylistService _playlistService;
 
         public event Action? LibraryChanged;
 
-        public MusicLibraryService(ISettingsService settingsService)
+        public MusicLibraryService(ISettingsService settingsService, IPlaylistService playlistService)
         {
             _settingsService = settingsService;
+            _playlistService = playlistService;
         }
 
         public Task<IEnumerable<LocalTrack>> GetLibraryAsync()
@@ -31,7 +35,7 @@ namespace Spotifree.Services
             if (settings.MusicFolderPaths == null || !settings.MusicFolderPaths.Any())
             {
                 _trackCache = new List<LocalTrack>();
-                LibraryChanged?.Invoke(); 
+                LibraryChanged?.Invoke();
                 return;
             }
 
@@ -41,90 +45,87 @@ namespace Spotifree.Services
             foreach (var folderPath in settings.MusicFolderPaths)
             {
                 if (!Directory.Exists(folderPath))
-                {
                     continue;
-                }
 
                 try
                 {
-                    var filesInFolder = Directory.EnumerateFiles(
-                        folderPath, "*.*", SearchOption.AllDirectories
-                    ).Where(file => allowedExtensions.Contains(Path.GetExtension(file).ToLowerInvariant()));
+                    var filesInFolder = Directory.EnumerateFiles(folderPath, "*.*", SearchOption.AllDirectories)
+                        .Where(file => allowedExtensions.Contains(Path.GetExtension(file).ToLowerInvariant()));
 
                     foreach (var filePath in filesInFolder)
                     {
+                        if (IsInPlaylistFolder(filePath))
+                            continue;
+
                         try
                         {
-                            using (var tagFile = TagLib.File.Create(filePath))
-                            {
-                                var tag = tagFile.Tag;
-                                var track = new LocalTrack
-                                {
-                                    FilePath = filePath,
-                                    Title = string.IsNullOrEmpty(tag.Title) ? Path.GetFileNameWithoutExtension(filePath) : tag.Title,
-                                    Artist = string.IsNullOrEmpty(tag.FirstPerformer) ? "Unknown Artist" : tag.FirstPerformer,
-                                    Album = string.IsNullOrEmpty(tag.Album) ? "Unknown Album" : tag.Album,
+                            using var tagFile = TagLib.File.Create(filePath);
+                            var tag = tagFile.Tag;
 
-                                    Duration = tagFile.Properties.Duration.TotalSeconds,
-                                    TrackNumber = tag.Track, 
-                                    Year = tag.Year, 
-                                    CoverArt = tag.Pictures.Length > 0 ? tag.Pictures[0].Data.Data : null
-                                };
-                                allTracksFound.Add(track);
-                            }
+                            var track = new LocalTrack
+                            {
+                                FilePath = filePath,
+                                Title = string.IsNullOrEmpty(tag.Title) ? Path.GetFileNameWithoutExtension(filePath) : tag.Title,
+                                Artist = string.IsNullOrEmpty(tag.FirstPerformer) ? "Unknown Artist" : tag.FirstPerformer,
+                                Album = string.IsNullOrEmpty(tag.Album) ? "Unknown Album" : tag.Album,
+                                Duration = tagFile.Properties.Duration.TotalSeconds,
+                                TrackNumber = tag.Track,
+                                Year = tag.Year,
+                                CoverArt = tag.Pictures.Length > 0 ? tag.Pictures[0].Data.Data : null
+                            };
+
+                            allTracksFound.Add(track);
                         }
-                        catch (Exception)
+                        catch
                         {
-                            // Skip file corrupt
                         }
                     }
                 }
-                catch (Exception)
+                catch
                 {
-                    // Skip folder did not access
                 }
             }
+
             _trackCache = allTracksFound;
             LibraryChanged?.Invoke();
         }
 
         public async Task UpdateAlbumNameAsync(string currentAlbumName, string artist, string newAlbumName)
         {
-            // 1. Tìm các bài hát cần sửa trong bộ nhớ đệm
             var tracksToUpdate = _trackCache
                 .Where(t => t.Album == currentAlbumName && t.Artist == artist)
                 .ToList();
 
-            // 2. Thực hiện sửa file ở luồng phụ (Task.Run) để không đơ UI
             await Task.Run(() =>
             {
                 foreach (var track in tracksToUpdate)
                 {
                     try
                     {
-                        // Dùng TagLib mở file
-                        using (var tagFile = TagLib.File.Create(track.FilePath))
-                        {
-                            // Đổi tên Album
-                            tagFile.Tag.Album = newAlbumName;
+                        using var tagFile = TagLib.File.Create(track.FilePath);
+                        tagFile.Tag.Album = newAlbumName;
+                        tagFile.Save();
 
-                            // Lưu xuống ổ cứng
-                            tagFile.Save();
-                        }
-
-                        // Cập nhật luôn cache để UI hiển thị ngay tên mới
                         track.Album = newAlbumName;
                     }
                     catch (Exception ex)
                     {
-                        // File có thể đang được phát hoặc bị khóa, bỏ qua hoặc log lỗi
                         Debug.WriteLine($"Lỗi khi đổi tên file {track.FilePath}: {ex.Message}");
                     }
                 }
             });
 
-            // 3. Thông báo giao diện load lại
             LibraryChanged?.Invoke();
+        }
+
+        private static bool IsInPlaylistFolder(string filePath)
+        {
+            var directory = Path.GetDirectoryName(filePath);
+            if (string.IsNullOrEmpty(directory))
+                return false;
+
+            var metadataPath = Path.Combine(directory, "playlist.json");
+            return File.Exists(metadataPath);
         }
     }
 }
