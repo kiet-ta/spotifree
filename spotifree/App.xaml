@@ -18,6 +18,7 @@
                     <converters:IsViewModelConverter x:Key="IsViewModelConverter" />
                     <converters:HorizontalAlignmentConverter x:Key="HorizontalAlignmentConverter" />
                     <converters:BubbleColorConverter x:Key="BubbleColorConverter" />
+                    <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
                 </ResourceDictionary>
 
             </ResourceDictionary.MergedDictionaries>

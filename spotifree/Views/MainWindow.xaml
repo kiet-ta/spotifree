@@ -109,5 +109,6 @@
                              Mode=OneWay}">
             <materialDesign:PackIcon Kind="Chat" Height="24" Width="24" />
         </Button>
+        <views:TourView DataContext="{Binding TourViewModel}" />
     </Grid>
 </Window>
