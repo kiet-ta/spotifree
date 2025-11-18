@@ -1,13 +1,12 @@
 ﻿<UserControl x:Class="Spotifree.Views.SettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="800"
-             
-    Background="{DynamicResource MaterialDesignPaper}">
+             Background="{DynamicResource MaterialDesignPaper}">
 
     <StackPanel Margin="20">
 
@@ -24,10 +23,9 @@
                           IsChecked="{Binding IsDarkTheme}"/>
         </StackPanel>
 
-
-        <TextBlock Text="Các thư mục nhạc" 
+        <TextBlock Text="Các thư mục nhạc"
                    Foreground="OrangeRed"
-                   Style="{StaticResource MaterialDesignHeadline6TextBlock}" 
+                   Style="{StaticResource MaterialDesignHeadline6TextBlock}"
                    Margin="0,20,0,5"/>
 
         <ListView ItemsSource="{Binding MusicFolderPaths}"
@@ -38,31 +36,30 @@
 
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding}" 
-                               Style="{DynamicResource MaterialDesignBody2TextBlock}" 
+                    <TextBlock Text="{Binding}"
+                               Style="{DynamicResource MaterialDesignBody2TextBlock}"
                                Margin="5"/>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
 
         <StackPanel Orientation="Horizontal">
-            <Button Content="Thêm thư mục..." 
-                    Command="{Binding SelectFolderCommand}" 
+            <Button Content="Thêm thư mục..."
+                    Command="{Binding SelectFolderCommand}"
                     Style="{DynamicResource MaterialDesignPaperButton}"/>
 
-            <Button Content="Xóa thư mục" 
+            <Button Content="Xóa thư mục"
                     Command="{Binding RemoveFolderCommand}"
                     Style="{DynamicResource MaterialDesignPaperButton}"
                     Margin="10,0,0,0"/>
         </StackPanel>
 
-
-        <Button Content="Quét lại thư viện" 
-                Command="{Binding RescanLibraryCommand}" 
+        <Button Content="Quét lại thư viện"
+                Command="{Binding RescanLibraryCommand}"
                 Margin="0,20,0,0"
                 Style="{DynamicResource MaterialDesignOutlinedButton}"/>
 
-        <TextBlock Text="Scanning..." Margin="0,5,0,0" 
+        <TextBlock Text="Scanning..." Margin="0,5,0,0"
                    Foreground="{DynamicResource MaterialDesignPrimary}">
             <TextBlock.Style>
                 <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MaterialDesignBody1TextBlock}">
@@ -75,5 +72,24 @@
                 </Style>
             </TextBlock.Style>
         </TextBlock>
+
+        <!-- THƯ MỤC PLAYLIST -->
+        <TextBlock Text="Thư mục playlist"
+                   Foreground="OrangeRed"
+                   Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                   Margin="0,30,0,5"/>
+
+        <StackPanel Orientation="Horizontal">
+            <TextBox x:Name="PlaylistRootPathTextBox"
+                     IsReadOnly="True"
+                     Width="400"
+                     Margin="0,0,10,0"
+                     Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+
+            <Button Content="Chọn thư mục playlist..."
+                    Click="SelectPlaylistRoot_Click"
+                    Style="{StaticResource MaterialDesignPaperButton}"/>
+        </StackPanel>
+
     </StackPanel>
 </UserControl>
