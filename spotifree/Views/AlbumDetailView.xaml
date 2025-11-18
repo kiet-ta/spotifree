@@ -4,13 +4,20 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:conv="clr-namespace:Spotifree.Converters"
              mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <conv:TrackCoverConverter x:Key="TrackCoverConverter" />
+    </UserControl.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!-- Header album -->
         <StackPanel Grid.Row="0"
                     Orientation="Horizontal"
                     Background="#eee"
@@ -19,17 +26,13 @@
                     Command="{Binding GoBackCommand}"
                     Margin="5" />
 
-            <Image Width="150" Height="150">
-                <Image.Source>
-                    <Binding Path="Album.CoverArt">
-                        <Binding.TargetNullValue>
-                            <BitmapImage UriSource="pack://application:,,,/Assets/defaultImage.png" />
-                        </Binding.TargetNullValue>
-                    </Binding>
-                </Image.Source>
-            </Image>
+            <Image Width="150"
+                   Height="150"
+                   Margin="10,5"
+                   Source="{Binding Album.CoverArt, Converter={StaticResource TrackCoverConverter}}" />
 
-            <StackPanel VerticalAlignment="Center" Margin="10">
+            <StackPanel VerticalAlignment="Center"
+                        Margin="10">
                 <TextBlock Text="{Binding Album.Name}"
                            FontSize="24"
                            FontWeight="Bold" />
@@ -42,34 +45,56 @@
             </StackPanel>
         </StackPanel>
 
+        <!-- Track list -->
         <ListView x:Name="TracksListView"
                   Grid.Row="1"
                   ItemsSource="{Binding Album.Tracks}"
                   SelectedItem="{Binding SelectedTrack, Mode=OneWayToSource}">
+
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <EventSetter Event="PreviewMouseRightButtonUp"
-                                 Handler="TrackItem_RightClick"/>
+                                 Handler="TrackItem_RightClick" />
                 </Style>
             </ListView.ItemContainerStyle>
 
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Title"
-                                    DisplayMemberBinding="{Binding Title}"
-                                    Width="300" />
-                    <GridViewColumn Header="Artist"
-                                    DisplayMemberBinding="{Binding Artist}"
-                                    Width="200" />
-                    <GridViewColumn Header="Duration"
-                                    Width="80">
+
+                    <!-- Title + cover -->
+                    <GridViewColumn Header="Title" Width="380">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding Duration, Converter={StaticResource SecondsToTimeConverter}}"
-                                           HorizontalAlignment="Right" />
+                                <StackPanel Orientation="Horizontal"
+                                            VerticalAlignment="Center">
+                                    <Image Width="32"
+                                           Height="32"
+                                           Margin="0,0,8,0"
+                                           Source="{Binding CoverArt, Converter={StaticResource TrackCoverConverter}}" />
+                                    <TextBlock Text="{Binding Title}"
+                                               VerticalAlignment="Center" />
+                                </StackPanel>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
+
+                    <!-- Artist -->
+                    <GridViewColumn Header="Artist"
+                                    DisplayMemberBinding="{Binding Artist}"
+                                    Width="260" />
+
+                    <!-- Duration m:ss -->
+                    <GridViewColumn Header="Duration" Width="800">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Duration,
+                                                          Converter={StaticResource SecondsToTimeConverter}}"
+                                           HorizontalAlignment="Right"
+                                           VerticalAlignment="Center" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+
                 </GridView>
             </ListView.View>
         </ListView>

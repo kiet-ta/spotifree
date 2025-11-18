@@ -4,8 +4,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:conv="clr-namespace:Spotifree.Converters"
              mc:Ignorable="d"
              Width="180" Height="240">
+
+    <UserControl.Resources>
+        <conv:TrackCoverConverter x:Key="TrackCoverConverter" />
+    </UserControl.Resources>
+
     <Grid>
         <materialDesign:Card UniformCornerRadius="5"
                              materialDesign:ElevationAssist.Elevation="Dp4"
@@ -23,34 +29,29 @@
             </materialDesign:Card.ContextMenu>
 
             <StackPanel>
-                <Image Height="160" Stretch="UniformToFill">
-                    <Image.Source>
-                        <Binding Path="CoverArt">
-                            <Binding.TargetNullValue>
-                                <BitmapImage UriSource="pack://application:,,,/Assets/defaultImage.png" />
-                            </Binding.TargetNullValue>
-                        </Binding>
-                    </Image.Source>
-                </Image>
+                <!-- Cover album với default image -->
+                <Image Height="160"
+                       Stretch="UniformToFill"
+                       Source="{Binding CoverArt, Converter={StaticResource TrackCoverConverter}}" />
 
                 <TextBlock Text="{Binding Name}"
                            FontWeight="Bold"
                            Margin="5,5,5,0"
                            TextTrimming="CharacterEllipsis"
                            Foreground="{DynamicResource MaterialDesignBody}"
-                           Style="{StaticResource MaterialDesignSubtitle1TextBlock}"/>
+                           Style="{StaticResource MaterialDesignSubtitle1TextBlock}" />
 
                 <TextBlock Text="{Binding Artist}"
                            Margin="5,0,5,5"
                            TextTrimming="CharacterEllipsis"
                            Foreground="{DynamicResource MaterialDesignBody}"
-                           Style="{StaticResource MaterialDesignBody2TextBlock}"/>
+                           Style="{StaticResource MaterialDesignBody2TextBlock}" />
 
                 <Button Content="View Album"
                         Command="{Binding DataContext.SelectAlbumCommand,
                                           RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                         CommandParameter="{Binding}"
-                        Style="{StaticResource MaterialDesignRaisedButton}"/>
+                        Style="{StaticResource MaterialDesignRaisedButton}" />
             </StackPanel>
         </materialDesign:Card>
     </Grid>
