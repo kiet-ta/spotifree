@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using NAudio.Wave;
 using Spotifree.Constances;
+using System.Text.RegularExpressions;
+using System.Globalization;
+
 namespace Spotifree.Services;
 
 #pragma warning disable CA1416
@@ -20,6 +23,8 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
     private List<LocalTrack> _playlist = new();
     private int _currentIndex = -1;
     private FrequencySpectrumProvider? _frequencyProvider;
+
+    public List<LyricLine> CurrentLyrics { get; private set; } = new();
 
     public PlayerState CurrentState { get; private set; } = PlayerState.Stopped;
     public LocalTrack? CurrentTrack { get; private set; }
@@ -81,7 +86,48 @@ public class AudioPlayerService : IAudioPlayerService, IDisposable
             // Handle corrupt file gracefully, maybe skip to next
             SkipNext();
         }
+
+        try
+        {
+            ParseLyrics(track.RawLrcContent);
+        }
+        catch
+        {
+            CurrentLyrics.Clear();
+        }
         return Task.CompletedTask;
+    }
+
+    private void ParseLyrics(string? rawLrcContent)
+    {
+        CurrentLyrics.Clear();
+        if (string.IsNullOrWhiteSpace(rawLrcContent))
+        {
+            return;
+        }
+
+        var regex = new Regex(@"\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)");
+        var lines = rawLrcContent.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var line in lines)
+        {
+            var match = regex.Match(line);
+            if (match.Success)
+            {
+                int minutes = int.Parse(match.Groups[1].Value);
+                int seconds = int.Parse(match.Groups[2].Value);
+                int milliseconds = int.Parse(match.Groups[3].Value.PadRight(3, '0').Substring(0, 3));
+                string text = match.Groups[4].Value.Trim();
+
+                CurrentLyrics.Add(new LyricLine
+                {
+                    Timestamp = new TimeSpan(0, 0, minutes, seconds, milliseconds),
+                    Text = text
+                });
+            }
+        }
+
+        CurrentLyrics = CurrentLyrics.OrderBy(l => l.Timestamp).ToList();
     }
 
     private void OnFrequencyDataAvailable(float[] frequencyData)

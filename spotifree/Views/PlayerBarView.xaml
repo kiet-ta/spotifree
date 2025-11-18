@@ -17,6 +17,7 @@
         </Style>
         <converters:RepeatModeIconConverter x:Key="RepeatModeIconConverter" />
         <converters:RepeatModeColorConverter x:Key="RepeatModeColorConverter" />
+        <converters:BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -33,6 +34,15 @@
         <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Height="80" Width="400">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 
+                <ToggleButton Style="{StaticResource MaterialDesignIconButton}" 
+                              ToolTip="Hiển thị lời bài hát"
+                              IsChecked="{Binding ShowLyrics, Mode=TwoWay}">
+                    <materialDesign:PackIcon Kind="ClosedCaption" 
+                                             Width="24" Height="24"
+                                             Foreground="{Binding ShowLyrics, 
+                                                Converter={StaticResource RepeatModeColorConverter}}"/>
+                </ToggleButton>
+                
                 <Button Style="{StaticResource MaterialDesignIconButton}" Margin="5" 
                         Command="{Binding ToggleRepeatCommand}"
                         ToolTip="Chế độ lặp">
@@ -56,9 +66,18 @@
                 </Button>
 
             </StackPanel>
-            <Slider Width="325" Minimum="0" 
-                Maximum="{Binding Duration, FallbackValue=100}" 
-                Value="{Binding CurrentPosition, Mode=TwoWay}"/>
+            <Slider Width="400" Minimum="0" 
+                    Maximum="{Binding Duration, FallbackValue=100}" 
+                    Value="{Binding CurrentPosition, Mode=TwoWay}"/>
+
+            <TextBlock Text="{Binding CurrentLyricLine}"
+                       Width="400"
+                       Height="20"
+                       Foreground="White"
+                       TextAlignment="Center"
+                       TextTrimming="CharacterEllipsis"
+                       Opacity="0.8"
+                       Visibility="{Binding ShowLyrics, Converter={StaticResource BoolToVisConverter}}"/>
         </StackPanel>
 
         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,20,0" Height="48">
