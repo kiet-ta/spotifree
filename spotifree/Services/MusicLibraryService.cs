@@ -130,6 +130,7 @@ namespace Spotifree.Services
             LibraryChanged?.Invoke();
         }
 
+
         private static bool IsInPlaylistFolder(string filePath)
         {
             var directory = Path.GetDirectoryName(filePath);
@@ -138,6 +139,23 @@ namespace Spotifree.Services
 
             var metadataPath = Path.Combine(directory, "playlist.json");
             return File.Exists(metadataPath);
+        }
+
+        }
+        public Task<IEnumerable<LocalTrack>> SearchTracksAsync(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return Task.FromResult(Enumerable.Empty<LocalTrack>());
+            }
+
+            var results = _trackCache.Where(t =>
+                t.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                t.Artist.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                t.Album.Contains(query, StringComparison.OrdinalIgnoreCase)
+            );
+
+            return Task.FromResult(results);
         }
     }
 }

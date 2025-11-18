@@ -1,12 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Spotifree.IServices;
-using Spotifree.ViewModels;
 using Spotifree.Views;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace Spotifree.Services;
@@ -37,5 +31,26 @@ public class ViewModeService : IViewModeService
 
         miniPlayer.Hide();
         mainWindow.Show();
+    }
+
+    public void ShowMainWindow()
+    {
+        var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+
+        if (!mainWindow.Dispatcher.CheckAccess())
+        {
+            mainWindow.Dispatcher.Invoke(() =>
+            {
+                mainWindow.Show();
+                mainWindow.WindowState = WindowState.Normal;
+                mainWindow.Activate();
+            });
+        }
+        else
+        {
+            mainWindow.Show();
+            mainWindow.WindowState = WindowState.Normal;
+            mainWindow.Activate();
+        }
     }
 }

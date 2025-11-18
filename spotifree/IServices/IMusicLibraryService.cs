@@ -18,7 +18,7 @@ namespace Spotifree.IServices
         // Scans the specified folder, extracts metadata, and updates the library cache.
         Task ScanLibraryAsync();
 
-
+        Task<IEnumerable<LocalTrack>> SearchTracksAsync(string query);
         Task UpdateAlbumNameAsync(string currentAlbumName, string artist, string newAlbumName);
     }
 }

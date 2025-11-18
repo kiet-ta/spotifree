@@ -16,6 +16,9 @@
         <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
             <views:SettingsView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:FocusViewModel}">
+            <views:FocusView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:AlbumDetailViewModel}">
             <views:AlbumDetailView />
         </DataTemplate>
@@ -25,6 +28,7 @@
         <DataTemplate DataType="{x:Type vm:ChatViewModel}">
             <views:ChatView />
         </DataTemplate>
+
     </Window.Resources>
 
     <Grid Background="{DynamicResource MaterialDesignPaper}">
@@ -65,6 +69,13 @@
                              Margin="5"
                              Command="{Binding NavigateSettingsCommand}"
                              IsChecked="{Binding CurrentPageViewModel, Converter={StaticResource IsViewModelConverter}, ConverterParameter={x:Type vm:SettingsViewModel}, Mode=OneWay}" />
+
+                <RadioButton Content="Focus"
+                             Foreground="White"
+                             Style="{StaticResource MaterialDesignChoiceChipPrimaryRadioButton}"
+                             Margin="5"
+                             Command="{Binding NavigateFocusCommand}"
+                             IsChecked="{Binding CurrentPageViewModel, Converter={StaticResource IsViewModelConverter}, ConverterParameter={x:Type vm:FocusViewModel}, Mode=OneWay}" />
             </StackPanel>
         </materialDesign:ColorZone>
 

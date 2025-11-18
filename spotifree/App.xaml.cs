@@ -29,6 +29,7 @@ namespace Spotifree
             services.AddSingleton<IThemeService, ThemeService>();
             services.AddSingleton<IViewModeService, ViewModeService>();
             services.AddSingleton<IConnectivityService, ConnectivityService>();
+            services.AddSingleton<IFocusTimerService, FocusTimerService>();
 
             // NEW: Playlist service
             services.AddSingleton<IPlaylistService, PlaylistService>();
@@ -46,6 +47,8 @@ namespace Spotifree
             services.AddTransient<AlbumDetailViewModel>();
             services.AddTransient<ChatViewModel>();
             services.AddSingleton<TourViewModel>();
+            services.AddSingleton<FocusViewModel>();
+
 
             // ===== Gemini =====
             services.AddSingleton<IGeminiService>(sp =>

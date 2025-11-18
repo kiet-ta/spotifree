@@ -17,6 +17,8 @@ public class MainViewModel : BaseViewModel
     private readonly IAudioPlayerService _audioPlayer;
     private readonly IViewModeService _viewModeService;
     private readonly ISettingsService _settingsService;
+    private readonly IFocusTimerService _timerService;
+    private readonly FocusViewModel _focusViewModel;
 
     public BaseViewModel CurrentPageViewModel
     {
@@ -27,25 +29,28 @@ public class MainViewModel : BaseViewModel
 
     //command
     public ICommand NavigateLibraryCommand { get; }
-
+    public ICommand NavigateFocusCommand { get; }
     public ICommand NavigateSettingsCommand { get; }
 
-    public MainViewModel(IAudioPlayerService audioPlayer, IMusicLibraryService libraryService, ISettingsService settingsService, IThemeService themeService, IViewModeService viewModeService, ChatViewModel chatViewModel, TourViewModel tourViewModel, PlayerViewModel playerViewModel)
+    public MainViewModel(IAudioPlayerService audioPlayer, IMusicLibraryService libraryService, ISettingsService settingsService, IThemeService themeService, IViewModeService viewModeService, ChatViewModel chatViewModel, TourViewModel tourViewModel, PlayerViewModel playerViewModel, IFocusTimerService timerService, FocusViewModel focusViewModel)
     {
         //Integration
         _audioPlayer = audioPlayer;
         _viewModeService = viewModeService;
         _settingsService = settingsService;
+        _timerService = timerService;
 
         //ViewModel
         TourViewModel = tourViewModel;
         _settingsViewModel = new SettingsViewModel(settingsService, libraryService, themeService, this);
         _playerViewModel = playerViewModel;
         _libraryViewModel = new LibraryViewModel(libraryService, audioPlayer, this);
-        
+        _focusViewModel = focusViewModel;
+
         // event
         _libraryViewModel.RequestNavigateToSettings += () => NavigateTo(_settingsViewModel);
         TourViewModel.TourEnded += OnTourEnded;
+        _timerService.TimerFinished += OnFocusTimerFinished;
 
         _currentPageViewModel = _libraryViewModel;
 
@@ -55,6 +60,8 @@ public class MainViewModel : BaseViewModel
         //Command
         NavigateLibraryCommand = new RelayCommand(_ => NavigateTo(_libraryViewModel));
         NavigateSettingsCommand = new RelayCommand(_ => NavigateTo(_settingsViewModel));
+        NavigateFocusCommand = new RelayCommand(_ => NavigateTo(_focusViewModel));
+
 
         CheckForFirstRunTour();
     }
@@ -96,5 +103,14 @@ public class MainViewModel : BaseViewModel
             settings.HasCompletedFirstRunTour = true;
             await _settingsService.SaveAsync(settings);
         }
+    }
+
+    private void OnFocusTimerFinished()
+    {
+        _focusViewModel.FinishSession();
+
+        _viewModeService.ShowMainWindow();
+
+        NavigateTo(_focusViewModel);
     }
 }

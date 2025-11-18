@@ -167,18 +167,14 @@ namespace Spotifree.ViewModels
             return image;
         }
 
-        private void FilterTracks(string query)
+        private async void FilterTracks(string query)
         {
             SearchResults.Clear();
             IsSearching = !string.IsNullOrWhiteSpace(query);
 
             if (IsSearching)
             {
-                var results = _allTracks.Where(t =>
-                    t.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                    t.Artist.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                    t.Album.Contains(query, StringComparison.OrdinalIgnoreCase)
-                );
+                var results = await _libraryService.SearchTracksAsync(query);
 
                 foreach (var track in results)
                 {
