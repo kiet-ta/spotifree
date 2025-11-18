@@ -171,7 +171,7 @@
                                                               Click="RenamePlaylist_Click" />
                                                     <MenuItem Header="Change image"
                                                               CommandParameter="{Binding}"
-                                                              Click="ChangePlaylistCover_Click" />
+                                                              Click="ChangeCover_Click" />
                                                     <Separator />
                                                     <MenuItem Header="Delete playlist"
                                                               CommandParameter="{Binding}"
