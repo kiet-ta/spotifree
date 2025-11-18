@@ -12,7 +12,7 @@ namespace Spotifree.IServices
         double CurrentPosition { get; }
         double Duration { get; }
         RepeatMode RepeatMode { get; set; }
-
+        List<LyricLine> CurrentLyrics { get; }
 
 
         event Action<PlayerState> PlaybackStateChanged;

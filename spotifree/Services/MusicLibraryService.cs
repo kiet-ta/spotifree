@@ -62,6 +62,17 @@ namespace Spotifree.Services
                             using var tagFile = TagLib.File.Create(filePath);
                             var tag = tagFile.Tag;
 
+                            string lrcPath = Path.ChangeExtension(filePath, ".lrc");
+                            string? lrcContent = null;
+                            if (File.Exists(lrcPath))
+                            {
+                                try
+                                {
+                                    lrcContent = await File.ReadAllTextAsync(lrcPath);
+                                }
+                                catch {  }
+                            }
+
                             var track = new LocalTrack
                             {
                                 FilePath = filePath,
@@ -71,7 +82,8 @@ namespace Spotifree.Services
                                 Duration = tagFile.Properties.Duration.TotalSeconds,
                                 TrackNumber = tag.Track,
                                 Year = tag.Year,
-                                CoverArt = tag.Pictures.Length > 0 ? tag.Pictures[0].Data.Data : null
+                                CoverArt = tag.Pictures.Length > 0 ? tag.Pictures[0].Data.Data : null,
+                                RawLrcContent = lrcContent
                             };
 
                             allTracksFound.Add(track);

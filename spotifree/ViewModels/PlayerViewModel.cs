@@ -18,11 +18,23 @@ namespace Spotifree.ViewModels
         private double _volume;
         private RepeatMode _repeatMode;
         private readonly IViewModeService _viewModeService;
-
+        private List<LyricLine> _currentLyrics = new();
+        private string _currentLyricLine = string.Empty;
         private const int NumberOfBands = 32;
-        public ObservableCollection<FrequencyBandViewModel> FrequencyBands { get; }
+        public string CurrentLyricLine
+        {
+            get => _currentLyricLine;
+            set => SetProperty(ref _currentLyricLine, value);
+        }
 
-        
+        private bool _showLyrics;
+        public bool ShowLyrics
+        {
+            get => _showLyrics;
+            set => SetProperty(ref _showLyrics, value);
+        }
+
+        public ObservableCollection<FrequencyBandViewModel> FrequencyBands { get; }
 
         public LocalTrack? CurrentTrack
         {
@@ -84,6 +96,7 @@ namespace Spotifree.ViewModels
         public ICommand SwitchToMiniModeCommand { get; }
         public ICommand SwitchToMainModeCommand { get; }
         public ICommand ToggleRepeatCommand { get; }
+        public ICommand ToggleLyricsCommand { get; }
         public PlayerViewModel(IAudioPlayerService player, IViewModeService viewModeService)
         {
             _player = player;
@@ -103,6 +116,7 @@ namespace Spotifree.ViewModels
             SkipNextCommand = new RelayCommand(_ => _player.SkipNext());
             SkipPreviousCommand = new RelayCommand(_ => _player.SkipPrevious());
             ToggleRepeatCommand = new RelayCommand(ExecuteToggleRepeat);
+            ToggleLyricsCommand = new RelayCommand(ExecuteToggleLyrics);
 
             SwitchToMiniModeCommand = new RelayCommand(_ => _viewModeService.SwitchToMiniPlayer());
             SwitchToMainModeCommand = new RelayCommand(_ => _viewModeService.SwitchToMainPlayer());
@@ -112,6 +126,16 @@ namespace Spotifree.ViewModels
 
             _player.FrequencyDataAvailable += OnFrequencyDataAvailable;
         }
+
+        private void ExecuteToggleLyrics(object? obj)
+        {
+            ShowLyrics = !ShowLyrics;
+            if (!ShowLyrics)
+            {
+                CurrentLyricLine = string.Empty;
+            }
+        }
+
 
         private void OnFrequencyDataAvailable(float[] frequencyData)
         {
@@ -164,6 +188,12 @@ namespace Spotifree.ViewModels
             if (state == PlayerState.Stopped)
             {
                 CurrentPosition = 0;
+                CurrentLyricLine = string.Empty;
+            }
+
+            if (state == PlayerState.Playing)
+            {
+                _currentLyrics = _player.CurrentLyrics;
             }
         }
 
@@ -178,6 +208,27 @@ namespace Spotifree.ViewModels
             // Ensure track info is synced
             if (CurrentTrack != _player.CurrentTrack)
                 CurrentTrack = _player.CurrentTrack;
+
+            if (IsPlaying && ShowLyrics && _currentLyrics.Any())
+            {
+                var currentTimestamp = TimeSpan.FromSeconds(position);
+
+                var lyricToShow = _currentLyrics
+                    .Where(line => line.Timestamp <= currentTimestamp)
+                    .LastOrDefault();
+
+                if (lyricToShow != null)
+                {
+                    if (CurrentLyricLine != lyricToShow.Text)
+                    {
+                        CurrentLyricLine = lyricToShow.Text;
+                    }
+                }
+                else
+                {
+                    CurrentLyricLine = string.Empty;
+                }
+            }
         }
     }
 }
