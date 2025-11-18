@@ -23,6 +23,7 @@
                     <converters:BubbleColorConverter x:Key="BubbleColorConverter" />
                     <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
                     <converters:SecondsToTimeConverter x:Key="SecondsToTimeConverter" />
+                    <converters:TrackCoverConverter x:Key="TrackCoverConverter" />
                 </ResourceDictionary>
 
             </ResourceDictionary.MergedDictionaries>

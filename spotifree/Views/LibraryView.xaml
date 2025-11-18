@@ -5,30 +5,30 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:views="clr-namespace:Spotifree.Views"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:conv="clr-namespace:Spotifree.Converters"
              mc:Ignorable="d">
 
-    <Grid Background="{DynamicResource MaterialDesignPaper}">
+    <UserControl.Resources>
+        <conv:TrackCoverConverter x:Key="TrackCoverConverter" />
+    </UserControl.Resources>
 
+    <Grid Background="{DynamicResource MaterialDesignPaper}">
         <TabControl Margin="10">
-            <!-- TAB ALBUMS -->
+
             <TabItem Header="Albums">
                 <Grid>
-
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <!-- SEARCH -->
-                    <TextBox
-                        Grid.Row="0"
-                        Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
-                        materialDesign:HintAssist.Hint="Tìm theo tên bài hát, nghệ sĩ, album..."
-                        materialDesign:TextFieldAssist.HasClearButton="True"
-                        Margin="0,0,0,5"
-                        Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                    <TextBox Grid.Row="0"
+                             Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
+                             materialDesign:HintAssist.Hint="Tìm theo tên bài hát, nghệ sĩ, album..."
+                             materialDesign:TextFieldAssist.HasClearButton="True"
+                             Margin="0,0,0,5"
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}" />
 
-                    <!-- ALBUM CARDS -->
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding Albums}">
                             <ItemsControl.ItemsPanel>
@@ -44,93 +44,114 @@
                         </ItemsControl>
                     </ScrollViewer>
 
-                    <!-- SEARCH RESULTS -->
                     <Grid Grid.Row="1"
                           Background="{DynamicResource MaterialDesignPaper}"
                           Visibility="{Binding IsSearching, Converter={StaticResource BoolToVisConverter}}">
-
                         <ListView ItemsSource="{Binding SearchResults}"
                                   SelectedItem="{Binding SelectedSearchTrack, Mode=OneWayToSource}">
                             <ListView.View>
                                 <GridView>
-                                    <GridViewColumn Header="Bài hát" DisplayMemberBinding="{Binding Title}" Width="300" />
-                                    <GridViewColumn Header="Nghệ sĩ" DisplayMemberBinding="{Binding Artist}" Width="250" />
-                                    <GridViewColumn Header="Album" DisplayMemberBinding="{Binding Album}" Width="250" />
-                                    <GridViewColumn Header="Duration" Width="80">
+
+                                    <GridViewColumn Header="Bài hát" Width="350">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding Duration, Converter={StaticResource SecondsToTimeConverter}}"
-                       HorizontalAlignment="Right" />
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <Image Width="32"
+                                                           Height="32"
+                                                           Margin="0,0,8,0"
+                                                           Source="{Binding CoverArt, Converter={StaticResource TrackCoverConverter}}" />
+                                                    <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+                                                </StackPanel>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
+
+                                    <GridViewColumn Header="Nghệ sĩ"
+                                                    DisplayMemberBinding="{Binding Artist}"
+                                                    Width="250" />
+
+                                    <GridViewColumn Header="Album"
+                                                    DisplayMemberBinding="{Binding Album}"
+                                                    Width="250" />
+
+                                    <GridViewColumn Header="Thời lượng" Width="900">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Duration, Converter={StaticResource SecondsToTimeConverter}}"
+                                                           HorizontalAlignment="Right" />
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+
                                 </GridView>
                             </ListView.View>
                         </ListView>
                     </Grid>
 
-                    <!-- EMPTY STATE -->
-                    <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <StackPanel Grid.Row="1"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center">
                         <StackPanel.Style>
                             <Style TargetType="StackPanel">
-                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Setter Property="Visibility" Value="Collapsed" />
                                 <Style.Triggers>
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
                                             <Condition Binding="{Binding HasAlbums}" Value="False" />
                                             <Condition Binding="{Binding IsSearching}" Value="False" />
                                         </MultiDataTrigger.Conditions>
-                                        <Setter Property="Visibility" Value="Visible"/>
+                                        <Setter Property="Visibility" Value="Visible" />
                                     </MultiDataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </StackPanel.Style>
 
                         <materialDesign:PackIcon Kind="MusicNoteOff"
-                                                 Width="100" Height="100"
+                                                 Width="100"
+                                                 Height="100"
                                                  HorizontalAlignment="Center"
                                                  Foreground="{DynamicResource MaterialDesignBodyLight}"
-                                                 Margin="0,0,0,20"/>
+                                                 Margin="0,0,0,20" />
 
                         <TextBlock Text="Chưa có nhạc bro ơi!"
                                    Style="{StaticResource MaterialDesignHeadline5TextBlock}"
                                    HorizontalAlignment="Center"
                                    FontWeight="Bold"
-                                   Foreground="{DynamicResource MaterialDesignBody}"/>
+                                   Foreground="{DynamicResource MaterialDesignBody}" />
 
                         <TextBlock Text="Vào Settings để scan thư mục nhạc nhé."
                                    Style="{StaticResource MaterialDesignBody1TextBlock}"
                                    HorizontalAlignment="Center"
                                    Margin="0,10,0,20"
-                                   Foreground="Gray"/>
+                                   Foreground="Gray" />
 
                         <Button Content="Đi tới Settings ngay"
                                 Height="50"
                                 Command="{Binding GoToSettingsCommand}"
                                 Style="{StaticResource MaterialDesignRaisedButton}"
                                 HorizontalAlignment="Center"
-                                Padding="20,10"/>
+                                Padding="20,10" />
                     </StackPanel>
-
                 </Grid>
             </TabItem>
 
-            <!-- TAB PLAYLISTS -->
             <TabItem Header="Playlists">
                 <Grid>
-
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                        <Button Content="Tạo playlist mới"
+                    <StackPanel Grid.Row="0"
+                                Orientation="Horizontal"
+                                Margin="0,0,0,10">
+                        <Button Content="Add new playlist"
                                 Click="NewPlaylist_Click"
-                                Style="{StaticResource MaterialDesignRaisedButton}"/>
+                                Style="{StaticResource MaterialDesignRaisedButton}" />
                     </StackPanel>
 
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer Grid.Row="1"
+                                  VerticalScrollBarVisibility="Auto">
                         <ItemsControl x:Name="PlaylistsItemsControl">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -141,29 +162,39 @@
                                 <DataTemplate>
                                     <Grid Width="180" Height="240">
                                         <materialDesign:Card UniformCornerRadius="5"
-                                     materialDesign:ElevationAssist.Elevation="Dp4"
-                                     Background="{DynamicResource MaterialDesignCardBackground}">
+                                                             materialDesign:ElevationAssist.Elevation="Dp4"
+                                                             Background="{DynamicResource MaterialDesignCardBackground}">
                                             <materialDesign:Card.ContextMenu>
                                                 <ContextMenu>
-                                                    <MenuItem Header="Đổi tên" Click="RenamePlaylist_Click" />
+                                                    <MenuItem Header="Rename playlist"
+                                                              CommandParameter="{Binding}"
+                                                              Click="RenamePlaylist_Click" />
+                                                    <MenuItem Header="Change image"
+                                                              CommandParameter="{Binding}"
+                                                              Click="ChangeCover_Click" />
+                                                    <Separator />
+                                                    <MenuItem Header="Delete playlist"
+                                                              CommandParameter="{Binding}"
+                                                              Click="DeletePlaylist_Click" />
                                                 </ContextMenu>
                                             </materialDesign:Card.ContextMenu>
+
                                             <StackPanel>
-                                                <Image Source="{Binding CoverArt, FallbackValue='default_cover.png'}"
-                               Height="160"
-                               Stretch="UniformToFill" />
+                                                <Image Height="160"
+                                                       Stretch="UniformToFill"
+                                                       Source="{Binding CoverArt, TargetNullValue=/Assets/defaultImage.png}" />
 
                                                 <TextBlock Text="{Binding Name}"
-                                   FontWeight="Bold"
-                                   Margin="5,5,5,0"
-                                   TextTrimming="CharacterEllipsis"
-                                   Foreground="{DynamicResource MaterialDesignBody}"
-                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}" />
+                                                           FontWeight="Bold"
+                                                           Margin="5,5,5,0"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           Foreground="{DynamicResource MaterialDesignBody}"
+                                                           Style="{StaticResource MaterialDesignSubtitle1TextBlock}" />
 
                                                 <Button Content="View Playlist"
-                                Margin="5,5,5,5"
-                                Click="ViewPlaylist_Click"
-                                Style="{StaticResource MaterialDesignRaisedButton}" />
+                                                        Margin="5,5,5,5"
+                                                        Click="ViewPlaylist_Click"
+                                                        Style="{StaticResource MaterialDesignRaisedButton}" />
                                             </StackPanel>
                                         </materialDesign:Card>
                                     </Grid>
@@ -171,10 +202,9 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
-
                 </Grid>
             </TabItem>
-        </TabControl>
 
+        </TabControl>
     </Grid>
 </UserControl>

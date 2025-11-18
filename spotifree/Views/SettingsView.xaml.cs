@@ -1,12 +1,16 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Spotifree.IServices;
+using Spotifree.Models;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using WinForms = System.Windows.Forms;
 
 namespace Spotifree.Views
 {
     public partial class SettingsView : UserControl
     {
+        private readonly ISettingsService? _settingsService;
         private readonly IPlaylistService? _playlistService;
 
         public SettingsView()
@@ -14,24 +18,48 @@ namespace Spotifree.Views
             InitializeComponent();
 
             if (App.ServiceProvider != null)
+            {
+                _settingsService = App.ServiceProvider.GetService<ISettingsService>();
                 _playlistService = App.ServiceProvider.GetService<IPlaylistService>();
-
-            if (_playlistService != null)
-                PlaylistRootPathTextBox.Text = _playlistService.RootPath ?? string.Empty;
+                _ = LoadSettingsAsync();
+            }
         }
 
-        private void SelectPlaylistRoot_Click(object sender, RoutedEventArgs e)
+        private async Task LoadSettingsAsync()
         {
-            if (_playlistService == null)
+            if (_settingsService == null)
                 return;
 
-            using var dialog = new System.Windows.Forms.FolderBrowserDialog();
-            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            AppSettings settings = await _settingsService.GetAsync();
+
+            PlaylistRootPathTextBox.Text = settings.PlaylistRootPath ?? string.Empty;
+
+            if (_playlistService != null && !string.IsNullOrWhiteSpace(settings.PlaylistRootPath))
             {
-                _playlistService.RootPath = dialog.SelectedPath;
-                PlaylistRootPathTextBox.Text = dialog.SelectedPath;
+                _playlistService.RootPath = settings.PlaylistRootPath;
                 _playlistService.ReloadFromDisk();
             }
+        }
+
+        private async void SelectPlaylistRoot_Click(object sender, RoutedEventArgs e)
+        {
+            if (_settingsService == null || _playlistService == null)
+                return;
+
+            using var dialog = new WinForms.FolderBrowserDialog();
+            if (dialog.ShowDialog() != WinForms.DialogResult.OK)
+                return;
+
+            var selectedPath = dialog.SelectedPath;
+
+            PlaylistRootPathTextBox.Text = selectedPath;
+
+            var settings = await _settingsService.GetAsync();
+            settings.PlaylistRootPath = selectedPath;
+            await _settingsService.SaveAsync(settings);
+
+            _playlistService.RootPath = selectedPath;
+            _playlistService.ReloadFromDisk();
         }
     }
 }

@@ -28,65 +28,97 @@ namespace Spotifree.Views
             if (_playlistService == null)
                 return;
 
-            var item = sender as ListViewItem;
-            if (item?.DataContext is not LocalTrack track)
+            if (sender is not ListViewItem item || item.DataContext is not LocalTrack track)
                 return;
-
-            if (string.IsNullOrWhiteSpace(_playlistService.RootPath))
-            {
-                MessageBox.Show("Chưa cấu hình thư mục playlist trong Settings.");
-                return;
-            }
-
-            // Playlist hiện tại: dựa theo filePath nằm trong folder nào
-            Playlist? currentPlaylist = null;
-            if (!string.IsNullOrEmpty(track.FilePath))
-            {
-                currentPlaylist = _playlistService.Playlists
-                    .FirstOrDefault(p => track.FilePath!
-                        .StartsWith(p.FolderPath, System.StringComparison.OrdinalIgnoreCase));
-            }
 
             var menu = new ContextMenu();
 
-            // NÚT XÓA KHỎI PLAYLIST nếu track nằm trong playlist nào đó
-            if (currentPlaylist != null)
-            {
-                var removeItem = new MenuItem { Header = "Xóa khỏi playlist này" };
-                removeItem.Click += (_, __) =>
-                {
-                    _playlistService.RemoveTrackFromPlaylist(currentPlaylist, track);
+            var addMenu = new MenuItem { Header = "Thêm vào playlist" };
 
-                    if (DataContext is AlbumDetailViewModel vm &&
-                        vm.Album != null &&
-                        vm.Album.Tracks.Contains(track))
-                    {
-                        vm.Album.Tracks.Remove(track);
-                    }
-                };
-                menu.Items.Add(removeItem);
-                menu.Items.Add(new Separator());
-            }
-
-            // Submenu: thêm vào playlist khác
-            var addTo = new MenuItem { Header = "Thêm vào playlist" };
             foreach (var pl in _playlistService.Playlists)
             {
-                var plItem = new MenuItem { Header = pl.Name, Tag = pl };
-                plItem.Click += (_, __) =>
+                var mi = new MenuItem
                 {
-                    _playlistService.AddTrackToPlaylist((Playlist)plItem.Tag!, track);
+                    Header = pl.Name,
+                    Tag = (pl, track)
                 };
-                addTo.Items.Add(plItem);
+                mi.Click += AddTrackToPlaylist_Click;
+                addMenu.Items.Add(mi);
             }
-            if (addTo.Items.Count == 0)
-                addTo.IsEnabled = false;
 
-            menu.Items.Add(addTo);
+            var newPlaylistItem = new MenuItem { Header = "Playlist mới..." };
+            newPlaylistItem.Click += (s, _) =>
+            {
+                var dlg = new SimpleTextDialog("Tên playlist mới", "Playlist mới");
+                if (dlg.ShowDialog() != true)
+                    return;
+
+                var name = dlg.Value?.Trim();
+                if (string.IsNullOrWhiteSpace(name))
+                    return;
+
+                var playlist = _playlistService.CreatePlaylist(name);
+                _playlistService.AddTrackToPlaylist(playlist, track);
+            };
+            addMenu.Items.Add(new Separator());
+            addMenu.Items.Add(newPlaylistItem);
+
+            menu.Items.Add(addMenu);
+
+            Playlist? currentPlaylist = null;
+            if (DataContext is AlbumDetailViewModel vm && vm.Album != null)
+            {
+                var albumName = vm.Album.Name;
+                currentPlaylist = _playlistService.Playlists
+                    .FirstOrDefault(p => p.Name == albumName);
+            }
+
+            if (currentPlaylist != null)
+            {
+                menu.Items.Add(new Separator());
+
+                var removeItem = new MenuItem
+                {
+                    Header = "Xóa khỏi playlist này",
+                    Tag = (currentPlaylist, track)
+                };
+                removeItem.Click += RemoveTrackFromPlaylist_Click;
+                menu.Items.Add(removeItem);
+            }
 
             item.ContextMenu = menu;
             menu.IsOpen = true;
-            e.Handled = true;
+        }
+
+        private void AddTrackToPlaylist_Click(object sender, RoutedEventArgs e)
+        {
+            if (_playlistService == null)
+                return;
+
+            if (sender is not MenuItem mi || mi.Tag is not (Playlist playlist, LocalTrack track))
+                return;
+
+            _playlistService.AddTrackToPlaylist(playlist, track);
+        }
+
+        private void RemoveTrackFromPlaylist_Click(object sender, RoutedEventArgs e)
+        {
+            if (_playlistService == null)
+                return;
+
+            if (sender is not MenuItem mi || mi.Tag is not (Playlist playlist, LocalTrack track))
+                return;
+
+            _playlistService.RemoveTrackFromPlaylist(playlist, track);
+
+            if (DataContext is AlbumDetailViewModel vm && vm.Album?.Tracks != null)
+            {
+                var toRemove = vm.Album.Tracks
+                    .FirstOrDefault(t => t.FilePath == track.FilePath);
+
+                if (toRemove != null)
+                    vm.Album.Tracks.Remove(toRemove);
+            }
         }
     }
 }
