@@ -95,7 +95,7 @@ namespace Spotifree.Views
                 var albumVm = new AlbumViewModel(
                     playlist.Name,
                     string.Empty,
-                    playlist.CoverArt,
+                    string.Empty,
                     tracks,
                     null);
 

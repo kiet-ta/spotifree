@@ -5,8 +5,6 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using System.Collections.Generic; 
-using System.Linq; 
 
 namespace Spotifree.ViewModels
 {
@@ -16,7 +14,9 @@ namespace Spotifree.ViewModels
         private readonly IAudioPlayerService _player;
         private readonly MainViewModel _mainViewModel;
         private bool _hasAlbums;
+
         public event Action RequestNavigateToSettings;
+
         public ObservableCollection<AlbumViewModel> Albums { get; }
 
         private List<LocalTrack> _allTracks = new();
@@ -24,6 +24,7 @@ namespace Spotifree.ViewModels
         public ObservableCollection<LocalTrack> SearchResults { get; }
 
         private string _searchQuery = string.Empty;
+
         public string SearchQuery
         {
             get => _searchQuery;
@@ -35,6 +36,7 @@ namespace Spotifree.ViewModels
         }
 
         private bool _isSearching;
+
         public bool IsSearching
         {
             get => _isSearching;
@@ -42,6 +44,7 @@ namespace Spotifree.ViewModels
         }
 
         private LocalTrack? _selectedSearchTrack;
+
         public LocalTrack? SelectedSearchTrack
         {
             get => _selectedSearchTrack;
@@ -55,7 +58,6 @@ namespace Spotifree.ViewModels
             }
         }
 
-
         public bool HasAlbums
         {
             get => _hasAlbums;
@@ -64,6 +66,7 @@ namespace Spotifree.ViewModels
 
         public ICommand SelectAlbumCommand { get; }
         public ICommand GoToSettingsCommand { get; }
+
         public LibraryViewModel(
             IMusicLibraryService library,
             IAudioPlayerService player,
@@ -79,8 +82,8 @@ namespace Spotifree.ViewModels
             LoadAlbums();
             SelectAlbumCommand = new RelayCommand(ExecuteSelectAlbum);
             GoToSettingsCommand = new RelayCommand(_ => RequestNavigateToSettings?.Invoke());
-
         }
+
         private void ExecuteSelectAlbum(object? param)
         {
             if (param is AlbumViewModel album)
@@ -126,14 +129,14 @@ namespace Spotifree.ViewModels
             var renameCommand = new RelayCommand(ExecuteRenameAlbum);
 
             var groupedByAlbum = tracks
-                .GroupBy(t => new { AlbumName = t.Album ?? "Unknown Album", ArtistName = t.Artist ?? "Unknown Artist" })
-                .Select(g => new AlbumViewModel(
-                    g.Key.AlbumName,
-                    g.Key.ArtistName,
-                    LoadImageFromBytes(g.First().CoverArt),
-                    new ObservableCollection<LocalTrack>(g.ToList()),
-                    renameCommand
-                ));
+        .GroupBy(t => new { AlbumName = t.Album ?? "Unknown Album", ArtistName = t.Artist ?? "Unknown Artist" })
+        .Select(g => new AlbumViewModel(
+        g.Key.AlbumName,
+        g.Key.ArtistName,
+        g.First().FilePath,
+        new ObservableCollection<LocalTrack>(g.ToList()),
+        renameCommand
+    ));
 
             foreach (var album in groupedByAlbum)
             {
@@ -145,26 +148,6 @@ namespace Spotifree.ViewModels
         private void OnLibraryChanged()
         {
             System.Windows.Application.Current.Dispatcher.Invoke(LoadAlbums);
-        }
-
-        private BitmapImage? LoadImageFromBytes(byte[]? imageData)
-        {
-            if (imageData == null || imageData.Length == 0)
-                return null;
-
-            var image = new BitmapImage();
-            using (var mem = new MemoryStream(imageData))
-            {
-                mem.Position = 0;
-                image.BeginInit();
-                image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
-                image.CacheOption = BitmapCacheOption.OnLoad;
-                image.UriSource = null;
-                image.StreamSource = mem;
-                image.EndInit();
-            }
-            image.Freeze();
-            return image;
         }
 
         private async void FilterTracks(string query)

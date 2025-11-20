@@ -11,7 +11,5 @@ public class LocalTrack
     public uint TrackNumber { get; set; }
     public uint Year { get; set; }
 
-    public byte[]? CoverArt { get; set; }
-
     public string? RawLrcContent { get; set; }
 }

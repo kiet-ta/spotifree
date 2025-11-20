@@ -82,7 +82,6 @@ namespace Spotifree.Services
                                 Duration = tagFile.Properties.Duration.TotalSeconds,
                                 TrackNumber = tag.Track,
                                 Year = tag.Year,
-                                CoverArt = tag.Pictures.Length > 0 ? tag.Pictures[0].Data.Data : null,
                                 RawLrcContent = lrcContent
                             };
 

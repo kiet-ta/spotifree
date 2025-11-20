@@ -59,7 +59,7 @@
                                                     <Image Width="32"
                                                            Height="32"
                                                            Margin="0,0,8,0"
-                                                           Source="{Binding CoverArt, Converter={StaticResource TrackCoverConverter}}" />
+                                                           Source="{Binding FilePath, Converter={StaticResource TrackCoverConverter}}" />
                                                     <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
                                                 </StackPanel>
                                             </DataTemplate>
