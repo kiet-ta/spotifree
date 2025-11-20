@@ -141,7 +141,6 @@ namespace Spotifree.Services
             return File.Exists(metadataPath);
         }
 
-        }
         public Task<IEnumerable<LocalTrack>> SearchTracksAsync(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
